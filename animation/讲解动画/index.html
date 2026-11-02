@@ -59,9 +59,9 @@ body.index .shell{grid-template-rows:auto}
     <div>
       <div class="eyebrow">CYBER-PULSE · EXPLAINER SERIES</div>
       <h1>一块压电膜，<br>如何学会<em>“把脉”</em></h1>
-      <p>这组动画把这几天的改进拆成 11 个可暂停的场景，外加一条演进路线。每个场景先给一个生活比喻，再上真实数字：为什么隔峰、为什么加质量门、为什么高心率要换算法、为什么机构必须这么装。不需要数据背景也能跟上。</p>
+      <p>这组动画把这几天的改进拆成 12 个可暂停的场景，外加一条演进路线。每个场景先给一个生活比喻，再上真实数字：为什么隔峰、为什么加质量门、为什么高心率要换算法、为什么机构必须这么装。不需要数据背景也能跟上。</p>
       <div class="meta">
-        <span><b>11</b> 主题 + 路线</span>
+        <span><b>12</b> 主题 + 路线</span>
         <span><b>200 Hz</b> 真实波形</span>
         <span><b>±2 BPM</b> 同刻对照</span>
         <span><b>0</b> 悬空误报</span>
@@ -91,8 +91,8 @@ body.index .shell{grid-template-rows:auto}
       <p>从“能不能信”的状态机，到会猜会改口的卡尔曼、看整段形态的模板、三路证据融合。讲清为什么高心率不能靠打补丁。</p>
     </div>
     <div class="act">
-      <b>第三幕 · 08–11</b>
-      <p>把算法装进真实系统：BLE 数据链、三明治机构、同刻对照验收；最后加上 D4 的六条边界门控。</p>
+      <b>第三幕 · 08–12</b>
+      <p>把算法装进真实系统：BLE 数据链、三明治机构、同刻对照验收；最后拆成 D4 时基/CV 与四个边界。</p>
     </div>
   </div>
 
@@ -176,18 +176,24 @@ body.index .shell{grid-template-rows:auto}
       <p>你先跑、我再跑会差出 82 vs 68；必须同一秒对表。把坏段剔掉，−9.4 变 −0.2。</p>
       <div class="kv"><span><b>±2 BPM</b></span><span>最好 −0.2</span></div>
     </a>
-    <a class="card" href="11-边界门控.html">
-      <div class="n"><span>11</span><b>D4 · 边界</b></div>
-      <h3>边界门控</h3>
-      <p>今天没加新方法：78 的主因是延迟；CV 算在 i+2 上天然规整，没挡住。其余是冷启动、旧值、跑步、采集边界。</p>
-      <div class="kv"><span>主因：延迟</span><span>CV 算 i+2</span><span><b>72–84</b></span></div>
+    <a class="card" href="11-时基.html">
+      <div class="n"><span>11</span><b>D4 · 时基</b></div>
+      <h3>时基与 CV</h3>
+      <p>78 的主因只有一个：延迟。CV 算在 i+2 上天然规整，没挡住；先修 seq 时基，再把 CV 算 i+1。</p>
+      <div class="kv"><span>217ms 卡顿</span><span>CV 算 i+2</span><span><b>72–84</b></span></div>
+    </a>
+    <a class="card" href="12-边界门控.html">
+      <div class="n"><span>12</span><b>D4 · 边界</b></div>
+      <h3>其他边界</h3>
+      <p>冷启动、App 旧值、跑步 i+2 偏差、采集层假故障。每个都按“现象→原理→门控→结果”讲。</p>
+      <div class="kv"><span>3.5s 首出</span><span>57 帧零假阳</span><span><b>49/49</b></span></div>
     </a>
   </div>
 
   <div class="route">
     <div>
       <b>5 分钟快讲路线</b>
-      <p>先看 <a href="00-演进.html" style="color:#62f0b6">00 版本轨</a> → 01 看波形 → 03 悬空 118 s 归零 → 06 高心率 150→75 → 09 棉花 −8.4 → 10 ±2 BPM → 11 边界门控。讲完“为什么现在这套能工作、哪里还不够”。</p>
+      <p>先看 <a href="00-演进.html" style="color:#62f0b6">00 版本轨</a> → 01 看波形 → 03 悬空 118 s 归零 → 06 高心率 150→75 → 09 棉花 −8.4 → 10 ±2 BPM → 11 时基与 CV → 12 其他边界。讲完“为什么现在这套能工作、哪里还不够”。</p>
     </div>
     <div>
       <b>操作方式</b>

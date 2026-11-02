@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>11 · 边界门控（D4） | 赛博把脉</title>
+<title>11 · 时基与 CV（D4） | 赛博把脉</title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -12,11 +12,11 @@
     <div class="brand"><b>赛博把脉</b><span>CYBER-PULSE</span></div>
     <div class="crumb"><span>讲解动画</span><i>/</i><span>11</span></div>
     <div class="spacer"></div>
-    <div class="topic-tag">11 · 边界门控</div>
+    <div class="topic-tag">11 · 时基与 CV</div>
     <a class="home" href="index.html">目录</a>
   </header>
   <main class="stage">
-    <div class="source" id="source">D4 实测记录 · 时间戳压缩 / CV 门 / 冷启动 / 补发期 / 跑步边界</div>
+    <div class="source" id="source">D4 实测记录 · 78 恒定 / 217ms 卡顿 / seq 时基 / CV 算 i+2</div>
     <canvas id="cv"></canvas>
     <div class="hint">空格 播放/暂停 · ← → 单步 · R 重置</div>
   </main>
@@ -35,10 +35,10 @@
       </div>
       <div id="extra"><div class="iter-card">
         <div class="ic-head"><span>本页在迭代中的位置</span><a href="00-演进.html">全程 →</a></div>
-        <div class="ic-row"><b>问题</b><span>边界失守，算法会“编造”一个数</span></div>
-        <div class="ic-row"><b>线索</b><span>78 恒定 / 悬空 78 / 跑步 78</span></div>
-        <div class="ic-row"><b>改动</b><span>时基、CV、冷启动、数据新鲜度</span></div>
-        <div class="ic-row"><b>结果</b><span>0–1 BPM；0 假阳；46/49 出数</span></div>
+        <div class="ic-row"><b>问题</b><span>78 恒定，像是历史最佳</span></div>
+        <div class="ic-row"><b>线索</b><span>主循环滞后 217ms；CV 算 i+2</span></div>
+        <div class="ic-row"><b>改动</b><span>seq×5ms；CV 应算 i+1</span></div>
+        <div class="ic-row"><b>结果</b><span>72–84；CV 0.09；同刻 1 BPM</span></div>
         <div class="ic-row bad"><b>遗留</b><span>跑步 i+2 仍偏 3–14 BPM</span></div>
       </div></div>
       <div class="controls">
@@ -114,70 +114,101 @@ function overviewScene(ctx, y0) {
   });
   A.text(ctx, '注：悬空 78 是 App 旧值；跑步 78 是 i+2 偏差——都不是延迟 78。', 60, y0 + 330, { size: 10, color: '#8fa5a2' });
 }
+function pathScene(ctx, t, y0) {
+  const items = [
+    ['01', '78 恒定', 'σ≈0，像历史最佳', C.coral],
+    ['02', '先加 CV 门', '想滤掉噪声', C.amber],
+    ['03', 'CV 没挡住', 'i+2 天然规整', C.coral],
+    ['04', '查主循环', '滞后 217ms', C.cyan],
+    ['05', 'seq 时基', '72–84', C.mint]
+  ];
+  A.text(ctx, '今天的实际顺序：先误判，后抓到延迟', 60, y0 + 34, { size: 16, color: '#e8f2ef' });
+  A.text(ctx, '不是六个并列的坑；是一条因果链', 60, y0 + 58, { size: 11, color: '#8fa5a2' });
+  items.forEach((it, i) => {
+    const x = 100 + i * 190, y = y0 + 170;
+    A.dot(ctx, x, y, 12, it[3], true);
+    A.text(ctx, it[0], x, y + 4, { size: 9, mono: true, color: '#071013', align: 'center' });
+    A.text(ctx, it[1], x, y + 42, { size: 12.5, weight: 600, color: it[3], align: 'center' });
+    A.text(ctx, it[2], x, y + 64, { size: 10, color: '#8fa5a2', align: 'center' });
+    if (i < 4) A.arrow(ctx, x + 20, y, x + 166, y, '#2a4046', 1.2);
+  });
+  A.text(ctx, 'CV 只是缓解；根因只有一个：延迟', 60, y0 + 300, { size: 15, color: '#ffb454' });
+  A.text(ctx, '下一幕：把窗宽缩到 600ms，看 217ms 的卡顿怎样压缩时间戳。', 60, y0 + 330, { size: 11, color: '#c6d6c2' });
+}
+
 function timeScene(ctx, t, y0) {
-  const bx = 60, by = y0 + 42, bw = 660, bh = 118;
-  // schematic waveform: peaks every 365 ms, with noise (display only)
-  const N = 600, wave = [];
+  const bx = 60, by = y0 + 50, bw = 720, bh = 100;
+  // 600 ms window: 217 ms lag is 1/3 of the width
+  const N = 120, wave = [];
   for (let i = 0; i < N; i++) {
     const tt = i / 200;
-    let v = 0.06 * (Math.sin(i * 1.7) * .5 + Math.sin(i * .37 + 1) * .5);
-    for (let k = 0; k < 8; k++) {
-      const dt = tt - (.15 + k * .365);
-      v += Math.exp(-Math.pow(dt / .035, 2));
-    }
+    let v = .05 * (Math.sin(i * 1.7) * .5 + Math.sin(i * .37 + 1) * .5);
+    [.10, .465].forEach(p => v += Math.exp(-Math.pow((tt - p) / .026, 2)));
     wave.push(v);
   }
   const env = A.envMax(wave, 5, 5);
   const X = i => bx + i / (N - 1) * bw;
-  const Y = v => by + bh - Math.min(v, 1.2) / 1.2 * bh;
-  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 28 });
+  const Y = v => by + bh - Math.min(v, 1.15) / 1.15 * bh;
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 24 });
   A.path(ctx, wave.map((v, i) => [X(i), Y(v)]), { color: 'rgba(98,240,182,.35)', width: 1 });
   A.path(ctx, env.map((v, i) => [X(i), Y(v)]), { color: '#7df9c4', width: 2, glow: '#62f0b6' });
-  A.text(ctx, '示意波形：噪声峰按实测间隔 365ms 重排（显示用）', bx, by - 10, { size: 10.5, mono: true, color: '#8fa5a2' });
-  // peak markers
-  for (let k = 0; k < 8; k++) {
-    const idx = Math.round((.15 + k * .365) * 200);
-    A.dot(ctx, X(idx), Y(env[idx]), 3.5, k % 2 ? '#57c8ff' : '#ffb454');
-  }
-  // seq ruler
-  const y1 = by + bh + 30;
+  A.text(ctx, '窗宽 600ms（放大看）', bx, by - 12, { size: 11, mono: true, color: '#e8f2ef' });
+  [.10, .465].forEach((p, i) => A.dot(ctx, bx + p / .6 * bw, Y(env[Math.round(p * 200)]), 4, i ? '#57c8ff' : '#ffb454'));
+  [0, .3, .6].forEach(p => {
+    const x = bx + p / .6 * bw;
+    A.line(ctx, x, by + bh, x, by + bh + 5, { color: '#2a4046' });
+    A.text(ctx, Math.round(p * 1000) + ' ms', x, by + bh + 17, { size: 9, mono: true, color: '#637875', align: 'center' });
+  });
+
+  // ADC clock: one window every 25 ms
+  const y1 = by + bh + 44;
   A.line(ctx, bx, y1, bx + bw, y1, { color: '#2a4046' });
-  A.text(ctx, '采样序号（真实时钟）', bx, y1 - 8, { size: 10, mono: true, color: '#62f0b6' });
-  for (let k = 0; k < 8; k++) {
-    const x = bx + (.15 + k * .365) / 3 * bw;
+  A.text(ctx, 'ADC 采样时钟：5ms/窗口（每 25ms 标一格）', bx, y1 - 10, { size: 10, mono: true, color: '#62f0b6' });
+  for (let k = 0; k * .025 < .6; k++) {
+    const x = bx + k * .025 / .6 * bw;
     A.line(ctx, x, y1 - 5, x, y1 + 5, { color: '#62f0b6' });
   }
-  A.text(ctx, 'i+2 ≈ 730ms（按序号）', bx + bw, y1 + 16, { size: 9.5, mono: true, color: '#8fa5a2', align: 'right' });
-  // proc ruler (compressed)
-  const y2 = y1 + 58;
+
+  // main loop: stuck for 217 ms, then processes the backlog
+  const y2 = y1 + 48;
   A.line(ctx, bx, y2, bx + bw, y2, { color: '#2a4046' });
-  A.text(ctx, '处理时间戳（滞后 217ms）', bx, y2 - 8, { size: 10, mono: true, color: '#ff6f6f' });
+  A.text(ctx, '主循环处理：卡顿后一次性打时间戳', bx, y2 - 10, { size: 10, mono: true, color: '#ff6f6f' });
+  const lx0 = bx + .183 / .6 * bw, lx1 = bx + .400 / .6 * bw;
+  A.line(ctx, lx0, y2 - 12, lx1, y2 - 12, { color: '#ff6f6f', width: 2 });
+  A.text(ctx, '卡住 217ms', (lx0 + lx1) / 2, y2 - 18, { size: 10, mono: true, color: '#ff6f6f', align: 'center' });
+  A.line(ctx, lx1, y2 - 8, lx1, y2 + 12, { color: '#ff6f6f', width: 3 });
+  for (let k = 0; k < 8; k++) A.line(ctx, lx1 + k * 1.2, y2 - 6, lx1 + k * 1.2, y2 + 6, { color: '#ffb454', width: 1 });
+
+  // 40 ms inset: all backlog timestamps collapse to one instant
+  const ix = 60, iy = y2 + 42, iw = 360;
+  A.text(ctx, '40ms 放大：恢复处理时，40 个窗口挤在 ~1ms', ix, iy - 8, { size: 9.8, mono: true, color: '#ff9a9a' });
+  A.line(ctx, ix, iy + 24, ix + iw, iy + 24, { color: '#2a4046' });
   for (let k = 0; k < 8; k++) {
-    const wobble = (k === 3 || k === 4) ? -.18 : (k === 5 ? .08 : 0);
-    const x = bx + (.15 + k * .365 + wobble) / 3 * bw;
-    A.line(ctx, x, y2 - 5, x, y2 + 5, { color: k === 3 || k === 4 ? '#ff6f6f' : '#ffb454' });
+    const x = ix + k * 5 / 40 * iw;
+    A.line(ctx, x, iy + 16, x, iy + 24, { color: '#62f0b6' });
   }
-  const xa = bx + (.15 + 3 * .365 - .18) / 3 * bw, xb2 = bx + (.15 + 4 * .365 - .18) / 3 * bw;
-  A.line(ctx, xa, y2 + 14, xb2, y2 + 14, { color: '#ff6f6f' });
-  A.text(ctx, 'Δt 被压缩', (xa + xb2) / 2, y2 + 28, { size: 9.5, mono: true, color: '#ff6f6f', align: 'center' });
+  for (let k = 0; k < 8; k++) A.line(ctx, ix + 20 / 40 * iw + k * .8, iy + 24, ix + 20 / 40 * iw + k * .8, iy + 34, { color: '#ff6f6f' });
+  A.text(ctx, 'ADC', ix + iw + 8, iy + 20, { size: 9, mono: true, color: '#62f0b6' });
+  A.text(ctx, '处理', ix + iw + 8, iy + 32, { size: 9, mono: true, color: '#ff6f6f' });
+
   // right panel
-  const rx = 780;
-  A.text(ctx, '同一段数据，修复前后', rx, y0 + 64, { size: 11, mono: true, color: '#637875' });
-  A.text(ctx, '修复前', rx, y0 + 92, { size: 10.5, mono: true, color: '#ff6f6f' });
-  A.text(ctx, '78 恒定', rx, y0 + 124, { size: 28, mono: true, color: '#ff6f6f' });
-  A.text(ctx, 'CV 0.17 · σ 0.6', rx, y0 + 146, { size: 10.5, mono: true, color: '#ff9a9a' });
-  A.text(ctx, '修复后', rx, y0 + 180, { size: 10.5, mono: true, color: '#62f0b6' });
-  A.text(ctx, '72–84 自然波动', rx, y0 + 210, { size: 20, mono: true, color: '#62f0b6' });
-  A.text(ctx, 'CV 0.09', rx, y0 + 230, { size: 10.5, mono: true, color: '#8ef0c8' });
-  A.chip(ctx, rx, y0 + 248, '门控：seq × 5ms 时基', '#57c8ff');
-  // general principle
-  A.rr(ctx, rx, y0 + 276, 310, 96, 3); ctx.fillStyle = 'rgba(87,200,255,.05)'; ctx.fill();
+  const rx = 820;
+  A.text(ctx, '为什么之前看不出来', rx, y0 + 60, { size: 12, mono: true, color: '#637875' });
+  A.text(ctx, '窗宽 3s 时，217ms 只占 7%，', rx, y0 + 86, { size: 10.5, color: '#c6d6c2' });
+  A.text(ctx, '看起来像“正常抖动”。', rx, y0 + 104, { size: 10.5, color: '#c6d6c2' });
+  A.text(ctx, '600ms 窗里，它占 1/3。', rx, y0 + 132, { size: 11, color: '#ffb454' });
+  A.text(ctx, '采样序号：5ms 一步', rx, y0 + 170, { size: 10.5, mono: true, color: '#62f0b6' });
+  A.text(ctx, '处理时间戳：卡顿后一次性打', rx, y0 + 192, { size: 10.5, mono: true, color: '#ff6f6f' });
+  A.text(ctx, '→ 间隔压缩 → 78 恒定', rx, y0 + 220, { size: 12, color: '#ff9a9a' });
+  A.chip(ctx, rx, y0 + 242, '修复：seq×5ms → 72–84', '#62f0b6');
+  A.rr(ctx, rx, y0 + 278, 310, 96, 3); ctx.fillStyle = 'rgba(87,200,255,.05)'; ctx.fill();
   ctx.strokeStyle = 'rgba(87,200,255,.3)'; ctx.stroke();
-  A.text(ctx, '通用原则', rx + 12, y0 + 296, { size: 10, mono: true, color: '#57c8ff' });
-  A.text(ctx, '时间基准 = 采样序号 / 硬件时钟，', rx + 12, y0 + 316, { size: 10.2, color: '#c6d6c2' });
-  A.text(ctx, '不是处理线程的 now()。', rx + 12, y0 + 333, { size: 10.2, color: '#c6d6c2' });
-  A.text(ctx, 'ADC / IMU / 音频 / 摄像头同理。', rx + 12, y0 + 352, { size: 9.8, color: '#8fa5a2' });
+  A.text(ctx, '通用原则', rx + 12, y0 + 298, { size: 10, mono: true, color: '#57c8ff' });
+  A.text(ctx, '时间基准 = 采样序号 / 硬件时钟，', rx + 12, y0 + 318, { size: 10.2, color: '#c6d6c2' });
+  A.text(ctx, '不是处理线程的 now()。', rx + 12, y0 + 335, { size: 10.2, color: '#c6d6c2' });
+  A.text(ctx, 'ADC / IMU / 音频 / 摄像头同理。', rx + 12, y0 + 354, { size: 9.8, color: '#8fa5a2' });
 }
+
 function cvScene(ctx, t, y0) {
   const bx = 60, by = y0 + 94, bw = 660;
   // weak-signal waveform: noise peaks near 350 ms
@@ -345,45 +376,21 @@ function connScene(ctx, t, y0) {
 const steps = [
   {
     tag: 'D4 复盘', dur: 6,
-    title: '78 的根因只有一个：延迟；CV 是误判后的缓解',
-    body: '今天的实际顺序是：看到 78 恒定、σ≈0 → 先怀疑弱信号，加 CV 门 → CV 算在 i+2 上，i+2 天然规整（CV 0.068），<b>没挡住，反而把自然抖动滤掉、让 78 更像“历史最佳”（σ≈0）</b> → 才去查主循环，发现滞后 <b>217ms</b> → 改 <b>seq 时基</b> → 72–84。根因只有一个：延迟；CV 没治好，只是缓解，顺序反了会帮倒忙。',
-    extra: '这条原则适用于所有采样系统：时间基准来自采样序号/硬件时钟；门控算在原始 i+1，不算派生 i+2。'
+    title: '今天先误判了 CV，才抓到真正的延迟',
+    body: '今天的实际顺序是：看到 78 恒定、σ≈0 → 先怀疑弱信号，加 CV 门 → CV 算在 i+2 上，i+2 天然规整（CV 0.068），<b>没挡住，反而把自然抖动滤掉、让 78 更像“历史最佳”</b> → 才去查主循环，发现滞后 <b>217ms</b> → 改 <b>seq 时基</b> → 72–84。根因只有一个：延迟；CV 没治好，只是缓解。',
+    extra: '下一页把 600ms 窗放大：看 217ms 的卡顿怎样把时间戳压在一起。'
   },
   {
-    tag: '时基', dur: 8,
-    title: '78 只有一个主因：处理延迟压缩了时间戳',
-    body: '主循环每 500ms 有 15ms 模板匹配、每 5 秒还有调试打印，实测滞后 <b>217ms</b>。卡顿期间 ADC 一直在采样，恢复处理时多个窗口的时间戳几乎相同，间隔被压缩，BPM 就失真。CV 治不了：它算在 i+2 上，i+2 天然规整，CV 低→放行；再把自然抖动滤掉，78 反而更稳。<b>修复不是加滤波，而是把时基换成采样序号 seq×5ms</b>。',
+    tag: '时基', dur: 10,
+    title: '78 的唯一主因：处理延迟压缩了时间戳',
+    body: '主循环每 500ms 有 15ms 模板匹配、每 5 秒还有调试打印，实测滞后 <b>217ms</b>。卡顿期间 ADC 一直在采样，恢复处理时 <b>40 个窗口挤在 1ms 内</b>，时间戳几乎相同，间隔被压缩。CV 门算在 i+2 上，i+2 天然规整，CV 低→放行；它没治延迟，反而让 78 更稳。<b>修复：seq×5ms 时基</b>，输出 72–84。',
     extra: '任何采样系统都一样：时间基准来自采样序号/硬件时钟，不是处理线程的 now()。'
   },
   {
     tag: 'CV 门', dur: 8,
-    title: 'CV 门为什么没治好 78：它算在 i+2 上',
-    body: 'CV 只有算在 <b>i+1 原始间隔</b>上才有意义：真脉搏 750–780ms，CV 0.020；弱信号噪声卡 350ms 不应期，CV 0.17；<b>CV>0.12 不出数</b>（若算 i+1）。时基修好后同刻误差 1 BPM，46/49 帧正常出数。但固件算的是 <b>i+2</b>：i+2 是两个心动周期，天然规整，CV≈0.02 → 门控放行。它没治延迟，反而把不规整的噪声滤掉，让 78 更稳。',
-    extra: '门控要作用在原始量上；派生量 i+2 天然规整，不能拿来验规律性。正确顺序：先修时基，再把 CV 算在 i+1。'
-  },
-  {
-    tag: '冷启动', dur: 7,
-    title: '刚开机先别信：至少 5 个间隔 + 2 秒',
-    body: '冷启动只有 3 个间隔时，任何统计量都不可靠，可能偶然放行一个伪值。固件改成<b>至少 5 个间隔、连续 4 帧（2 秒）通过校验</b>才输出。首次出数延迟到 <b>3.5 秒</b>，但复位后不再出现“先空一下再跳数”。',
-    extra: '宁可晚 3.5 秒，也不先给一个假数。'
-  },
-  {
-    tag: '数据层', dur: 9,
-    title: '悬空 78：不是测量 78，是 App 显示了旧值',
-    body: '补发突发确实把 p50 抬到 18–20，于是补发期把质量门从 18 收紧到 30。但“悬空 78”的真因是 App 被冻结后<b>显示了断线前的旧值</b>，连接状态是僵尸。<b>数据 1.5 秒不新鲜就判未连接</b>，配 4 秒看门狗；验证 57 帧零假阳，双端 12/12 一致。',
-    extra: '两次误判提醒：先确认“看到的数是不是新的”，再怀疑算法。'
-  },
-  {
-    tag: '跑步边界', dur: 8,
-    title: '跑步的 78 不是伪迹：真心率 80–92',
-    body: '两组慢跑用自相关算基频：赵 <b>80</b>、张 <b>90 BPM</b>；IMU 步频 <b>174/192</b>，与心率不同频、互相关 r≈0.2，步态耦合不成立。设备显示 78/82，偏差 <b>3–14 BPM</b> 来自 i+2 配对。这个边界暂时没有门控，下一步用自相关/模板独立校验。',
-    extra: '别把“设备显示 78”当成伪迹删掉；先问真值是多少。'
-  },
-  {
-    tag: '采集边界', dur: 8,
-    title: '连接层的三个“假故障”，也会伪装成信号问题',
-    body: '串口一开板子就复位（pyserial 默认拉 DTR/RTS）、重复 GATT 抢唯一连接位、Android 扫描节流 code=100。对应三个采集门控：<b>open 前关 DTR/RTS</b>、<b>连接互斥 + 15 秒超时</b>、<b>测试前重启手机</b>。结果：49/49 帧出数、悬空 105 帧零假阳、0 次复位。',
-    extra: '排查顺序：先确认链路和数据新鲜度，再怀疑算法。'
+    title: 'CV 为什么没治好：它算在 i+2 上',
+    body: 'CV 只有算在 <b>i+1 原始间隔</b>上才有意义：真脉搏 750–780ms，CV 0.020；弱信号噪声卡 350ms 不应期，CV 0.17；<b>CV>0.12 不出数</b>（若算 i+1）。但固件算的是 <b>i+2</b>：今天 78 的 i+2 CV 0.068（只拒 5%），真脉搏 0.012，门控必然放行。它没治延迟，反而把自然抖动滤掉，让 78 更稳。',
+    extra: '门控要作用在原始量上；派生量 i+2 天然规整，不能拿来验规律性。先修时基，再把 CV 算 i+1。'
   }
 ];
 const C = {
@@ -396,10 +403,10 @@ const deck = new Deck({
     const y0 = 108, s = deck.step, t = deck.t;
     const cards = [
       [
-        { v: '屏幕上的数不对', s: '无检出 / 不稳 / 伪迹', c: C.coral },
-        { v: '先找数据里的证据', s: '时基、CV、p50、新鲜度', c: C.cyan },
-        { v: '先修时基，再谈门控', s: '顺序错了，门控会帮倒忙', c: C.mint },
-        { v: '同刻对照验证', s: '0–1 BPM / 0 假阳', c: C.mint }
+        { v: '78 恒定', s: 'σ≈0，像历史最佳', c: C.coral },
+        { v: '处理时基 ≠ 采样时基', s: '217ms 卡顿', c: C.amber },
+        { v: '先 seq，再 CV', s: 'CV 应算 i+1', c: C.mint },
+        { v: '72–84', s: 'CV 0.09', c: C.mint }
       ],
       [
         { v: '恒定 78，σ=0.6', s: 'BPM 几乎不动', c: C.coral },
@@ -412,41 +419,12 @@ const deck = new Deck({
         { v: 'i+2 是两个心动周期', s: 'CV 天然很小，挡不住', c: C.amber },
         { v: 'CV 应算 i+1', s: '真 0.02 / 噪声 0.17', c: C.mint },
         { v: '先时基，后 CV', s: '顺序反了会帮倒忙', c: C.mint }
-      ],
-      [
-        { v: '重启先空后跳 78', s: '瞬态假值', c: C.coral },
-        { v: '3 个间隔算 CV 不可靠', s: '冷启动保护', c: C.amber },
-        { v: '≥5 间隔 + 2s 连续', s: '首次出数 3.5s', c: C.mint },
-        { v: '复位无瞬态 78', s: '宁可晚一点', c: C.mint }
-      ],
-      [
-        { v: '悬空连蓝牙显示 78', s: '两次误判', c: C.coral },
-        { v: '补发抬 p50；真因是旧值', s: 'App 僵尸状态', c: C.amber },
-        { v: 'p50 30 + 数据 1.5s', s: '4s 看门狗', c: C.mint },
-        { v: '57 帧零假阳', s: '断线 6s 恢复', c: C.mint }
-      ],
-      [
-        { v: '跑步显示 78/82', s: '被当成伪迹', c: C.coral },
-        { v: '自相关 80/90', s: '步频 174/192 不同频', c: C.cyan },
-        { v: '暂无门控', s: 'i+2 仍偏 3–14', c: C.amber },
-        { v: '真实 80–92', s: '待自相关/模板', c: C.mint }
-      ],
-      [
-        { v: '莫名断连 / 复位', s: '像是传感器坏了', c: C.coral },
-        { v: 'DTR / GATT / 扫描节流', s: '三个采集层真凶', c: C.amber },
-        { v: '关 DTR / 互斥 / 停旧扫描', s: '采集门控', c: C.mint },
-        { v: '49/49，105 帧零假阳', s: '0 次复位', c: C.mint }
-      ],
+      ]
     ][s];
     gateRow(ctx, cards, phaseOf(t));
-    if (s === 0) overviewScene(ctx, y0);
+    if (s === 0) pathScene(ctx, t, y0);
     else if (s === 1) timeScene(ctx, t, y0);
-    else if (s === 2) cvScene(ctx, t, y0);
-    else if (s === 3) coldScene(ctx, t, y0);
-    else if (s === 4) replayScene(ctx, t, y0);
-    else if (s === 5) runScene(ctx, t, y0);
-    else if (s === 6) connScene(ctx, t, y0);
-    else { /* end */ }
+    else cvScene(ctx, t, y0);
     footer(ctx, s < steps.length - 1 ? '下一页：' + steps[s + 1].tag + ' →' : '回到目录');
     ctx.restore();
   }

@@ -328,14 +328,14 @@ body.evo .shell{grid-template-rows:auto;height:auto;padding-bottom:60px}
       <p>每一条都是“现象 → 识别原理 → 门控 → 结果”，目标是不伤真信号。</p>
     </div>
     <div class="d4-grid">
-      <a href="11-边界门控.html"><b>G1 时基</b><p>恒定 78：主循环滞后 217ms，窗口时间戳被压缩。</p><em>seq×5ms → 72–84，CV 0.17→0.09</em></a>
-      <a href="11-边界门控.html"><b>G2 CV 门</b><p>CV 算在 i+2 上天然规整，没挡住延迟 78；CV 应算 i+1。</p><em>时基修好后 1 BPM，46/49；CV 应算 i+1</em></a>
-      <a href="11-边界门控.html"><b>G3 冷启动</b><p>3 个间隔的统计不可靠，先空后跳数。</p><em>≥5 间隔+2s → 首出 3.5s</em></a>
-      <a href="11-边界门控.html"><b>G4 补发 / 旧值</b><p>悬空 78：补发抬 p50，真因是 App 显示旧值。</p><em>p50 30 + 数据 1.5s → 57 帧零假阳</em></a>
-      <a href="11-边界门控.html"><b>G5 跑步边界</b><p>显示 78/82，不是伪迹；自相关真实 80–90。</p><em>i+2 仍偏 3–14，待自相关/模板</em></a>
-      <a href="11-边界门控.html"><b>G6 采集边界</b><p>DTR 复位、重复 GATT、扫描节流伪装成信号故障。</p><em>0 复位，49/49，105 帧零假阳</em></a>
+      <a href="11-时基.html"><b>G1 时基</b><p>恒定 78：主循环滞后 217ms，窗口时间戳被压缩。</p><em>seq×5ms → 72–84，CV 0.17→0.09</em></a>
+      <a href="11-时基.html"><b>G2 CV 门</b><p>CV 算在 i+2 上天然规整，没挡住延迟 78；CV 应算 i+1。</p><em>时基修好后 1 BPM，46/49；CV 应算 i+1</em></a>
+      <a href="12-边界门控.html"><b>G3 冷启动</b><p>3 个间隔的统计不可靠，先空后跳数。</p><em>≥5 间隔+2s → 首出 3.5s</em></a>
+      <a href="12-边界门控.html"><b>G4 补发 / 旧值</b><p>悬空 78：补发抬 p50，真因是 App 显示旧值。</p><em>p50 30 + 数据 1.5s → 57 帧零假阳</em></a>
+      <a href="12-边界门控.html"><b>G5 跑步边界</b><p>显示 78/82，不是伪迹；自相关真实 80–90。</p><em>i+2 仍偏 3–14，待自相关/模板</em></a>
+      <a href="12-边界门控.html"><b>G6 采集边界</b><p>DTR 复位、重复 GATT、扫描节流伪装成信号故障。</p><em>0 复位，49/49，105 帧零假阳</em></a>
     </div>
-    <a class="d4-link" href="11-边界门控.html">进 11 看完整六条 →</a>
+    <a class="d4-link" href="11-时基.html">进 11 看时基与 CV →</a><br><a class="d4-link" href="12-边界门控.html">进 12 看其他边界 →</a>
   </section>
 
   <section class="summary">
@@ -351,7 +351,7 @@ body.evo .shell{grid-template-rows:auto;height:auto;padding-bottom:60px}
     <div class="readmap">
       <div><b>想看“为什么能测”</b><p><a href="01-signal.html">01 信号</a> → <a href="02-隔峰.html">02 隔峰</a> → <a href="03-假阳性.html">03 假阳性</a></p></div>
       <div><b>想看“算法怎么升级”</b><p><a href="05-卡尔曼.html">05 卡尔曼</a> → <a href="06-模板匹配.html">06 模板 NCC</a> → <a href="07-贝叶斯.html">07 贝叶斯</a></p></div>
-      <div><b>想看“工程怎么落地”</b><p><a href="08-数据链.html">08 数据链</a> → <a href="09-机构.html">09 机构</a> → <a href="10-精度验证.html">10 验证</a> → <a href="11-边界门控.html">11 边界</a></p></div>
+      <div><b>想看“工程怎么落地”</b><p><a href="08-数据链.html">08 数据链</a> → <a href="09-机构.html">09 机构</a> → <a href="10-精度验证.html">10 验证</a> → <a href="11-时基.html">11 时基</a> → <a href="12-边界门控.html">12 边界</a></p></div>
     </div>
   </section>
 </div>
