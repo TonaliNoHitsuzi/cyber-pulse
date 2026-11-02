@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>00 · 演进路线 | 赛博把脉</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+body.evo{overflow:auto}
+body.evo .shell{grid-template-rows:auto;height:auto;padding-bottom:60px}
+.evo-hero{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+.evo-hero .eyebrow{font:11px/1 var(--mono);color:var(--mint);letter-spacing:.32em}
+.evo-hero h1{font-family:var(--serif);font-size:clamp(32px,4.2vw,54px);line-height:1.12;margin:14px 0 14px;font-weight:600}
+.evo-hero h1 em{font-style:normal;color:var(--mint)}
+.evo-hero p{max-width:860px;color:#b9cbc7;line-height:1.85;font-size:15px}
+.evo-stats{display:flex;gap:34px;flex-wrap:wrap;margin-top:24px}
+.evo-stat b{display:block;font:26px/1 var(--mono);color:var(--mint)}
+.evo-stat span{display:block;margin-top:6px;font:10.5px/1.3 var(--mono);color:var(--dim2);letter-spacing:.06em}
+.evo-stat.bad b{color:var(--coral)}
+.evo-stat.amber b{color:var(--amber)}
+.model{display:grid;grid-template-columns:160px minmax(0,1fr);gap:18px;border-left:2px solid var(--mint);background:rgba(98,240,182,.05);padding:14px 18px;margin-top:24px}
+.model b{font:10px/1.5 var(--mono);color:var(--mint);letter-spacing:.12em}
+.model p{margin:0;font-size:13px;line-height:1.8;color:#b9cbc7}
+
+.rail-wrap{margin:26px 0 8px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 0}
+.rail-label{font:10px/1 var(--mono);color:var(--dim2);letter-spacing:.16em;margin-bottom:10px}
+.rail{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding-bottom:4px}
+.rail a{flex:0 0 auto;text-decoration:none;color:inherit;border:1px solid var(--line);padding:9px 11px;min-width:112px;background:rgba(14,22,25,.5)}
+.rail a:hover{border-color:var(--mint);background:rgba(98,240,182,.06)}
+.rail a b{display:block;font:10px/1 var(--mono);color:var(--mint);letter-spacing:.08em}
+.rail a span{display:block;margin-top:5px;font-size:11.5px;color:#c6d6d2;white-space:nowrap}
+.rail i{flex:0 0 auto;align-self:center;color:#3c5459;font-style:normal;padding:0 7px;font:12px/1 var(--mono)}
+
+.ep{display:grid;grid-template-columns:96px minmax(0,1fr);gap:28px;padding:30px 0 26px;border-bottom:1px solid var(--line);position:relative}
+.ep-rail{position:relative}
+.ep-rail .v{font:20px/1 var(--mono);color:var(--mint);letter-spacing:.04em}
+.ep-rail .up{display:block;margin-top:8px;font:9.5px/1.4 var(--mono);color:var(--dim2);letter-spacing:.05em}
+.ep-rail .up b{display:block;color:var(--dim);font-weight:500;margin-top:3px}
+.ep-rail::after{content:"";position:absolute;left:7px;top:58px;bottom:-26px;width:1px;background:linear-gradient(180deg,var(--line2),transparent)}
+.ep:last-of-type .ep-rail::after{display:none}
+.ep h2{font-family:var(--serif);font-size:25px;line-height:1.25;margin:0;font-weight:600}
+.ep-top{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.ep-top .badge{font:11px/1 var(--mono);color:var(--amber);border:1px solid rgba(255,180,84,.35);padding:6px 8px;background:rgba(255,180,84,.05)}
+.ep-lead{margin:10px 0 0;color:#b9cbc7;font-size:14px;line-height:1.75;max-width:980px}
+.ep-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:16px}
+.ep-cell{border-top:2px solid var(--line2);padding-top:9px}
+.ep-cell b{display:block;font:9.5px/1 var(--mono);letter-spacing:.12em;margin-bottom:6px}
+.ep-cell p{margin:0;font-size:12.5px;line-height:1.67;color:#c6d6d2}
+.ep-cell.problem{border-top-color:var(--coral)} .ep-cell.problem b{color:var(--coral)}
+.ep-cell.clue{border-top-color:var(--cyan)} .ep-cell.clue b{color:var(--cyan)}
+.ep-cell.change{border-top-color:var(--mint)} .ep-cell.change b{color:var(--mint)}
+.ep-cell.result{border-top-color:var(--amber)} .ep-cell.result b{color:var(--amber)}
+.ep-next{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:14px;align-items:baseline;margin-top:14px;padding:10px 12px;background:rgba(255,180,84,.045);border-left:2px solid rgba(255,180,84,.5)}
+.ep-next b{font:9.5px/1 var(--mono);letter-spacing:.1em;color:var(--amber)}
+.ep-next p{margin:0;font-size:12.5px;line-height:1.6;color:#b9cbc7}
+.ep-next a{font:10.5px/1 var(--mono);color:var(--cyan);text-decoration:none;white-space:nowrap}
+.ep-next a:hover{color:var(--mint)}
+
+.ep.h{grid-template-columns:96px minmax(0,1fr)}
+.ep.h .ep-rail .v{color:var(--cyan)}
+.summary{margin-top:36px;border:1px solid var(--line2);padding:22px 24px;background:linear-gradient(180deg,rgba(14,22,25,.8),rgba(9,14,16,.6))}
+.summary h2{margin:0 0 12px;font-family:var(--serif);font-size:24px}
+.summary ol{margin:0;padding-left:20px;color:#c6d6d2;font-size:13.5px;line-height:1.9}
+.summary b{color:var(--mint)}
+.readmap{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}
+.readmap div{border:1px solid var(--line);padding:14px 16px;background:rgba(14,22,25,.4)}
+.readmap b{display:block;font:10px/1 var(--mono);letter-spacing:.14em;color:var(--cyan);margin-bottom:7px}
+.readmap p{margin:0;font-size:12.5px;line-height:1.65;color:var(--dim)}
+.readmap a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line2)}
+.readmap a:hover{color:var(--mint)}
+@media(max-width:1100px){
+  .ep{grid-template-columns:70px minmax(0,1fr);gap:18px}
+  .ep-grid{grid-template-columns:1fr 1fr}
+  .ep-next{grid-template-columns:1fr;gap:6px}
+}
+@media(max-width:900px){
+  .evo .shell{padding:0 14px}
+  .ep{grid-template-columns:1fr}
+  .ep-rail{display:flex;gap:14px;align-items:baseline}
+  .ep-rail::after{display:none}
+  .ep-rail .up{display:inline-block;margin:0}
+  .ep-grid{grid-template-columns:1fr}
+  .readmap{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body class="evo">
+<div class="shell">
+  <header class="top">
+    <div class="brand"><b>赛博把脉</b><span>CYBER-PULSE</span></div>
+    <div class="crumb"><span>讲解动画</span><i>/</i><span>00 · 演进路线</span></div>
+    <div class="spacer"></div>
+    <div class="topic-tag">工程迭代全记录</div>
+    <a class="home" href="index.html">目录</a>
+  </header>
+
+  <section class="evo-hero">
+    <div class="eyebrow">THE ITERATION LOG</div>
+    <h1>十个知识点，<br>其实是一条<em>被数据推着走</em>的路线</h1>
+    <p>每一版算法都不是凭空想出来的：它先遇到一个具体的失败（多少拍、多少 BPM、多少秒），再从数据或生理特征里找到一个线索，做出一个最小改动，然后看结果、留下新的问题。下面按“问题 → 线索 → 改动 → 结果 → 为什么还要升级”把整条链摊开。看完全程，再回头看任何一个动画，会知道它到底在补哪个洞。</p>
+    <div class="evo-stats">
+      <div class="evo-stat"><b>0 → 82</b><span>真实波形上的拍数</span></div>
+      <div class="evo-stat bad"><b>118 → 0</b><span>悬空假读数 / 秒</span></div>
+      <div class="evo-stat amber"><b>150 → 75 → 150</b><span>高心率：错 → 换算法后</span></div>
+      <div class="evo-stat"><b>±2</b><span>同刻对照 / BPM</span></div>
+    </div>
+    <div class="model">
+      <b>先记住这个<br>工作模型</b>
+      <p><b style="color:#e8f2ef">容积传导 + 多路径叠加</b>：心脏的震动沿血管、肌肉、骨骼传到同一个接触点，速度有快有慢、衰减有大有小。血管这条路最快、衰减小，先到并构成主峰；其他路径晚到、弱，叠成尾巴/底噪。按压力度改变的正是这条主路径的<b style="color:#e8f2ef">信噪比</b>：太松耦合不足，太紧把主路径压扁、底噪还在。</p>
+    </div>
+  </section>
+
+  <div class="rail-wrap">
+    <div class="rail-label">版本轨：V0 是失败起点，之后每一版都只补上一版的洞</div>
+    <div class="rail">
+      <a href="#v0"><b>V0</b><span>包络状态机</span></a><i>→</i>
+      <a href="#v1"><b>V1</b><span>峰普查</span></a><i>→</i>
+      <a href="#v2"><b>V1.1</b><span>隔峰配对</span></a><i>→</i>
+      <a href="#v3"><b>V1.2</b><span>质量门</span></a><i>→</i>
+      <a href="#v4"><b>V1.3</b><span>输出端门控</span></a><i>→</i>
+      <a href="#v5"><b>V2</b><span>状态机</span></a><i>→</i>
+      <a href="#v6"><b>V3</b><span>卡尔曼</span></a><i>→</i>
+      <a href="#v7"><b>V4</b><span>动态配对</span></a><i>→</i>
+      <a href="#v8"><b>V5</b><span>模板 NCC</span></a><i>→</i>
+      <a href="#v9"><b>V6</b><span>贝叶斯</span></a>
+    </div>
+  </div>
+
+  <article class="ep" id="v0">
+    <div class="ep-rail"><div class="v">V0</div><div class="up">起点<b>包络状态机</b></div></div>
+    <div>
+      <div class="ep-top"><h2>先承认：老算法在真实波形上一拍都出不来</h2><span class="badge">0 拍 → 82 峰</span></div>
+      <p class="ep-lead">这是整条路线的起点，也是最反直觉的一步：不是“调参”，而是发现旧算法假设错了。</p>
+      <div class="ep-grid">
+        <div class="ep-cell problem"><b>面对的问题</b><p>旧状态机等“波形回到基线”再算下一拍，但真实脉搏每拍有两个鼓包，它永远等不到，整段输出 <b>0 拍</b></p></div>
+        <div class="ep-cell clue"><b>数据/领域给的线索</b><p>人工看同一段数据明明有脉搏；回放历史数据，发现旧引擎一直卡在“等基线”状态。问题不在传感器，在“拍”的定义。</p></div>
+        <div class="ep-cell change"><b>这次改动</b><p>放弃“回到基线”的假设，改成<b>峰普查</b>：超过阈值 40 就算候选峰，两个峰至少隔 350 ms。</p></div>
+        <div class="ep-cell result"><b>结果</b><p>同一份数据 <b>0 拍 → 82 峰</b>；所有历史“废数据”重放后信号都在。</p></div>
+      </div>
+      <div class="ep-next"><b>为什么还要升级</b><p>峰是有了，但一拍有两个鼓包 —— 每个都数，心率会翻倍。</p><a href="01-signal.html">进 01 →</a></div>
+    </div>
+  </article>
+
+  <article class="ep" id="v1">
+    <div class="ep-rail"><div class="v">V1</div><div class="up">升级自<b>V0 峰普查</b></div></div>
+    <div>
+      <div class="ep-top"><h2>“跳一个峰”：先把一拍认对，再谈心率</h2><span class="badge">167 → 83 BPM</span></div>
+      <p class="ep-lead">这不是拍脑袋的规则，先有一个判决实验；后来又回看了一次：双峰到底是机械余震、生理信号，还是测量方式带进来的两个源？</p>
+      <div class="ep-grid">
+        <div class="ep-cell problem"><b>面对的问题</b><p>见到峰就配对，得到 <b>167 BPM</b>，而真人只有 80 出头 —— 一拍被数成了两拍。</p></div>
+        <div class="ep-cell clue"><b>数据/领域给的线索</b><p>双峰间距约 360 ms。加质量后间距只从 <b>360 → 365 ms</b>，几乎不动 → 不是板子余震。但后来回看：早期“右拇指按左腕”的测法会同时接触两个身体，双峰其实是<b>第二路信号</b>，不能直接当成重搏波。</p></div>
+        <div class="ep-cell change"><b>这次改动</b><p>跳过一个峰，用第 i 个和第 i+2 个配对；中值抗单次抖动。第一路配第一路、第二路配第二路。</p></div>
+        <div class="ep-cell result"><b>结果</b><p>725 ms → <b>83 BPM</b>，与同刻手表 80–82 吻合。</p></div>
+      </div>
+      <div class="ep-next"><b>为什么还要升级</b><p>跑到 150 BPM 时两路信号挤在一起，“隔一个”实际跨了两拍（800 ms），输出 <b>75（半值）</b>。</p><a href="02-隔峰.html">进 02 →</a></div>
+    </div>
+  </article>
+
+  <article class="ep" id="v2">
+    <div class="ep-rail"><div class="v">V1.2</div><div class="up">升级自<b>V1.1 隔峰</b></div></div>
+    <div>
+      <div class="ep-top"><h2>质量门：先证明“这段有脉搏”，再允许出数</h2><span class="badge">118 s → 0 s</span></div>
+      <p class="ep-lead">隔峰解决了“数错”，但没解决“没东西可数”。悬空薄膜给了最刺眼的反例。</p>
+      <div class="ep-grid">
+        <div class="ep-cell problem"><b>面对的问题</b><p>悬空 120 秒，<b>118 秒</b>都在输出约 67 BPM。屏幕上很“稳定”，但根本没贴人。</p></div>
+        <div class="ep-cell clue"><b>数据/领域给的线索</b><p>悬空 p50 只有 <b>12</b>、p95 约 <b>35</b>；贴肤 p50 <b>42–62</b>、p95 <b>114–221</b>。噪声尖峰能凑出 500–1400 ms 的“合法间隔”，但主路径强度/信噪比很低。</p></div>
+        <div class="ep-cell change"><b>这次改动</b><p>同时看“最猛 5%”（p95）和“大多数时候”（p50），本质是在要求<b>信噪比</b>：<b>p95≥45 且 p50≥18</b> 才放行。</p></div>
+        <div class="ep-cell result"><b>结果</b><p>假读数 <b>118 s → 0 s</b>；贴肤好信号复算不受影响。</p></div>
+      </div>
+      <div class="ep-next"><b>为什么还要升级</b><p>第一版把门加在峰值检测里，一弱就丢峰，隔峰配对断链，BPM 变空或算出 <b>56</b>。</p><a href="03-假阳性.html">进 03 →</a></div>
+    </div>
+  </article>
+
+  <article class="ep" id="v3">
+    <div class="ep-rail"><div class="v">V1.3</div><div class="up">升级自<b>V1.2 质量门</b></div></div>
+    <div>
+      <div class="ep-top"><h2>门装错位置：把好信号也弄坏了</h2><span class="badge">76–78 · σ=0.7</span></div>
+      <p class="ep-lead">这是最典型的一次“修复引入新 bug”，也是全项目最重要的工程教训之一。</p>
+      <div class="ep-grid">
+        <div class="ep-cell problem"><b>面对的问题</b><p>加了质量门后，BPM 变空、掉到 56、中途掉零。门越严，坏得越明显。</p></div>
+        <div class="ep-cell clue"><b>数据/领域给的线索</b><p>门在<b>峰值检测</b>里：信号短暂变弱就丢峰 → 隔峰配对错位 → 算出的不是“没数据”，而是“错数据”。</p></div>
+        <div class="ep-cell change"><b>这次改动</b><p>检测保持自由，<b>只在输出端门控</b>；中值窗口 7→9；与中值偏差 &gt;30% 的间隔不入窗。</p></div>
+        <div class="ep-cell result"><b>结果</b><p>稳定按压 <b>76–78 BPM、σ=0.7</b>，中途掉零 0 次。</p></div>
+      </div>
+      <div class="ep-next"><b>为什么还要升级</b><p>数值稳了，但 GOOD/WEAK 状态在门槛附近来回跳，用户看不懂“现在能不能信”。</p><a href="03-假阳性.html">进 03 →</a></div>
+    </div>
+  </article>
+
+  <article class="ep" id="v4">
+    <div class="ep-rail"><div class="v">V2</div><div class="up">升级自<b>V1.3 输出端门控</b></div></div>
+    <div>
+      <div class="ep-top"><h2>状态机：把“能不能信”也变成一个算法输出</h2><span class="badge">GOOD 91–100%</span></div>
+      <p class="ep-lead">数值不是唯一输出。对一个非专业用户，“现在这个数能不能信”同样重要。</p>
+      <div class="ep-grid">
+        <div class="ep-cell problem"><b>面对的问题</b><p>GOOD/WEAK 反复跳；有时屏幕有数，但其实是悬空或过压。</p></div>
+        <div class="ep-cell clue"><b>数据/领域给的线索</b><p>p95 在门槛 52 附近徘徊；状态没有平滑，也没有“质量优先”的优先级。</p></div>
+        <div class="ep-cell change"><b>这次改动</b><p>五状态 + 质量优先 + p95 平滑（τ≈2s）+ 0–4 滞回；测不了时显示 SRCH/---。</p></div>
+        <div class="ep-cell result"><b>结果</b><p>GOOD 占比 <b>91–100%</b>；悬空 0 误报；松手 <b>&lt;1 s</b> 归零。</p></div>
+      </div>
+      <div class="ep-next"><b>为什么还要升级</b><p>静息稳了，但跑步时 9 拍中值滞后 3–5 秒，加速段还会被 ±30% 过滤拒掉。</p><a href="04-状态机.html">进 04 →</a></div>
+    </div>
+  </article>
+
+  <article class="ep" id="v5">
+    <div class="ep-rail"><div class="v">V3</div><div class="up">升级自<b>V2 状态机</b></div></div>
+    <div>
+      <div class="ep-top"><h2>卡尔曼：把“心率正在变快”也放进模型</h2><span class="badge">120 → 83</span></div>
+      <p class="ep-lead">中值只看过去 9 个数，像后视镜；卡尔曼多了一个速度状态，敢往前看。</p>
+      <div class="ep-grid">
+        <div class="ep-cell problem"><b>面对的问题</b><p>9 拍中值在 150 BPM 横跨约 3–5 秒；快速爬升时 ±30% 过滤会连续拒绝，最后清窗断档。</p></div>
+        <div class="ep-cell clue"><b>数据/领域给的线索</b><p>心率是慢变量，但确实有“变化速度”；间隔计时误差（σt≈20ms）也可以建模成测量噪声。</p></div>
+        <div class="ep-cell change"><b>这次改动</b><p>状态 <b>[hr, v]</b> 匀速模型；先预测、再用测量修正；R 由计时误差推出，不再手调。</p></div>
+        <div class="ep-cell result"><b>结果</b><p>初值故意给 120，第一拍拉回 <b>83</b>；仿真加速段 MAE <b>2.4–6.8</b>（指数/冲刺/正弦）。</p></div>
+      </div>
+      <div class="ep-next"><b>为什么还要升级</b><p>滤波器再好，也救不了“配对” —— 高心率时 i+2 仍然跨两拍，输出 75。</p><a href="05-卡尔曼.html">进 05 →</a></div>
+    </div>
+  </article>
+
+  <article class="ep" id="v6">
+    <div class="ep-rail"><div class="v">V4</div><div class="up">升级自<b>V3 卡尔曼</b></div></div>
+    <div>
+      <div class="ep-top"><h2>动态配对：用“当前周期”决定谁是第二路信号</h2><span class="badge">150 → 150</span></div>
+      <p class="ep-lead">终于回到根因：不是滤波不够好，是“哪两个峰该配对”这件事本身随心率在变。</p>
+      <div class="ep-grid">
+        <div class="ep-cell problem"><b>面对的问题</b><p>150 BPM 时两路信号挤在一起，i+2 跨了整整两拍（800 ms），稳态输出 <b>75</b>。</p></div>
+        <div class="ep-cell clue"><b>数据/领域给的线索</b><p>周期 <b>P=60000/hr</b> 已知；第二峰在 0.55P 内，漏拍在 1.8P 外。用当前 P 就能判断“这个峰是第二路信号还是下一拍”。</p></div>
+        <div class="ep-cell change"><b>这次改动</b><p>用 P_est 动态判定第二峰/漏拍；搜索窗口由协方差（含速度）导出；加 45 BPM/拍的绝对伪迹门。</p></div>
+        <div class="ep-cell result"><b>结果</b><p>仿真 150→<b>150</b>；冲刺循环 MAE <b>6.8</b>；结构正确性得到验证。</p></div>
+      </div>
+      <div class="ep-next"><b>为什么还要升级</b><p>启动锁定仍不稳；阶跃下降 MAE 60.4（恢复慢）。而且“哪一个峰”仍有歧义。</p><a href="06-模板匹配.html">进 06 →</a></div>
+    </div>
+  </article>
+
+  <article class="ep" id="v7">
+    <div class="ep-rail"><div class="v">V5</div><div class="up">升级自<b>V4 动态配对</b></div></div>
+    <div>
+      <div class="ep-top"><h2>模板 NCC：从“像不像一个尖”升级到“像不像一次心搏”</h2><span class="badge">真拍保留≈100%</span></div>
+      <p class="ep-lead">峰检测本质也是模板匹配，只是模板只有一个尖。把它换成整段形态，就能否决“半段波形”。</p>
+      <div class="ep-grid">
+        <div class="ep-cell problem"><b>面对的问题</b><p>峰太多：纹波、噪声、第二峰都在抢“这一拍”。只靠幅度和时序，总会误选。</p></div>
+        <div class="ep-cell clue"><b>数据/领域给的线索</b><p>一段完整脉搏波形有形态（主峰 + 第二峰 + 拖尾）；伪峰只有局部尖，没有整段形状。</p></div>
+        <div class="ep-cell change"><b>这次改动</b><p>心搏模板 NCC：粗筛出候选峰，再用整周期形态打分；NCC&gt;0.8 才更新模板。</p></div>
+        <div class="ep-cell result"><b>结果</b><p>伪峰被拒，<b>真拍保留率≈100%</b>；原型 NCC 最高 <b>0.78</b>。</p></div>
+      </div>
+      <div class="ep-next"><b>为什么还要升级</b><p>形态对了，配对还是 i+2 —— 150 BPM 时依然跨两拍，输出 75。三层缺一不可。</p><a href="06-模板匹配.html">进 06 →</a></div>
+    </div>
+  </article>
+
+  <article class="ep" id="v8">
+    <div class="ep-rail"><div class="v">V6</div><div class="up">升级自<b>V5 模板 NCC</b></div></div>
+    <div>
+      <div class="ep-top"><h2>贝叶斯：把“信谁、信多少”变成可计算的东西</h2><span class="badge">后验 751 ± 17 ms</span></div>
+      <p class="ep-lead">不是二选一，也不是拍脑袋加权，而是让三路证据相乘，谁更确定谁的话语权更大。</p>
+      <div class="ep-grid">
+        <div class="ep-cell problem"><b>面对的问题</b><p>单一探测器会失效（幅度低/形态差）；固定 R 难调；需要“任一路失效还能降级”。</p></div>
+        <div class="ep-cell clue"><b>数据/领域给的线索</b><p>幅度强在时域锐度，形态强在积分类信噪比，两者互补；后验曲率还能直接给出测量不确定度。</p></div>
+        <div class="ep-cell change"><b>这次改动</b><p>先验（KF 预测）× 幅度似然 × 形态似然 → 后验 argmax；R 由后验曲率自动得出。</p></div>
+        <div class="ep-cell result"><b>结果</b><p>后验 <b>751 ± 17 ms</b>；一路失效可降级；两路都弱则本拍不出数。</p></div>
+      </div>
+      <div class="ep-next"><b>为什么还没上线</b><p>Python 原型 NCC 最高 0.78，但检测器接口有 bug（返回 0 个峰），尚无召回/精确率；仍保持 <b>USE_TRACKER=0</b> 影子模式。</p><a href="07-贝叶斯.html">进 07 →</a></div>
+    </div>
+  </article>
+
+  <article class="ep h" id="h1">
+    <div class="ep-rail"><div class="v">H1</div><div class="up">并行工程线<b>机构</b></div></div>
+    <div>
+      <div class="ep-top"><h2>算法之外：软背衬会把信号“吃掉”</h2><span class="badge">−8.4 BPM</span></div>
+      <p class="ep-lead">同一套算法，换一块棉花垫，结果就崩。问题不在代码，在力的传递。</p>
+      <div class="ep-grid">
+        <div class="ep-cell problem"><b>面对的问题</b><p>棉花背衬下 p95 ≤50，同刻对照误差 <b>−8.4 BPM</b>；松表带也不可靠。</p></div>
+        <div class="ep-cell clue"><b>数据/领域给的线索</b><p>膜靠传导来的微小振动变形；软材料吸振，主路径信号变弱、信噪比下降。刚性板能把振动能量“兜”到膜上。</p></div>
+        <div class="ep-cell change"><b>这次改动</b><p>膜–刚性板–绑带三明治；绑带压“板”不压“膜”；让振动传到膜，而不是被软垫吸走。</p></div>
+        <div class="ep-cell result"><b>结果</b><p>刚性板 p95 <b>154</b>，棉花 ≤50；背衬刚度定律写进规范。</p></div>
+      </div>
+      <div class="ep-next"><b>遗留</b><p>手套装配、长期佩戴（汗液/皮肤适应）未测；拇指被动贴装待验证。</p><a href="09-机构.html">进 09 →</a></div>
+    </div>
+  </article>
+
+  <article class="ep h" id="h2">
+    <div class="ep-rail"><div class="v">H2</div><div class="up">并行工程线<b>数据链</b></div></div>
+    <div>
+      <div class="ep-top"><h2>数据链：断线不能等于丢数据</h2><span class="badge">79 条 / 36.9 s / 无断档</span></div>
+      <p class="ep-lead">算法再准，数据没送到手机也白搭。断线在可穿戴里是常态，不是异常。</p>
+      <div class="ep-grid">
+        <div class="ep-cell problem"><b>面对的问题</b><p>BLE 断线就丢波形；手机端也无法理解板子的内部算法。</p></div>
+        <div class="ep-cell clue"><b>数据/领域给的线索</b><p>脉搏能量 &lt;10 Hz，1 kHz 抽成 100 Hz 仍能画形态；断线时板子仍在采样。</p></div>
+        <div class="ep-cell change"><b>这次改动</b><p>FFE1–4 四个特征 + 60 s 环形缓存 + FFE4 请求/FFE3 补发。</p></div>
+        <div class="ep-cell result"><b>结果</b><p>端到端 <b>79 条 / 36.9 s / 平均 512 ms / 无断档</b>；CSV+manifest 正常。</p></div>
+      </div>
+      <div class="ep-next"><b>遗留</b><p>长时跑步录制、功耗、断线 60 s 以上的策略待定。</p><a href="08-数据链.html">进 08 →</a></div>
+    </div>
+  </article>
+
+  <article class="ep h" id="h3">
+    <div class="ep-rail"><div class="v">H3</div><div class="up">并行工程线<b>验证</b></div></div>
+    <div>
+      <div class="ep-top"><h2>验证：先保证“比的是同一件事”</h2><span class="badge">±2 BPM</span></div>
+      <p class="ep-lead">顺序测量差出 82 vs 68，不是精度差，是实验设计错了。同刻对照之后，误差才可谈。</p>
+      <div class="ep-grid">
+        <div class="ep-cell problem"><b>面对的问题</b><p>先测本机、再测手表，得到 82 vs 68；整轮平均还被弱耦合段拖到 −9.4 BPM。</p></div>
+        <div class="ep-cell clue"><b>数据/领域给的线索</b><p>按压会升压、放松会回落，两次不是同一生理状态；一轮里好段/坏段混杂。</p></div>
+        <div class="ep-cell change"><b>这次改动</b><p>同刻对照；按 p95/状态分段，只统计好段；弱档直接拒绝出数。</p></div>
+        <div class="ep-cell result"><b>结果</b><p>跨 2 人/多位置 <b>±2 BPM</b>（最好 −0.2）；同一轮 <b>−9.4 → −0.2</b>。</p></div>
+      </div>
+      <div class="ep-next"><b>遗留</b><p>跑步段仍需现场同刻对照；测试机会稀缺，先用节拍器阶梯等效验证。</p><a href="10-精度验证.html">进 10 →</a></div>
+    </div>
+  </article>
+
+  <section class="summary">
+    <h2>主线：每一层只解决上一层的失败</h2>
+    <ol>
+      <li><b>先定义“一拍”</b>：从“等基线”改成峰普查；再用隔峰配对，把一次心跳的两个鼓包认成一次。</li>
+      <li><b>再定义“能不能信”</b>：质量门只装在输出端；状态机把“没贴/太弱/太紧/正常”分开。</li>
+      <li><b>然后让“时间”跟上变化</b>：卡尔曼加速度状态；动态配对按当前周期决定谁是第二路信号。</li>
+      <li><b>最后让“形态”和“证据”进来</b>：模板 NCC 否决半段波形；贝叶斯把幅度与形态相乘，并自动给出 R。</li>
+      <li><b>工程侧并行</b>：机构保证力传到膜；数据链保证断线不丢；同刻对照保证比的是同一件事。</li>
+    </ol>
+    <div class="readmap">
+      <div><b>想看“为什么能测”</b><p><a href="01-signal.html">01 信号</a> → <a href="02-隔峰.html">02 隔峰</a> → <a href="03-假阳性.html">03 假阳性</a></p></div>
+      <div><b>想看“算法怎么升级”</b><p><a href="05-卡尔曼.html">05 卡尔曼</a> → <a href="06-模板匹配.html">06 模板 NCC</a> → <a href="07-贝叶斯.html">07 贝叶斯</a></p></div>
+      <div><b>想看“工程怎么落地”</b><p><a href="08-数据链.html">08 数据链</a> → <a href="09-机构.html">09 机构</a> → <a href="10-精度验证.html">10 验证</a></p></div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

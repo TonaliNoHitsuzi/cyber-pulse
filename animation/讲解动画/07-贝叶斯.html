@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>07 · 贝叶斯融合 | 赛博把脉</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><b>赛博把脉</b><span>CYBER-PULSE</span></div>
+    <div class="crumb"><span>讲解动画</span><i>/</i><span>07</span></div>
+    <div class="spacer"></div>
+    <div class="topic-tag">07 · 贝叶斯融合</div>
+    <a class="home" href="index.html">目录</a>
+  </header>
+  <main class="stage">
+    <div class="source" id="source">示意图 · 参数取自设计文档（先验 σ=60 ms，似然 σ=22–30 ms）</div>
+    <canvas id="cv"></canvas>
+    <div class="hint">空格 播放/暂停 · ← → 单步 · R 重置</div>
+  </main>
+  <section class="narr">
+    <div class="narr-main">
+      <div class="step-head"><span id="step-count"></span><span id="step-tag"></span></div>
+      <h2 id="step-title"></h2>
+      <div id="step-body"></div>
+      <div class="human" id="step-human"></div>
+    </div>
+    <aside class="side">
+      <div>
+        <div class="meter"><span>TIMELINE</span><span>自动播放，末帧停住</span></div>
+        <div class="bar" id="timebar"><i></i></div>
+        <div class="dots" id="dots" style="margin-top:10px"></div>
+      </div>
+      <div id="extra"><div class="iter-card">
+        <div class="ic-head"><span>本页在迭代中的位置</span><a href="00-演进.html">全程 →</a></div>
+        <div class="ic-row"><b>问题</b><span>单探测器会失效；R 难手调</span></div>
+        <div class="ic-row"><b>线索</b><span>幅度与形态互补；后验曲率给 R</span></div>
+        <div class="ic-row"><b>改动</b><span>先验 × 幅度证据 × 形态证据</span></div>
+        <div class="ic-row"><b>结果</b><span>后验 751±17ms；可优雅降级</span></div>
+        <div class="ic-row bad"><b>遗留</b><span>原型接口 bug；仍在影子模式</span></div>
+      </div></div>
+      <div class="controls">
+        <button id="btn-prev">上一步</button>
+        <button id="btn-play" class="primary">播放</button>
+        <button id="btn-next">下一步</button>
+        <button id="btn-reset">重置</button>
+        <button id="btn-speed">1×</button>
+      </div>
+    </aside>
+  </section>
+</div>
+<script src="assets/data/pulse-data.js"></script>
+<script src="assets/engine.js"></script>
+<script>
+const VW = 1180, VH = 520;
+function view(ctx, W, H) {
+  const s = Math.min(W / VW, H / VH);
+  ctx.save(); ctx.translate((W - VW * s) / 2, (H - VH * s) / 2); ctx.scale(s, s);
+}
+function header(ctx, title, sub) {
+  A.text(ctx, title, 60, 34, { size: 20, serif: true, weight: 600 });
+  A.text(ctx, sub, 60, 56, { size: 11.5, mono: true, color: '#637875' });
+}
+function footer(ctx, right) {
+  A.line(ctx, 40, 480, 1140, 480, { color: '#1d2c31' });
+  A.text(ctx, '融合', 40, 502, { size: 10, mono: true, color: '#637875' });
+  const items = [['先验', 'KF 预测'], ['证据 A', '幅度 / SNR'], ['证据 B', 'NCC 形态'], ['后验', 'argmax'], ['代价', '2 万 MAC / 拍']];
+  let x = 120;
+  items.forEach(([k, v]) => {
+    A.text(ctx, k, x, 502, { size: 10, mono: true, color: '#637875' });
+    A.text(ctx, v, x + 52, 502, { size: 11, mono: true, color: '#c6d6d2' });
+    x += 175;
+  });
+  A.text(ctx, right, 1140, 502, { size: 10.5, mono: true, color: '#637875', align: 'right' });
+}
+const G = (x, m, s) => Math.exp(-0.5 * Math.pow((x - m) / s, 2));
+function curve(ctx, bx, by, bw, bh, arr, color, opt = {}) {
+  const pts = arr.map((v, i) => [bx + i / (arr.length - 1) * bw, by + bh - v / 1.08 * bh]);
+  A.path(ctx, pts, { color, width: opt.width || 1.8, glow: opt.glow === false ? null : color, alpha: opt.alpha == null ? 1 : opt.alpha, fill: opt.fill, baseY: by + bh, topY: by, dash: opt.dash });
+  return pts;
+}
+function plotBase(ctx, bx, by, bw, bh, xmin, xmax) {
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 34 });
+  const X = v => bx + (v - xmin) / (xmax - xmin) * bw;
+  for (let v = xmin; v <= xmax; v += 50) {
+    A.text(ctx, v + ' ms', X(v), by + bh + 16, { size: 9, mono: true, color: '#4d6663', align: 'center' });
+  }
+  return X;
+}
+function gaussScene(ctx, t, y0) {
+  const bx = 60, by = y0 + 54, bw = 720, bh = 300;
+  const xmin = 620, xmax = 880, N = 260;
+  const X = plotBase(ctx, bx, by, bw, bh, xmin, xmax);
+  const xs = [];
+  for (let i = 0; i < N; i++) xs.push(xmin + (xmax - xmin) * i / (N - 1));
+  const prior = xs.map(x => G(x, 750, 60));
+  const la = xs.map(x => G(x, 768, 30));
+  const lb = xs.map(x => G(x, 742, 22));
+  const post = xs.map(x => G(x, 750, 60) * G(x, 768, 30) * G(x, 742, 22));
+  const pmax = Math.max(...post);
+  const pn = post.map(v => v / pmax);
+  // reveal
+  const a1 = A.clamp((t - .3) / .8, 0, 1), a2 = A.clamp((t - 1.2) / .8, 0, 1), a3 = A.clamp((t - 2.1) / .8, 0, 1), a4 = A.clamp((t - 3.2) / 1.0, 0, 1);
+  if (a1 > 0) curve(ctx, bx, by, bw, bh, prior, '#57c8ff', { alpha: .5 * a1, dash: [5, 4] });
+  if (a2 > 0) curve(ctx, bx, by, bw, bh, la, '#ffb454', { alpha: .55 * a2, dash: [5, 4] });
+  if (a3 > 0) curve(ctx, bx, by, bw, bh, lb, '#a78bfa', { alpha: .55 * a3, dash: [5, 4] });
+  if (a4 > 0) curve(ctx, bx, by, bw, bh, pn, '#62f0b6', { alpha: a4, width: 2.4, fill: 'rgba(98,240,182,.12)' });
+  // means
+  const means = [
+    [750, '#57c8ff', '先验 750', a1],
+    [768, '#ffb454', 'A 768', a2],
+    [742, '#a78bfa', 'B 742', a3],
+    [751, '#62f0b6', '后验 751', a4]
+  ];
+  means.forEach(([v, c, lab, a], i) => {
+    if (a <= 0) return;
+    ctx.save(); ctx.globalAlpha = a;
+    A.line(ctx, X(v), by + 10, X(v), by + bh, { color: c, alpha: .25 });
+    ctx.restore();
+  });
+  A.text(ctx, '时间（拍时刻）/ ms', bx, by + bh + 34, { size: 10, mono: true, color: '#637875' });
+  // right panel
+  const rx = 830;
+  A.text(ctx, '三路证据相乘', rx, y0 + 86, { size: 11, mono: true, color: '#637875' });
+  A.text(ctx, 'p(t) ∝', rx, y0 + 130, { size: 18, mono: true, color: '#c6d6d2' });
+  const rows = [
+    ['先验', '750 ± 60 ms', '#57c8ff'],
+    ['证据 A · 幅度', '768 ± 30 ms', '#ffb454'],
+    ['证据 B · 形态', '742 ± 22 ms', '#a78bfa']
+  ];
+  rows.forEach((r, i) => {
+    const y = y0 + 160 + i * 48;
+    A.dot(ctx, rx + 6, y, 3, r[2], true);
+    A.text(ctx, r[0], rx + 18, y + 4, { size: 11, mono: true, color: r[2] });
+    A.text(ctx, r[1], rx + 18, y + 22, { size: 10, color: '#8fa5a2' });
+  });
+  A.line(ctx, rx, y0 + 306, rx + 290, y0 + 306, { color: '#1d2c31' });
+  A.text(ctx, '后验：751 ± 17 ms', rx, y0 + 334, { size: 15, mono: true, color: '#62f0b6' });
+  A.text(ctx, '比任何一路都更窄', rx, y0 + 358, { size: 11, color: '#8fa5a2' });
+}
+function casePanel(ctx, x, y, w, h, title, opts) {
+  A.rr(ctx, x, y, w, h, 3); ctx.fillStyle = 'rgba(14,22,25,.8)'; ctx.fill();
+  ctx.strokeStyle = opts.ok ? 'rgba(98,240,182,.35)' : 'rgba(255,180,70,.28)'; ctx.stroke();
+  A.text(ctx, title, x + 14, y + 26, { size: 12, weight: 600, color: opts.ok ? '#62f0b6' : '#ffb454' });
+  const bx = x + 16, by = y + 40, bw = w - 32, bh = 140;
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 22 });
+  const xmin = 620, xmax = 880, N = 160;
+  const xs = []; for (let i = 0; i < N; i++) xs.push(xmin + (xmax - xmin) * i / (N - 1));
+  const prior = xs.map(v => G(v, 750, 60));
+  const la = xs.map(v => opts.ampA * G(v, opts.mA, opts.sA));
+  const lb = xs.map(v => opts.ampB * G(v, opts.mB, opts.sB));
+  const post = xs.map(v => G(v, 750, 60) * opts.ampA * G(v, opts.mA, opts.sA) * opts.ampB * G(v, opts.mB, opts.sB));
+  const pm = Math.max(...post) || 1;
+  const draw = (arr, c, alpha, dash, norm) => {
+    const mx = norm ? (Math.max(...arr) || 1) : 1;
+    const pts = arr.map((v, i) => [bx + i / (N - 1) * bw, by + bh - v / mx * (bh - 8)]);
+    A.path(ctx, pts, { color: c, width: 1.4, alpha, dash });
+  };
+  draw(prior, '#57c8ff', .45, [4, 4], false);
+  draw(la, '#ffb454', .55, [4, 4], false);
+  draw(lb, '#a78bfa', .55, [4, 4], false);
+  draw(post, '#62f0b6', .95, null, true);
+  const pmx = xs[post.indexOf(Math.max(...post))];
+  const half = pm / 2;
+  let li = 0, ri = N - 1;
+  for (let i = 0; i < N; i++) if (post[i] >= half) { li = i; break; }
+  for (let i = N - 1; i >= 0; i--) if (post[i] >= half) { ri = i; break; }
+  const sigPost = Math.max(8, (ri - li) * (xmax - xmin) / (N - 1) / 2.355);
+  const conf = A.clamp((60 - sigPost) / 60, 0, 1);
+  A.text(ctx, '后验峰 ' + pmx.toFixed(0) + ' ms · σ ≈ ' + sigPost.toFixed(0) + ' ms', x + 14, y + 200, { size: 10, mono: true, color: '#62f0b6' });
+  A.text(ctx, opts.note, x + 14, y + 220, { size: 10, color: '#8fa5a2' });
+  const cw = w - 28;
+  A.rr(ctx, x + 14, y + 232, cw, 6, 3); ctx.fillStyle = '#1d2c31'; ctx.fill();
+  A.rr(ctx, x + 14, y + 232, Math.max(4, cw * conf), 6, 3);
+  ctx.fillStyle = opts.ok ? '#62f0b6' : '#ff6f6f'; ctx.fill();
+  A.text(ctx, opts.ok ? '后验够尖 → 可采信' : '后验太宽 → 本拍不出测量', x + 14, y + 252, { size: 9.5, mono: true, color: opts.ok ? '#8ef0c8' : '#ff9a9a' });
+}
+function cases(ctx, t, y0) {
+  const panels = [
+    { title: 'A 失效（幅度低）', mA: 768, sA: 220, mB: 742, sB: 22, ampA: .10, ampB: 1, showA: true, showB: true, ok: true, note: '形态还在 → 后验跟着 B' },
+    { title: 'B 失效（形态差）', mA: 768, sA: 30, mB: 742, sB: 220, ampA: 1, ampB: .10, showA: true, showB: true, ok: true, note: '幅度还在 → 后验跟着 A' },
+    { title: '两路都弱', mA: 768, sA: 220, mB: 742, sB: 220, ampA: .10, ampB: .10, showA: true, showB: true, ok: false, note: '后验不尖 → 本拍不出测量' }
+  ];
+  panels.forEach((p, i) => casePanel(ctx, 60 + i * 370, y0 + 40, 340, 260, p.title, p));
+  A.text(ctx, '任一路失效都能降级；两路都弱就诚实地说“这一拍不算”。', 60, y0 + 330, { size: 14, color: '#e8f2ef' });
+  A.text(ctx, '这是乘积融合最值钱的性质：不是二选一，也不是拍脑袋加权。', 60, y0 + 358, { size: 13, color: '#8fa5a2' });
+}
+function laplace(ctx, t, y0) {
+  // left: posterior sharpness -> sigma
+  const bx = 60, by = y0 + 50, bw = 380, bh = 220;
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 30 });
+  const xs = []; for (let i = 0; i < 160; i++) xs.push(700 + i / 159 * 100);
+  const post = xs.map(v => G(v, 751, 17));
+  const pts = post.map((v, i) => [bx + i / 159 * bw, by + bh - v * (bh - 10)]);
+  A.path(ctx, pts, { color: '#62f0b6', width: 2.2, glow: '#62f0b6', fill: 'rgba(98,240,182,.10)', baseY: by + bh, topY: by });
+  A.line(ctx, bx + .51 * bw, by, bx + .51 * bw, by + bh, { color: '#62f0b6', dash: [3, 4], alpha: .5 });
+  A.text(ctx, '后验曲率越尖 → σ 越小', bx, by - 10, { size: 11, mono: true, color: '#8fa5a2' });
+  A.text(ctx, 'σ = 17 ms', bx + bw, by + 22, { size: 14, mono: true, color: '#62f0b6', align: 'right' });
+  // flow
+  const flow = [
+    ['后验 p(t)', '#62f0b6'],
+    ['曲率 1/(−d²lnp/dt²)', '#57c8ff'],
+    ['σ_meas = 17 ms', '#ffb454'],
+    ['R 自动进卡尔曼', '#a78bfa']
+  ];
+  flow.forEach((f, i) => {
+    const y = y0 + 60 + i * 72;
+    A.rr(ctx, 500, y, 280, 48, 2);
+    ctx.fillStyle = 'rgba(14,22,25,.75)'; ctx.fill();
+    ctx.strokeStyle = f[1]; ctx.globalAlpha = .45; ctx.stroke(); ctx.globalAlpha = 1;
+    A.text(ctx, f[0], 514, y + 29, { size: 12, mono: true, color: f[1] });
+    if (i < 3) A.arrow(ctx, 640, y + 48, 640, y + 72, '#2a4046', 1);
+  });
+  // right numbers
+  const rx = 830;
+  A.text(ctx, '对比“手调固定 R”', rx, y0 + 72, { size: 11, mono: true, color: '#637875' });
+  A.text(ctx, '干净时 → R 小', rx, y0 + 106, { size: 13, color: '#8ef0c8' });
+  A.text(ctx, '冲击时 → R 大', rx, y0 + 130, { size: 13, color: '#ff9a9a' });
+  A.text(ctx, '不用再加一条卡方门', rx, y0 + 164, { size: 11, color: '#8fa5a2' });
+  A.text(ctx, '工程代价', rx, y0 + 210, { size: 10, mono: true, color: '#637875' });
+  A.text(ctx, '≈ 2 万 MAC / 拍', rx, y0 + 238, { size: 17, mono: true, color: '#e8f2ef' });
+  A.text(ctx, '160 MHz 下 < 1 ms', rx, y0 + 262, { size: 11, color: '#8fa5a2' });
+  A.text(ctx, '现状：原型 NCC 最高 0.78', rx, y0 + 302, { size: 10.5, mono: true, color: '#637875' });
+  A.text(ctx, '检测器接口仍有 bug，', rx, y0 + 322, { size: 10.5, color: '#637875' });
+  A.text(ctx, '尚无召回/精确率对比', rx, y0 + 340, { size: 10.5, color: '#637875' });
+}
+const steps = [
+  {
+    tag: '直觉', dur: 8,
+    title: '三个证人各说“下一拍在哪”，把证词叠起来',
+    body: '卡尔曼先给一个<b>大概位置</b>（750 ms ± 60）；峰检测说“幅度更像在 768”；模板说“形状更像在 742”。三条钟形曲线相乘，重叠处最亮，得到又窄又尖的<b>后验</b>：<b>751 ± 17 ms</b>。',
+    extra: '像三把手电筒照同一个点：光斑重叠的地方最亮。'
+  },
+  {
+    tag: '为什么好', dur: 8,
+    title: '一个证人瞎了，还有两个；都瞎了就说不知道',
+    body: '幅度低时，形态还在，判断跟着模板走；形态差时，幅度还在，判断跟着幅度走；两路都弱时，后验不尖，<b>这一拍就不出测量</b>。这比“二选一”或“固定加权”稳，也更诚实。',
+    extra: '像三条腿的凳子：断一条还能坐，断两条就承认坐不了。'
+  },
+  {
+    tag: '自动 R', dur: 7,
+    title: '证据越一致，范围越窄；范围越窄，就越敢信',
+    body: '用后验曲线的“尖锐程度”直接算测量不确定度 —— 这里约 <b>17 ms</b>，再换算成卡尔曼的可信度 <b>R</b>。证据尖锐 → 更信测量；证据平缓 → 更信预测。这样就不用再手调“固定 R + 卡方门”。',
+    extra: '三个人指的位置越集中，你越敢按他们说的走。'
+  },
+  {
+    tag: '现状', dur: 7,
+    title: '设计完成，但还没通过考试',
+    body: 'Python 原型里 NCC 最大值能到 <b>0.78</b>，说明形态确实可对齐；但检测器输出接口还有 bug（返回 0 个峰），所以<b>还没有可信的召回/精确率</b>（真拍有没有被找到 / 找到的拍有多少是真的）。这套仍在影子通道（<b>USE_TRACKER=0</b>），不影响出厂固件。',
+    extra: '设计图画完了，但样机还没通过验收，就不装到成品里。'
+  }
+];
+const deck = new Deck({
+  steps,
+  draw(ctx, W, H) {
+    view(ctx, W, H);
+    const y0 = 78, s = deck.step, t = deck.t;
+    if (s === 0) { header(ctx, '三份证词，叠出一个结论', '一维高斯示意 · 时间轴单位 ms'); gaussScene(ctx, t, y0); }
+    else if (s === 1) { header(ctx, '一个证人瞎了怎么办', '每一列都重新乘一遍'); cases(ctx, t, y0); }
+    else if (s === 2) { header(ctx, '证据越集中，越敢信', '拉普拉斯近似 · 不用手调'); laplace(ctx, t, y0); }
+    else { header(ctx, '诚实的现状', '影子模式 · 尚未上板'); slideEnd(ctx, t, y0); }
+    footer(ctx, s < 3 ? '下一页：数据链 →' : '下一页：数据链 →');
+    ctx.restore();
+  }
+});
+function slideEnd(ctx, t, y0) {
+  const rows = [
+    ['已做', '形式化 + 原型 + MCU 代价估算', '#62f0b6'],
+    ['已验证', 'NCC 能到 0.78，形态可对齐', '#57c8ff'],
+    ['未验证', '检测器接口 bug，返回 0 个峰', '#ffb454'],
+    ['未验证', '没有可信的召回 / 精确率', '#ffb454'],
+    ['决定', 'USE_TRACKER=0，只做影子', '#ff6f6f']
+  ];
+  rows.forEach((r, i) => {
+    const y = y0 + 40 + i * 58;
+    A.rr(ctx, 70, y, 620, 46, 2);
+    ctx.fillStyle = 'rgba(14,22,25,.7)'; ctx.fill();
+    ctx.strokeStyle = '#1d2c31'; ctx.stroke();
+    A.dot(ctx, 88, y + 23, 3, r[2], true);
+    A.text(ctx, r[0], 104, y + 20, { size: 10, mono: true, color: r[2] });
+    A.text(ctx, r[1], 104, y + 38, { size: 11, color: '#c6d6d2' });
+  });
+  const rx = 760;
+  A.text(ctx, '为什么讲这个', rx, y0 + 76, { size: 10, mono: true, color: '#637875' });
+  A.text(ctx, '它不是“更炫的算法”，', rx, y0 + 116, { size: 16, serif: true, color: '#e8f2ef' });
+  A.text(ctx, '而是把“信谁、信多少”', rx, y0 + 146, { size: 16, serif: true, color: '#e8f2ef' });
+  A.text(ctx, '变成可计算的东西。', rx, y0 + 176, { size: 16, serif: true, color: '#e8f2ef' });
+  A.text(ctx, '先验', rx, y0 + 224, { size: 10, mono: true, color: '#57c8ff' });
+  A.text(ctx, '× 幅度', rx + 70, y0 + 224, { size: 10, mono: true, color: '#ffb454' });
+  A.text(ctx, '× 形态', rx + 150, y0 + 224, { size: 10, mono: true, color: '#a78bfa' });
+  A.text(ctx, '= 后验', rx + 230, y0 + 224, { size: 10, mono: true, color: '#62f0b6' });
+  A.text(ctx, '这一页的所有数字都是示意，', rx, y0 + 286, { size: 11, color: '#8fa5a2' });
+  A.text(ctx, '真实召回/精确率等修好接口再补。', rx, y0 + 306, { size: 11, color: '#8fa5a2' });
+}
+</script>
+</body>
+</html>

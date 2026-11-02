@@ -1,0 +1,117 @@
+{
+  "version": 4,
+  "title": "测量信息",
+  "channels": [
+    "HEART_RATE"
+  ],
+  "fields": [
+    {
+      "key": "studentName",
+      "label": "姓名",
+      "type": "text",
+      "required": true,
+      "default": ""
+    },
+    {
+      "key": "studentId",
+      "label": "学号",
+      "type": "text",
+      "required": true,
+      "default": ""
+    },
+    {
+      "key": "gender",
+      "label": "性别",
+      "type": "choice",
+      "options": [
+        "男",
+        "女"
+      ],
+      "default": "男"
+    },
+    {
+      "key": "height",
+      "label": "身高(cm)",
+      "type": "number",
+      "required": true,
+      "default": ""
+    },
+    {
+      "key": "weight",
+      "label": "体重(kg)",
+      "type": "number",
+      "required": true,
+      "default": ""
+    },
+    {
+      "key": "exercise",
+      "label": "运动类型",
+      "type": "choice",
+      "options": [
+        "静坐",
+        "走路",
+        "跑步"
+      ],
+      "default": "静坐"
+    },
+    {
+      "key": "hand",
+      "label": "测量手",
+      "type": "choice",
+      "options": [
+        "左手",
+        "右手"
+      ],
+      "default": "左手"
+    },
+    {
+      "key": "finger",
+      "label": "测量手指",
+      "type": "choice",
+      "options": [
+        "拇指",
+        "食指",
+        "中指",
+        "无名指",
+        "小指"
+      ],
+      "default": "拇指"
+    },
+    {
+      "key": "temperature",
+      "label": "温度(℃)",
+      "type": "number",
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "humidity",
+      "label": "湿度(%)",
+      "type": "number",
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "weather",
+      "label": "天气",
+      "type": "choice",
+      "required": false,
+      "options": [
+        "晴",
+        "多云",
+        "阴",
+        "小雨",
+        "大雨",
+        "雪"
+      ],
+      "default": ""
+    },
+    {
+      "key": "note",
+      "label": "备注",
+      "type": "text",
+      "required": false,
+      "default": ""
+    }
+  ]
+}

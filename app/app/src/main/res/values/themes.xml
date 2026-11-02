@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ClassroomMonitor" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#FF2E5A88</item>
+    </style>
+</resources>

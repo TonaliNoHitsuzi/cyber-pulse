@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>赛博把脉 · 组内讲解动画</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+body.index .shell{grid-template-rows:auto}
+.hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:54px;align-items:center;padding:58px 0 40px;border-bottom:1px solid var(--line)}
+.hero h1{font-size:clamp(34px,4.6vw,58px);margin:14px 0 16px}
+.hero h1 em{font-style:normal;color:var(--mint)}
+.hero p{max-width:640px}
+.hero-panel{border:1px solid var(--line2);background:linear-gradient(180deg,rgba(14,22,25,.9),rgba(9,14,16,.85));padding:18px 20px 14px;position:relative}
+.hero-panel::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(45,70,75,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(45,70,75,.16) 1px,transparent 1px);background-size:28px 28px}
+.hp-top{display:flex;justify-content:space-between;align-items:baseline;font:10px/1 var(--mono);color:var(--dim2);letter-spacing:.14em;position:relative}
+.hp-top b{color:var(--mint);font-weight:500}
+.hp-big{display:flex;align-items:baseline;gap:10px;margin:10px 0 2px;position:relative}
+.hp-big strong{font:52px/1 var(--mono);color:var(--mint);font-weight:500;text-shadow:0 0 22px rgba(98,240,182,.25)}
+.hp-big span{font:11px/1 var(--mono);color:var(--dim2);letter-spacing:.12em}
+#hero{width:100%;height:150px;display:block;position:relative;margin-top:4px}
+.hp-foot{display:flex;justify-content:space-between;gap:10px;font:10px/1.4 var(--mono);color:var(--dim2);position:relative;border-top:1px solid var(--line);padding-top:9px;margin-top:6px}
+.hp-foot b{color:var(--amber);font-weight:500}
+.act-num{display:inline-flex;align-items:center;gap:10px}
+.act-num i{width:24px;height:1px;background:var(--line2);display:inline-block}
+.card .n b{letter-spacing:.1em}
+.card .live{position:absolute;right:14px;top:14px;font:9px/1 var(--mono);letter-spacing:.12em;color:var(--amber);border:1px solid rgba(255,180,84,.3);padding:4px 6px}
+.card .live.mint{color:var(--mint);border-color:rgba(98,240,182,.3)}
+.glossary{margin:34px 0 4px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:22px 0 20px}
+.g-head{font:10px/1 var(--mono);letter-spacing:.22em;color:var(--mint)}
+.ggrid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px 28px;margin-top:16px}
+.gitem b{display:block;font:12px/1 var(--mono);color:var(--mint);letter-spacing:.05em}
+.gitem p{margin:6px 0 0;font-size:13px;line-height:1.62;color:#c6d6d2}
+.gitem i{display:block;margin-top:5px;font-style:normal;font-size:11.5px;line-height:1.55;color:var(--dim2)}
+.evo-banner{display:flex;justify-content:space-between;align-items:center;gap:20px;text-decoration:none;color:inherit;margin:24px 0 0;padding:16px 20px;border:1px solid rgba(98,240,182,.35);background:linear-gradient(90deg,rgba(98,240,182,.08),rgba(87,200,255,.04));transition:.18s}
+.evo-banner:hover{border-color:var(--mint);background:linear-gradient(90deg,rgba(98,240,182,.12),rgba(87,200,255,.06))}
+.evo-banner b{display:block;font:10px/1 var(--mono);letter-spacing:.18em;color:var(--mint);margin-bottom:7px}
+.evo-banner span{display:block;font-size:14px;color:#d6e4e0;line-height:1.5}
+.evo-banner em{font-style:normal;font:11px/1 var(--mono);color:var(--cyan);white-space:nowrap}
+.route{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:26px}
+.route div{border:1px solid var(--line);padding:16px 18px;background:rgba(14,22,25,.4)}
+.route b{font:10px/1 var(--mono);letter-spacing:.18em;color:var(--cyan);display:block;margin-bottom:8px}
+.route p{margin:0;color:var(--dim);font-size:12.5px;line-height:1.7}
+@media(max-width:1100px){.ggrid{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.hero{grid-template-columns:1fr;gap:26px;padding-top:34px}.route{grid-template-columns:1fr}.ggrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="index">
+<div class="shell">
+  <header class="top">
+    <div class="brand"><b>赛博把脉</b><span>CYBER-PULSE</span></div>
+    <div class="crumb"><span>组内讲解动画</span><i>/</i><span>INDEX</span></div>
+    <div class="spacer"></div>
+    <div class="topic-tag">课程项目 · D2–D4</div>
+    <span class="home" style="cursor:default">数据已内置 · 离线可用</span>
+  </header>
+
+  <section class="hero">
+    <div>
+      <div class="eyebrow">CYBER-PULSE · EXPLAINER SERIES</div>
+      <h1>一块压电膜，<br>如何学会<em>“把脉”</em></h1>
+      <p>这组动画把这几天的改进拆成 10 个可暂停的场景，外加一条演进路线。每个场景先给一个生活比喻，再上真实数字：为什么隔峰、为什么加质量门、为什么高心率要换算法、为什么机构必须这么装。不需要数据背景也能跟上。</p>
+      <div class="meta">
+        <span><b>10</b> 主题 + 路线</span>
+        <span><b>200 Hz</b> 真实波形</span>
+        <span><b>±2 BPM</b> 同刻对照</span>
+        <span><b>0</b> 悬空误报</span>
+      </div>
+      <div class="legend">
+        <span><i style="background:#62f0b6"></i>正确做法 / 真实信号</span>
+        <span><i style="background:#ffb454"></i>参数 / 关键数字</span>
+        <span><i style="background:#ff6f6f"></i>错误做法 / 风险</span>
+        <span><i style="background:#a78bfa"></i>第二峰 / 辅助信号</span>
+      </div>
+    </div>
+    <div class="hero-panel">
+      <div class="hp-top"><span>★ SESSION 20261030_224652</span><b>GOOD</b></div>
+      <div class="hp-big"><strong>83</strong><span>BPM · 这段 6 s</span></div>
+      <canvas id="hero"></canvas>
+      <div class="hp-foot"><span>真实 dev · 200 Hz</span><span>双峰 <b>360 ms</b> · 整拍 <b>725 ms</b></span></div>
+    </div>
+  </section>
+
+  <div class="acts">
+    <div class="act">
+      <b>第一幕 · 01–03</b>
+      <p>先建立“信号长什么样”的直觉，再拆穿一个最危险的假象：没贴人也能出数。核心是“先量有没有劲，再决定信不信”。</p>
+    </div>
+    <div class="act">
+      <b>第二幕 · 04–07</b>
+      <p>从“能不能信”的状态机，到会猜会改口的卡尔曼、看整段形态的模板、三路证据融合。讲清为什么高心率不能靠打补丁。</p>
+    </div>
+    <div class="act">
+      <b>第三幕 · 08–10</b>
+      <p>把算法装进真实系统：BLE 数据链、三明治机构、同刻对照验收。最后一页是能写进报告的硬指标。</p>
+    </div>
+  </div>
+
+  <section class="glossary">
+    <div class="g-head">先看这个 · 8 个词，用生活话解释</div>
+    <div class="ggrid">
+      <div class="gitem"><b>dev</b><p>把波形“翻正”，只问离平常水位多远。上涨、下跌都变成一个正数。</p><i>像水位报警器：只看离开正常水位多少。</i></div>
+      <div class="gitem"><b>p95 / p50</b><p>p95 是血管主路径的强度，p50 是底噪水平；两个都够，信噪比才够。</p><i>像看体检报告：最高血压和平时血压都要看。</i></div>
+      <div class="gitem"><b>隔峰 i+2</b><p>早期双源测量会出现两个鼓包（主峰 + 第二峰）；只数第一路，跳过一个再配对。</p><i>两个人交替敲门，只数其中一个人的节奏。</i></div>
+      <div class="gitem"><b>NCC（形态分）</b><p>拿一张“标准心搏照片”去比对整段波形，给 -1 到 1 的相似度。</p><i>像把透明标准答案盖在答卷上逐格对。</i></div>
+      <div class="gitem"><b>卡尔曼</b><p>先按“变化速度”猜下一拍在哪，再用真实测量修正；也承认自己不确定。</p><i>像导航：先按车速推测位置，再用路口纠正。</i></div>
+      <div class="gitem"><b>先验 / 似然 / 后验</b><p>事先的猜测 / 两路证据各自的可能性 / 综合后的判断。</p><i>三个证人指同一个点，光斑重叠处最亮。</i></div>
+      <div class="gitem"><b>容积传导</b><p>心脏的震动沿血管、肌肉、骨骼多路径传到同一点；血管最快最强，构成主峰。</p><i>同一句话的直达声先到，其他路径像回声后到。</i></div>
+      <div class="gitem"><b>信噪比</b><p>主路径的信号 vs 其他路径/底噪。按压力度，本质上就是在调这个比值。</p><i>不是越用力越好：压扁主路径，噪音还在。</i></div>
+    </div>
+  </section>
+
+  <a class="evo-banner" href="00-演进.html">
+    <div><b>先看 · 演进路线</b><span>0 → 82 拍、118 → 0 秒、150 → 75 → 150：每一版算法为什么被逼出来，结果和遗留问题是什么。</span></div>
+    <em>进入全程 →</em>
+  </a>
+
+  <div class="grid">
+    <a class="card" href="01-signal.html">
+      <div class="n"><span>01</span><b>物理</b></div>
+      <h3>信号从哪来</h3>
+      <p>它像接触麦克风，收的是心脏传到全身的那一下震动；再把每秒 1000 个点压成 200 行。</p>
+      <div class="kv"><span>1 kHz</span><span>5 点/窗</span><span><b>阈值 40</b></span></div>
+    </a>
+    <a class="card" href="02-隔峰.html">
+      <div class="n"><span>02</span><b>配对</b></div>
+      <h3>为什么要“跳一个峰”</h3>
+      <p>早期测量会出现两个鼓包；每个都数会翻倍，跳过一个再数才是同一路的周期。</p>
+      <div class="kv"><span>两信号 <b>360 ms</b></span><span>整拍 <b>725 ms</b></span></div>
+    </a>
+    <a class="card" href="03-假阳性.html">
+      <div class="n"><span>03</span><b>质量门</b></div>
+      <h3>假阳性从哪来</h3>
+      <p>悬空的噪声偶尔凑出“像心跳的间隔”。先量这段信号有没有劲，再决定信不信。</p>
+      <div class="kv"><span>假 BPM <b>118 s → 0 s</b></span></div>
+    </a>
+    <a class="card" href="04-状态机.html">
+      <div class="n"><span>04</span><b>产品</b></div>
+      <h3>佩戴状态机</h3>
+      <p>没贴、贴歪、太松、太紧、正常——屏幕先回答“能不能信”，再决定显示什么。</p>
+      <div class="kv"><span>5 态 + SRCH</span><span>滞回 0–4</span></div>
+    </a>
+    <a class="card" href="05-卡尔曼.html">
+      <div class="n"><span>05</span><b>跟踪</b></div>
+      <h3>卡尔曼</h3>
+      <p>先按速度猜下一拍，再用真实测量修正；故意给 120 初值，看它改口。</p>
+      <div class="kv"><span>120 → <b>83</b></span><span>±2σ</span></div>
+    </a>
+    <a class="card" href="06-模板匹配.html">
+      <div class="n"><span>06</span><b>形态</b></div>
+      <h3>模板匹配 vs 峰检测</h3>
+      <p>拿整段波形形态去比对，能挡掉第二峰/伪峰；但高心率时配对还是会少数一拍。</p>
+      <div class="kv"><span>NCC <b>0.98 / −0.58</b></span><span>150 → 75</span></div>
+    </a>
+    <a class="card" href="07-贝叶斯.html">
+      <div class="n"><span>07</span><b>融合</b></div>
+      <h3>贝叶斯融合</h3>
+      <p>三路证据相乘：先猜位置、幅度打分、形态打分；一路失效还能降级。</p>
+      <div class="kv"><span>后验 <b>751 ± 17 ms</b></span></div>
+    </a>
+    <a class="card" href="08-数据链.html">
+      <div class="n"><span>08</span><b>工程</b></div>
+      <h3>数据链</h3>
+      <p>状态、波形、补发、要数据四个窗口；断线 60 秒也不丢。</p>
+      <div class="kv"><span>79 条</span><span>36.9 s</span><span>无断档</span></div>
+    </a>
+    <a class="card" href="09-机构.html">
+      <div class="n"><span>09</span><b>结构</b></div>
+      <h3>机构</h3>
+      <p>膜片–刚性板–手套三明治。软背衬吸振毁信号；过压耦合变差，p95 测的是振动幅度。</p>
+      <div class="kv"><span>刚性 <b>154</b></span><span>棉花 ≤50</span><span>−8.4 BPM</span></div>
+    </a>
+    <a class="card" href="10-精度验证.html">
+      <div class="n"><span>10</span><b>验收</b></div>
+      <h3>精度怎么验证</h3>
+      <p>你先跑、我再跑会差出 82 vs 68；必须同一秒对表。把坏段剔掉，−9.4 变 −0.2。</p>
+      <div class="kv"><span><b>±2 BPM</b></span><span>最好 −0.2</span></div>
+    </a>
+  </div>
+
+  <div class="route">
+    <div>
+      <b>5 分钟快讲路线</b>
+      <p>先看 <a href="00-演进.html" style="color:#62f0b6">00 版本轨</a> → 01 看波形 → 03 悬空 118 s 归零 → 06 高心率 150→75 → 09 棉花 −8.4 → 10 ±2 BPM。讲完“为什么现在这套能工作、哪里还不够”。</p>
+    </div>
+    <div>
+      <b>操作方式</b>
+      <p>每页打开后自动播放当前步；<span class="kbd">空格</span> 暂停/继续，<span class="kbd">← →</span> 单步，<span class="kbd">R</span> 重置，<span class="kbd">1–9</span> 跳步。鼠标点画面也能暂停。所有页面离线可用。</p>
+    </div>
+  </div>
+
+  <div class="foot">
+    数据来源：<span style="color:#b9cbc7">session_20261030_224652 / dangle_test / 固件 main.c / D3-迭代记录 / 跑步模式-心率跟踪设计</span><br>
+    诚实边界：模板匹配 + 卡尔曼 + 贝叶斯目前只在影子通道（USE_TRACKER=0），未接管出厂输出；悬空与静息结论已上板验证，跑步段仍需新录音定参。
+  </div>
+</div>
+
+<script src="assets/data/pulse-data.js"></script>
+<script src="assets/engine.js"></script>
+<script>
+(function () {
+  const cv = document.getElementById('hero');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const D = window.PULSE_DATA.good;
+  function draw() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = cv.clientWidth, h = cv.clientHeight;
+    cv.width = w * dpr; cv.height = h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    const vals = D.seg_dev.slice(0, 1200);
+    const max = 380, pad = 6;
+    const pts = vals.map((v, i) => [pad + i / (vals.length - 1) * (w - pad * 2), h - pad - Math.min(v, max) / max * (h - pad * 2)]);
+    // grid
+    ctx.save(); ctx.strokeStyle = 'rgba(45,70,75,.22)'; ctx.lineWidth = 1;
+    for (let x = 0; x < w; x += 28) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+    for (let y = 0; y < h; y += 24) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+    ctx.restore();
+    A.path(ctx, pts, { color: '#62f0b6', width: 1.4, glow: '#62f0b6', alpha: .95 });
+    const pk = D.peaks.filter(p => p[0] < 6);
+    pk.forEach((p, i) => {
+      const x = pad + p[0] / 6 * (w - pad * 2), y = h - pad - Math.min(p[1], max) / max * (h - pad * 2);
+      A.dot(ctx, x, y, i % 2 === 0 ? 2.6 : 2, i % 2 === 0 ? '#ffb454' : '#57c8ff');
+    });
+  }
+  draw();
+  window.addEventListener('resize', draw);
+})();
+</script>
+</body>
+</html>

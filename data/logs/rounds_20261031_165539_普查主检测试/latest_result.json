@@ -1,0 +1,20 @@
+{
+ "round": 3,
+ "ok": false,
+ "bpm": 72.5,
+ "beats": 18,
+ "median_iv_ms": 828,
+ "coupling_qc": "弱",
+ "bpm_posthoc": 72.1,
+ "beats_posthoc": 20,
+ "fills": 2,
+ "reasons": [
+  "贴膜质量:弱",
+  "73BPM 18拍 中位828ms 桶[7, 7, 4]",
+  "检出不足(18/39)",
+  "补偿后72.1BPM(20拍,补2剔0)"
+ ],
+ "note": "普查主检测试",
+ "outdir": "D:\\Espressif\\workspace\\pulse_meter\\logs\\rounds_20261031_165539_普查主检测试\\round_03_20261031_165730",
+ "stamp": "16:58:11"
+}

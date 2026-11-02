@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>09 · 机构 | 赛博把脉</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><b>赛博把脉</b><span>CYBER-PULSE</span></div>
+    <div class="crumb"><span>讲解动画</span><i>/</i><span>09</span></div>
+    <div class="spacer"></div>
+    <div class="topic-tag">09 · 机构</div>
+    <a class="home" href="index.html">目录</a>
+  </header>
+  <main class="stage">
+    <div class="source" id="source">实验结论来自《绑带设计交接》· 实物图：传感器 / MCU / OLED / 灯环 / 按钮 / 电池盒</div>
+    <canvas id="cv"></canvas>
+    <div class="hint">空格 播放/暂停 · ← → 单步 · R 重置</div>
+  </main>
+  <section class="narr">
+    <div class="narr-main">
+      <div class="step-head"><span id="step-count"></span><span id="step-tag"></span></div>
+      <h2 id="step-title"></h2>
+      <div id="step-body"></div>
+      <div class="human" id="step-human"></div>
+    </div>
+    <aside class="side">
+      <div>
+        <div class="meter"><span>TIMELINE</span><span>自动播放，末帧停住</span></div>
+        <div class="bar" id="timebar"><i></i></div>
+        <div class="dots" id="dots" style="margin-top:10px"></div>
+      </div>
+      <div id="extra"><div class="iter-card">
+        <div class="ic-head"><span>本页在迭代中的位置</span><a href="00-演进.html">全程 →</a></div>
+        <div class="ic-row"><b>问题</b><span>算法不变，软背衬下信号塌</span></div>
+        <div class="ic-row"><b>线索</b><span>膜靠传导来的微小振动变形，软材料吸振</span></div>
+        <div class="ic-row"><b>改动</b><span>膜–硬板–绑带三明治</span></div>
+        <div class="ic-row"><b>结果</b><span>p95 154 vs ≤50；−8.4 BPM</span></div>
+        <div class="ic-row bad"><b>遗留</b><span>手套装配、长期佩戴未测</span></div>
+      </div></div>
+      <div class="controls">
+        <button id="btn-prev">上一步</button>
+        <button id="btn-play" class="primary">播放</button>
+        <button id="btn-next">下一步</button>
+        <button id="btn-reset">重置</button>
+        <button id="btn-speed">1×</button>
+      </div>
+    </aside>
+  </section>
+</div>
+<script src="assets/data/pulse-data.js"></script>
+<script src="assets/engine.js"></script>
+<script>
+const VW = 1180, VH = 520;
+const IMGS = {};
+['sensor', 'mcu', 'oled', 'led', 'button', 'battery'].forEach(k => {
+  const im = new Image();
+  im.onload = () => IMGS[k] = im;
+  im.src = 'assets/img/' + k + '.jpg';
+});
+function view(ctx, W, H) {
+  const s = Math.min(W / VW, H / VH);
+  ctx.save(); ctx.translate((W - VW * s) / 2, (H - VH * s) / 2); ctx.scale(s, s);
+}
+function header(ctx, title, sub) {
+  A.text(ctx, title, 60, 34, { size: 20, serif: true, weight: 600 });
+  A.text(ctx, sub, 60, 56, { size: 11.5, mono: true, color: '#637875' });
+}
+function footer(ctx, right) {
+  A.line(ctx, 40, 480, 1140, 480, { color: '#1d2c31' });
+  A.text(ctx, '机构要点', 40, 502, { size: 10, mono: true, color: '#637875' });
+  const items = [['背面', '刚性板'], ['绑带', '压板不压膜'], ['位置', '拇指腹'], ['校准', '调到 p95 最大'], ['禁忌', '软背衬']];
+  let x = 130;
+  items.forEach(([k, v]) => {
+    A.text(ctx, k, x, 502, { size: 10, mono: true, color: '#637875' });
+    A.text(ctx, v, x + 40, 502, { size: 11, mono: true, color: '#c6d6d2' });
+    x += 190;
+  });
+  A.text(ctx, right, 1140, 502, { size: 10.5, mono: true, color: '#637875', align: 'right' });
+}
+function layer(ctx, x, y, w, h, color, alpha, label, dash) {
+  A.rr(ctx, x, y, w, h, 4);
+  ctx.fillStyle = color; ctx.globalAlpha = alpha || 1; ctx.fill(); ctx.globalAlpha = 1;
+  ctx.strokeStyle = color; ctx.globalAlpha = .7; ctx.stroke(); ctx.globalAlpha = 1;
+  if (label) A.text(ctx, label, x + 10, y + h / 2 + 4, { size: 11, mono: true, color: '#07120f' });
+}
+function sandwich(ctx, t, y0) {
+  const u = A.ease(t / 2.2);
+  const cx = 300;
+  // skin
+  const skinY = 120 + 40 * (1 - u);
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,180,154,.15)'; ctx.strokeStyle = 'rgba(255,180,154,.6)'; ctx.lineWidth = 1.4;
+  A.rr(ctx, cx - 170, skinY, 340, 46, 12); ctx.fill(); ctx.stroke();
+  A.text(ctx, '皮肤（拇指腹）', cx - 150, skinY + 28, { size: 12, color: '#ffb49a' });
+  ctx.restore();
+  // film
+  const filmY = 184 + 18 * (1 - u);
+  layer(ctx, cx - 160, filmY, 320, 12, '#ffb454', .55, null);
+  A.text(ctx, '压电薄膜', cx + 176, filmY + 10, { size: 11.5, color: '#ffb454' });
+  // charges
+  for (let i = 0; i < 6; i++) A.dot(ctx, cx - 100 + i * 40, filmY - 6, 2.2, '#ffd08a');
+  // plate
+  const plateY = 208 + 52 * (1 - u);
+  layer(ctx, cx - 175, plateY, 350, 26, '#57c8ff', .18, null);
+  A.text(ctx, '刚性背板', cx + 186, plateY + 18, { size: 11.5, color: '#57c8ff' });
+  // strap
+  const strapY = 252 + 40 * (1 - u);
+  ctx.save(); ctx.strokeStyle = 'rgba(143,165,162,.55)'; ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.moveTo(cx - 210, strapY); ctx.lineTo(cx + 210, strapY); ctx.stroke(); ctx.restore();
+  A.text(ctx, '绑带（可调张力）', cx + 222, strapY + 4, { size: 11.5, color: '#8fa5a2' });
+  // force arrows
+  for (let i = -1; i <= 1; i++) {
+    A.arrow(ctx, cx + i * 55, 60, cx + i * 55, skinY - 4, '#62f0b6', 1.6);
+  }
+  A.text(ctx, '心脏传来的震动', cx, 48, { size: 10.5, mono: true, color: '#62f0b6', align: 'center' });
+  // annotation
+  const rx = 650;
+  A.text(ctx, '三明治：膜被夹在皮肤与刚性板之间', rx, y0 + 84, { size: 17, serif: true, weight: 600 });
+  A.text(ctx, '① 膜直接贴肤：不夹任何软层', rx, y0 + 120, { size: 12.5, color: '#b9cbc7' });
+  A.text(ctx, '② 膜背面刚性板：把形变兜住', rx, y0 + 146, { size: 12.5, color: '#b9cbc7' });
+  A.text(ctx, '③ 绑带压“板”不压“膜”', rx, y0 + 172, { size: 12.5, color: '#b9cbc7' });
+  A.text(ctx, '④ 引线固定，留应力释放弯', rx, y0 + 198, { size: 12.5, color: '#b9cbc7' });
+  A.text(ctx, '为什么一定要刚性？', rx, y0 + 242, { size: 11, mono: true, color: '#637875' });
+  A.text(ctx, '膜靠传导来的微小振动变形；软背衬会把振动能量吸掉。', rx, y0 + 270, { size: 12.5, color: '#8fa5a2' });
+  A.text(ctx, '棉花背衬实测 −8.4 BPM。', rx, y0 + 296, { size: 13, color: '#ff6f6f' });
+  A.chip(ctx, rx, y0 + 318, '刚性板 p95 = 154', '#57c8ff');
+  A.chip(ctx, rx + 190, y0 + 318, '棉花 p95 ≤ 50', '#ff6f6f');
+}
+function backing(ctx, t, y0) {
+  const panels = [
+    { x: 60, title: '刚性背衬', ok: true, p95: 154, bpm: '自洽', c: '#62f0b6' },
+    { x: 610, title: '棉花背衬', ok: false, p95: 50, bpm: '−8.4 BPM', c: '#ff6f6f' }
+  ];
+  panels.forEach((p, pi) => {
+    const y = y0 + 40, w = 510, h = 300;
+    A.rr(ctx, p.x, y, w, h, 3); ctx.fillStyle = 'rgba(14,22,25,.8)'; ctx.fill();
+    ctx.strokeStyle = p.ok ? 'rgba(98,240,182,.35)' : 'rgba(255,111,111,.35)'; ctx.stroke();
+    A.text(ctx, p.title, p.x + 18, y + 30, { size: 15, weight: 600, color: p.c });
+    // layers
+    const lx = p.x + 40, ly = y + 64, lw = 220;
+    A.rr(ctx, lx, ly, lw, 30, 2); ctx.fillStyle = 'rgba(255,180,154,.14)'; ctx.fill();
+    A.text(ctx, '皮肤', lx + 10, ly + 20, { size: 10.5, color: '#ffb49a' });
+    A.rr(ctx, lx, ly + 34, lw, 10, 2); ctx.fillStyle = 'rgba(255,180,84,.55)'; ctx.fill();
+    A.text(ctx, '膜', lx + lw + 10, ly + 44, { size: 10.5, color: '#ffb454' });
+    if (p.ok) {
+      A.rr(ctx, lx, ly + 48, lw, 22, 2); ctx.fillStyle = 'rgba(87,200,255,.25)'; ctx.fill();
+      A.text(ctx, '刚性板', lx + 10, ly + 64, { size: 10.5, color: '#57c8ff' });
+    } else {
+      for (let i = 0; i < 5; i++) A.dot(ctx, lx + 20 + i * 44, ly + 58 + (i % 2) * 6, 7, 'rgba(200,200,190,.35)');
+      A.text(ctx, '棉花（软）', lx + lw + 10, ly + 64, { size: 10.5, color: '#c8c8be' });
+    }
+    // force arrows
+    for (let i = 0; i < 4; i++) A.arrow(ctx, lx + 30 + i * 54, ly - 24, lx + 30 + i * 54, ly + 2, '#62f0b6', 1.4);
+    A.text(ctx, '力', lx + 10, ly - 30, { size: 10, mono: true, color: '#62f0b6' });
+    // deformation
+    if (p.ok) {
+      A.text(ctx, '板的刚性把形变集中在膜上 → 信号强', p.x + 18, y + 190, { size: 11, color: '#8ef0c8' });
+    } else {
+      A.text(ctx, '棉花把振动吸掉 → 膜几乎不变形 → 信号塌', p.x + 18, y + 190, { size: 11, color: '#ff9a9a' });
+    }
+    // p95 bar
+    const barX = p.x + 24, barY = y + 218, barW = 300;
+    A.text(ctx, 'p95', barX, barY - 6, { size: 9.5, mono: true, color: '#637875' });
+    A.rr(ctx, barX, barY, barW, 12, 3); ctx.fillStyle = '#1d2c31'; ctx.fill();
+    A.rr(ctx, barX, barY, barW * Math.min(1, p.p95 / 160), 12, 3); ctx.fillStyle = p.c; ctx.fill();
+    A.text(ctx, String(p.p95), barX + barW + 8, barY + 11, { size: 12, mono: true, color: p.c });
+    A.text(ctx, p.bpm, p.x + 18, y + 282, { size: 13, mono: true, color: p.c });
+    if (!p.ok) A.text(ctx, '同样的按压，读数系统性偏低', p.x + 150, y + 282, { size: 10.5, color: '#8fa5a2' });
+  });
+  A.text(ctx, '背衬刚度定律：膜背面必须是刚性件，膜–板之间不允许任何软垫。', 60, y0 + 370, { size: 14, color: '#e8f2ef' });
+  A.text(ctx, '实测：棉花背衬 −8.4 BPM；刚性板幅度最高（p95 154）。', 60, y0 + 398, { size: 12.5, color: '#ffb454' });
+}
+function pressure(ctx, t, y0) {
+  const bx = 70, by = y0 + 60, bw = 660, bh = 280;
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 34 });
+  const pts = [];
+  for (let i = 0; i <= 100; i++) {
+    const u = i / 100;
+    let v = u < .62 ? 20 + 140 * Math.pow(Math.sin(u / .62 * Math.PI / 2), 1.1)
+                    : 142 * Math.exp(-Math.pow((u - .62) / .16, 2)) + 18;
+    pts.push([bx + u * bw, by + bh - v / 180 * bh]);
+  }
+  A.path(ctx, pts, { color: '#62f0b6', width: 2, glow: '#62f0b6' });
+  const sx = bx + .62 * bw;
+  A.line(ctx, sx, by, sx, by + bh, { color: '#ffb454', dash: [4, 4] });
+  A.text(ctx, '甜区：p95 最大', sx, by - 10, { size: 10.5, mono: true, color: '#ffb454', align: 'center' });
+  const y55 = by + bh - 55 / 180 * bh;
+  A.line(ctx, bx, y55, bx + bw, y55, { color: '#ff6f6f', dash: [6, 5] });
+  A.text(ctx, 'p95 55', bx + bw, y55 - 6, { size: 9.5, mono: true, color: '#ff6f6f', align: 'right' });
+  // moving hand
+  const u = (Math.sin(t * .8 - Math.PI / 2) * .5 + .5) * .95 + .02;
+  const px = bx + u * bw;
+  const pv = u < .62 ? 20 + 140 * Math.pow(Math.sin(u / .62 * Math.PI / 2), 1.1) : 142 * Math.exp(-Math.pow((u - .62) / .16, 2)) + 18;
+  A.dot(ctx, px, by + bh - pv / 180 * bh, 5, '#c8f560', true);
+  A.text(ctx, '当前', px, by + bh + 18, { size: 9.5, mono: true, color: '#c8f560', align: 'center' });
+  A.text(ctx, '轻', bx, by + bh + 18, { size: 9.5, mono: true, color: '#637875' });
+  A.text(ctx, '重', bx + bw, by + bh + 18, { size: 9.5, mono: true, color: '#637875', align: 'right' });
+  A.text(ctx, '压力 → p95（主路径强度 / 信噪比代理）', bx, by - 12, { size: 10.5, mono: true, color: '#8fa5a2' });
+  // vessel illustrations
+  const rx = 790;
+  const states = [
+    { y: y0 + 74, label: '太松', sub: '接触不稳，p95 低', open: .35, c: '#8fa5a2' },
+    { y: y0 + 176, label: '甜区', sub: '血管开、幅度最大', open: .85, c: '#62f0b6' },
+    { y: y0 + 278, label: '太紧', sub: '振动传不进来，p95 掉', open: .08, c: '#ff6f6f' }
+  ];
+  states.forEach(s => {
+    A.text(ctx, s.label, rx + 70, s.y + 6, { size: 12, weight: 600, color: s.c });
+    A.text(ctx, s.sub, rx + 120, s.y + 6, { size: 10.5, color: '#8fa5a2' });
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,180,154,.5)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(rx + 34, s.y, 24, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,111,111,.18)';
+    ctx.beginPath(); ctx.arc(rx + 34, s.y, 24 * s.open, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  });
+  A.text(ctx, 'p95 看的是主路径强度，不是“按得多用力”', 790, y0 + 356, { size: 13, color: '#e8f2ef' });
+  A.text(ctx, '所以校准口诀是：调到 p95 最大，不是压到最紧。', 790, y0 + 384, { size: 12, color: '#ffb454' });
+}
+function glove(ctx, t, y0) {
+  // left schematic
+  const cx = 250, cy = y0 + 210;
+  ctx.save();
+  ctx.strokeStyle = 'rgba(200,220,215,.35)'; ctx.lineWidth = 2;
+  // palm
+  A.rr(ctx, cx - 90, cy - 120, 180, 200, 40); ctx.stroke();
+  // thumb
+  ctx.beginPath(); ctx.moveTo(cx + 80, cy - 30);
+  ctx.quadraticCurveTo(cx + 160, cy - 40, cx + 170, cy + 30);
+  ctx.quadraticCurveTo(cx + 150, cy + 60, cx + 70, cy + 40);
+  ctx.stroke();
+  ctx.restore();
+  A.text(ctx, '传感器 + 刚性板', cx + 120, cy + 20, { size: 10.5, color: '#ffb454' });
+  A.dot(ctx, cx + 150, cy + 10, 5, '#ffb454', true);
+  A.text(ctx, 'OLED + 灯环 + 按钮', cx - 80, cy - 70, { size: 10.5, color: '#57c8ff' });
+  A.dot(ctx, cx - 30, cy - 50, 5, '#57c8ff', true);
+  A.text(ctx, '主控 + 电池（前臂）', cx + 10, cy + 160, { size: 10.5, color: '#62f0b6' });
+  A.arrow(ctx, cx + 30, cy + 120, cx + 60, cy + 70, '#62f0b6', 1.2);
+  // photos
+  const photos = [
+    ['sensor', '压电薄膜', '#ffb454'],
+    ['mcu', 'ESP32-C3', '#62f0b6'],
+    ['oled', 'OLED 表盘', '#57c8ff'],
+    ['led', '16 珠灯环', '#a78bfa'],
+    ['button', '按钮', '#ffb454'],
+    ['battery', '3×AAA 电池盒', '#62f0b6']
+  ];
+  photos.forEach((p, i) => {
+    const x = 500 + (i % 3) * 205, y = y0 + 40 + Math.floor(i / 3) * 170;
+    A.rr(ctx, x, y, 190, 150, 3); ctx.fillStyle = 'rgba(14,22,25,.8)'; ctx.fill();
+    ctx.strokeStyle = '#1d2c31'; ctx.stroke();
+    const im = IMGS[p[0]];
+    if (im) {
+      const ar = im.width / im.height, boxAr = 170 / 105;
+      let sw = im.width, sh = im.height, sx = 0, sy = 0;
+      if (ar > boxAr) { sw = im.height * boxAr; sx = (im.width - sw) / 2; }
+      else { sh = im.width / boxAr; sy = (im.height - sh) / 2; }
+      ctx.save(); ctx.beginPath(); A.rr(ctx, x + 10, y + 10, 170, 105, 2); ctx.clip();
+      ctx.drawImage(im, sx, sy, sw, sh, x + 10, y + 10, 170, 105); ctx.restore();
+    } else {
+      A.rr(ctx, x + 10, y + 10, 170, 105, 2); ctx.fillStyle = '#111c20'; ctx.fill();
+      A.text(ctx, '图片加载中', x + 20, y + 70, { size: 10, color: '#4d6663' });
+    }
+    A.text(ctx, p[1], x + 10, y + 136, { size: 11, mono: true, color: p[2] });
+  });
+}
+const steps = [
+  {
+    tag: '结构', dur: 8,
+    title: '三明治：皮肤–膜–硬板，力要“兜”在膜上',
+    body: '压电膜直接贴皮肤；背面垫一块<b>刚性板</b>；绑带压的是<b>板</b>，不是膜。这样心脏传来的振动才能让膜发生微小形变；如果背面是软的，振动能量会被吸掉，膜几乎不动。引线还要固定，避免晃动。',
+    extra: '在棉花上跳 vs 在地板上跳：地板才能把振动传回来。'
+  },
+  {
+    tag: '反例', dur: 8,
+    title: '棉花实验：同样的按压，信号塌了 8.4 BPM',
+    body: '软垫背衬让膜几乎不变形：p95 从刚性板的 <b>154</b> 掉到 <b>≤50</b>，同刻对照误差 <b>−8.4 BPM</b>。这不是算法问题：振动能量被软垫吸掉，主路径信号变弱、信噪比塌了。所以规范写死：膜–板之间不允许任何软质垫层。',
+    extra: '像在沙发上拍球：球拍下去，力气被沙发吸走了。'
+  },
+  {
+    tag: '过压', dur: 8,
+    title: '太松测不到，太紧反而更弱',
+    body: '轻压接触不稳；适中最强；压太紧会把血管这条“主路径”压扁，主峰衰减而底噪还在，<b>信噪比下降</b>，p95 掉到 55 以下。固件用基线 + p95 判 <b>OVER</b>。<em>p95 看的是主路径强度/信噪比，不是按压力度</em>，所以校准口诀是“调到 p95 最大”，不是“越紧越好”。',
+    extra: '捏水管：捏太死，水就不跳了。'
+  },
+  {
+    tag: '装配', dur: 7,
+    title: '最终装配：拇指、手背、前臂',
+    body: '拇指腹 = 传感器 + 刚性板；手背 = OLED + 16 珠灯环 + 按钮；前臂 = 主控 + 3×AAA 电池。所有线缆沿手套走线固定，避免晃动伪迹。',
+    extra: '机构不是外壳，它是信号链的第一级。'
+  }
+];
+const deck = new Deck({
+  steps,
+  draw(ctx, W, H) {
+    view(ctx, W, H);
+    const y0 = 78, s = deck.step, t = deck.t;
+    if (s === 0) { header(ctx, '把振动“兜”到膜上：三明治结构', '剖面示意 · 装配过程'); sandwich(ctx, t, y0); }
+    else if (s === 1) { header(ctx, '软背衬反例：棉花把信号吃掉了', '刚性板 vs 棉花 · 同刻对照'); backing(ctx, t, y0); }
+    else if (s === 2) { header(ctx, '压力甜区：不是越紧越好', '压力–信噪比曲线（示意）· 用 p95 看'); pressure(ctx, t, y0); }
+    else { header(ctx, '装配落点：拇指、手背、前臂', '实物照片 · 最终手套布局'); glove(ctx, t, y0); }
+    footer(ctx, s < 3 ? '下一页：精度验证 →' : '下一页：精度验证 →');
+    ctx.restore();
+  }
+});
+</script>
+</body>
+</html>

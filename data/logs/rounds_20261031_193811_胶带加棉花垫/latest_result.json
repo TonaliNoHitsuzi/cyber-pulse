@@ -1,0 +1,19 @@
+{
+ "round": 4,
+ "ok": false,
+ "bpm": 0,
+ "beats": 0,
+ "median_iv_ms": 0,
+ "coupling_qc": "正确佩戴(弱)",
+ "bpm_posthoc": 0,
+ "beats_posthoc": 0,
+ "fills": 0,
+ "reasons": [
+  "贴膜质量:正确佩戴(弱)",
+  "零检出",
+  "补偿后0.0BPM(0拍,补0剔0)"
+ ],
+ "note": "胶带加棉花垫",
+ "outdir": "D:\\Espressif\\workspace\\pulse_meter\\logs\\rounds_20261031_193811_胶带加棉花垫\\round_04_20261031_194057",
+ "stamp": "19:41:38"
+}

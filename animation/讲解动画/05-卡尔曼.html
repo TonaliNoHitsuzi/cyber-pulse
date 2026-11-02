@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>05 · 卡尔曼 | 赛博把脉</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><b>赛博把脉</b><span>CYBER-PULSE</span></div>
+    <div class="crumb"><span>讲解动画</span><i>/</i><span>05</span></div>
+    <div class="spacer"></div>
+    <div class="topic-tag">05 · 卡尔曼</div>
+    <a class="home" href="index.html">目录</a>
+  </header>
+  <main class="stage">
+    <div class="source" id="source">测量点：★会话真实 i+2 间隔 · 滤波器参数来自《跑步模式设计》· 影子模式未接管输出</div>
+    <canvas id="cv"></canvas>
+    <div class="hint">空格 播放/暂停 · ← → 单步 · R 重置</div>
+  </main>
+  <section class="narr">
+    <div class="narr-main">
+      <div class="step-head"><span id="step-count"></span><span id="step-tag"></span></div>
+      <h2 id="step-title"></h2>
+      <div id="step-body"></div>
+      <div class="human" id="step-human"></div>
+    </div>
+    <aside class="side">
+      <div>
+        <div class="meter"><span>TIMELINE</span><span>自动播放，末帧停住</span></div>
+        <div class="bar" id="timebar"><i></i></div>
+        <div class="dots" id="dots" style="margin-top:10px"></div>
+      </div>
+      <div id="extra"><div class="iter-card">
+        <div class="ic-head"><span>本页在迭代中的位置</span><a href="00-演进.html">全程 →</a></div>
+        <div class="ic-row"><b>问题</b><span>9 拍中值滞后 3–5s</span></div>
+        <div class="ic-row"><b>线索</b><span>心率是慢变量，但有变化速度</span></div>
+        <div class="ic-row"><b>改动</b><span>卡尔曼 [hr,v]，R 由计时误差推</span></div>
+        <div class="ic-row"><b>结果</b><span>120→83；加速 MAE 2.4–6.8</span></div>
+        <div class="ic-row bad"><b>遗留</b><span>高心率 i+2 配对仍给 75</span></div>
+      </div></div>
+      <div class="controls">
+        <button id="btn-prev">上一步</button>
+        <button id="btn-play" class="primary">播放</button>
+        <button id="btn-next">下一步</button>
+        <button id="btn-reset">重置</button>
+        <button id="btn-speed">1×</button>
+      </div>
+    </aside>
+  </section>
+</div>
+<script src="assets/data/pulse-data.js"></script>
+<script src="assets/engine.js"></script>
+<script>
+const D = window.PULSE_DATA.good;
+const VW = 1180, VH = 520;
+function view(ctx, W, H) {
+  const s = Math.min(W / VW, H / VH);
+  ctx.save(); ctx.translate((W - VW * s) / 2, (H - VH * s) / 2); ctx.scale(s, s);
+}
+function header(ctx, title, sub) {
+  A.text(ctx, title, 60, 34, { size: 20, serif: true, weight: 600 });
+  A.text(ctx, sub, 60, 56, { size: 11.5, mono: true, color: '#637875' });
+}
+function footer(ctx, right) {
+  A.line(ctx, 40, 480, 1140, 480, { color: '#1d2c31' });
+  A.text(ctx, '滤波器', 40, 502, { size: 10, mono: true, color: '#637875' });
+  const items = [['σa', '2 BPM/s²'], ['σt', '20 ms'], ['门', '4σ / 45 BPM'], ['v 限幅', '±8 BPM/s'], ['代价', '15.6 ms / 拍']];
+  let x = 120;
+  items.forEach(([k, v]) => {
+    A.text(ctx, k, x, 502, { size: 10, mono: true, color: '#637875' });
+    A.text(ctx, v, x + 36, 502, { size: 11, mono: true, color: '#c6d6d2' });
+    x += 190;
+  });
+  A.text(ctx, right, 1140, 502, { size: 10.5, mono: true, color: '#637875', align: 'right' });
+}
+// ---------- Kalman on real beats ----------
+function beatSeries() {
+  const pk = D.peaks, out = [];
+  for (let i = 0; i < pk.length - 2; i += 2) {
+    const d = pk[i + 2][0] - pk[i][0];
+    if (d > .3 && d < 1.4) out.push({ t: pk[i + 2][0], z: 60 / d });
+  }
+  return out;
+}
+const BEATS = beatSeries();
+function runKF(seq, init, sa, sT) {
+  let x = [init, 0];
+  let P = [[400, 0], [0, 25]];
+  let prev = seq[0].t;
+  const out = [];
+  for (const b of seq) {
+    const dt = Math.max(.2, Math.min(2, b.t - prev)); prev = b.t;
+    x = [x[0] + x[1] * dt, x[1]];
+    const q00 = sa * sa * Math.pow(dt, 4) / 4, q01 = sa * sa * Math.pow(dt, 3) / 2, q11 = sa * sa * dt * dt;
+    P = [[P[0][0] + dt * (P[1][0] + P[0][1]) + dt * dt * P[1][1] + q00,
+          P[0][1] + dt * P[1][1] + q01],
+         [P[1][0] + dt * P[1][1] + q01, P[1][1] + q11]];
+    const R = Math.pow((x[0] * x[0] * sT / 60), 2);
+    const S = P[0][0] + R;
+    const K0 = P[0][0] / S, K1 = P[1][0] / S;
+    const y = b.z - x[0];
+    x = [x[0] + K0 * y, x[1] + K1 * y];
+    const P00 = (1 - K0) * P[0][0], P01 = (1 - K0) * P[0][1], P11 = P[1][1] - K1 * P[0][1];
+    P = [[P00, P01], [P01, P11]];
+    out.push({ t: b.t, z: b.z, hr: x[0], v: x[1], sd: Math.sqrt(Math.max(0, P00)), K: K0, R });
+  }
+  return out;
+}
+const KF = runKF(BEATS, 120, 2.0, 0.02);
+function median(a, k, n) {
+  const s = a.slice(Math.max(0, k - n + 1), k + 1).map(x => x.z).sort((p, q) => p - q);
+  return s[Math.floor(s.length / 2)];
+}
+// ---------- synthetic ramp ----------
+function rampSeries() {
+  const out = []; let t = 0;
+  for (let k = 0; k < 90; k++) {
+    let z = 80;
+    if (t >= 5 && t < 20) z = 80 + (t - 5) * 70 / 15;
+    if (t >= 20) z = 150;
+    out.push({ t, z }); t += .5;
+  }
+  return out;
+}
+const RAMP = rampSeries();
+const KFR = runKF(RAMP, 100, 2.0, 0.02);
+function plotFrame(ctx, x, y, w, h, xmax, ymin, ymax, xlab, ylab) {
+  A.grid(ctx, { x, y, w, h }, { step: 36 });
+  const X = v => x + v / xmax * w;
+  const Y = v => y + h - (v - ymin) / (ymax - ymin) * h;
+  [ymin, Math.round((ymin + ymax) / 2), ymax].forEach(v => {
+    A.line(ctx, x - 5, Y(v), x, Y(v), { color: '#2a4046' });
+    A.text(ctx, String(v), x - 9, Y(v) + 3, { size: 9.5, mono: true, color: '#637875', align: 'right' });
+  });
+  A.text(ctx, xlab, x + w, y - 10, { size: 9.5, mono: true, color: '#637875', align: 'right' });
+  A.text(ctx, ylab, x, y - 10, { size: 9.5, mono: true, color: '#637875' });
+  if (xmax > 0) for (let k = 0; k <= xmax; k += Math.max(1, Math.round(xmax / 4))) {
+    A.text(ctx, String(Math.round(k)), X(k), y + h + 16, { size: 9, mono: true, color: '#4d6663', align: 'center' });
+  }
+  return { X, Y };
+}
+function concept(ctx, t, y0) {
+  const boxes = [
+    { x: 60, t: '状态', s: '[ hr , v ]', c: '#57c8ff' },
+    { x: 300, t: '预测', s: 'hr += v·dt', c: '#a78bfa' },
+    { x: 540, t: '先验带', s: 'N(hr, σ²)', c: '#ffb454' },
+    { x: 780, t: '测量修正', s: 'z = 60000/d', c: '#62f0b6' }
+  ];
+  boxes.forEach((b, i) => {
+    const on = Math.min(3, Math.floor(t / 1.5)) === i;
+    A.rr(ctx, b.x, y0 + 40, 190, 92, 3);
+    ctx.fillStyle = on ? 'rgba(255,255,255,.05)' : 'rgba(14,22,25,.7)'; ctx.fill();
+    ctx.strokeStyle = on ? b.c : '#1d2c31'; ctx.lineWidth = on ? 1.4 : 1; ctx.stroke();
+    A.text(ctx, b.t, b.x + 14, y0 + 66, { size: 11, mono: true, color: b.c });
+    A.text(ctx, b.s, b.x + 14, y0 + 102, { size: 17, mono: true, color: '#e8f2ef' });
+    if (i < 3) A.arrow(ctx, b.x + 194, y0 + 86, b.x + 236, y0 + 86, on ? b.c : '#2a4046', 1.4);
+  });
+  // mini beat timeline
+  const bx = 70, by = y0 + 190, bw = 760, bh = 160;
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 34 });
+  A.text(ctx, '一拍一拍地来：预测 → 用测量收窄', bx, by - 12, { size: 11, mono: true, color: '#8fa5a2' });
+  const beats = [0, 1, 2, 3];
+  beats.forEach((k, i) => {
+    const x = bx + (i + .5) / 4 * bw;
+    const sd = [34, 22, 15, 11][i];
+    // band
+    ctx.save(); ctx.fillStyle = 'rgba(98,240,182,.13)';
+    ctx.fillRect(x - sd, by + 30, sd * 2, bh - 70); ctx.restore();
+    A.line(ctx, x, by + 26, x, by + bh - 36, { color: '#62f0b6', alpha: .45, dash: [2, 4] });
+    // measurement
+    const zy = by + 80 + [26, -18, 10, -6][i];
+    A.dot(ctx, x + [12, -8, 9, -5][i], zy, 4, '#ffb454', true);
+    A.text(ctx, 'z' + (i + 1), x + 14, zy - 8, { size: 9.5, mono: true, color: '#ffb454' });
+    A.text(ctx, '±2σ', x, by + bh - 20, { size: 9, mono: true, color: '#62f0b6', align: 'center' });
+  });
+  A.text(ctx, '预测让不确定度变大，测量把它拉回来', bx + bw, by + bh - 20, { size: 11, color: '#8fa5a2', align: 'right' });
+  // equations right
+  const rx = 880;
+  A.text(ctx, '两个状态', rx, y0 + 66, { size: 10, mono: true, color: '#637875' });
+  A.text(ctx, 'hr', rx, y0 + 98, { size: 24, mono: true, color: '#57c8ff' });
+  A.text(ctx, '心率', rx + 46, y0 + 94, { size: 11, color: '#8fa5a2' });
+  A.text(ctx, 'v', rx, y0 + 136, { size: 24, mono: true, color: '#a78bfa' });
+  A.text(ctx, '变化率', rx + 28, y0 + 132, { size: 11, color: '#8fa5a2' });
+  A.text(ctx, '为什么要有 v：加速时', rx, y0 + 190, { size: 12, color: '#b9cbc7' });
+  A.text(ctx, '“心率正在变快”本身就是', rx, y0 + 212, { size: 12, color: '#b9cbc7' });
+  A.text(ctx, '信息，可以用来外推下一拍。', rx, y0 + 234, { size: 12, color: '#b9cbc7' });
+}
+function realKF(ctx, t, y0) {
+  const bx = 60, by = y0 + 50, bw = 760, bh = 300;
+  const EST = [{ hr: 120, sd: 20, z: null }].concat(KF);
+  const P = plotFrame(ctx, bx, by, bw, bh, EST.length - 1, 60, 130, '拍序号', 'BPM');
+  const reveal = Math.min(EST.length, 2 + Math.floor(t / 9 * EST.length));
+  // band
+  for (let k = 1; k < reveal; k++) {
+    const x1 = P.X(k - 1), x2 = P.X(k);
+    const a = EST[k - 1], b = EST[k];
+    ctx.save(); ctx.fillStyle = 'rgba(98,240,182,.12)';
+    ctx.beginPath();
+    ctx.moveTo(x1, P.Y(a.hr + 2 * a.sd));
+    ctx.lineTo(x2, P.Y(b.hr + 2 * b.sd));
+    ctx.lineTo(x2, P.Y(b.hr - 2 * b.sd));
+    ctx.lineTo(x1, P.Y(a.hr - 2 * a.sd));
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  // measurements
+  for (let k = 1; k < reveal; k++) A.dot(ctx, P.X(k), P.Y(EST[k].z), 2, 'rgba(255,180,84,.8)');
+  // estimate
+  const pts = [];
+  for (let k = 0; k < reveal; k++) pts.push([P.X(k), P.Y(EST[k].hr)]);
+  if (pts.length > 1) A.path(ctx, pts, { color: '#62f0b6', width: 2.2, glow: '#62f0b6' });
+  // initial marker
+  A.dot(ctx, P.X(0), P.Y(120), 4.5, '#ff6f6f', true);
+  A.text(ctx, '初值 120', P.X(0) + 8, P.Y(120) - 8, { size: 10.5, mono: true, color: '#ff6f6f' });
+  const last = EST[Math.max(1, reveal - 1)];
+  A.text(ctx, '实测点 z（每拍一个）', bx + bw - 4, by + 18, { size: 10, mono: true, color: '#ffb454', align: 'right' });
+  A.text(ctx, '卡尔曼估计', bx + bw - 4, by + 36, { size: 10, mono: true, color: '#62f0b6', align: 'right' });
+  A.text(ctx, '±2σ 预测带', bx + bw - 4, by + 54, { size: 10, mono: true, color: '#8ef0c8', align: 'right' });
+  // right readout
+  const rx = 860;
+  A.text(ctx, '当前估计', rx, y0 + 82, { size: 10, mono: true, color: '#637875' });
+  A.text(ctx, last.hr.toFixed(1), rx, y0 + 142, { size: 52, mono: true, color: '#62f0b6' });
+  A.text(ctx, 'BPM', rx + 152, y0 + 142, { size: 12, mono: true, color: '#8fa5a2' });
+  A.text(ctx, 'v = ' + last.v.toFixed(2) + ' BPM/s', rx, y0 + 178, { size: 13, mono: true, color: '#a78bfa' });
+  A.text(ctx, '±2σ = ' + (2 * last.sd).toFixed(1) + ' BPM', rx, y0 + 202, { size: 13, mono: true, color: '#8ef0c8' });
+  A.text(ctx, 'K = ' + last.K.toFixed(2), rx, y0 + 226, { size: 13, mono: true, color: '#c6d6d2' });
+  A.text(ctx, '初值故意给 120', rx, y0 + 268, { size: 11, color: '#8fa5a2' });
+  A.text(ctx, '→ 第一拍就拉回 83', rx, y0 + 290, { size: 11, color: '#8fa5a2' });
+  A.text(ctx, '真实测量中位数 82.8', rx, y0 + 322, { size: 10.5, mono: true, color: '#637875' });
+}
+function rampKF(ctx, t, y0) {
+  const bx = 60, by = y0 + 50, bw = 760, bh = 300;
+  const P = plotFrame(ctx, bx, by, bw, bh, 42, 70, 170, '时间 / s', 'BPM');
+  const reveal = Math.min(RAMP.length, 4 + Math.floor(t / 8 * RAMP.length));
+  // median line
+  const med = [];
+  for (let k = 0; k < reveal; k++) if (k >= 8) med.push([P.X(RAMP[k].t), P.Y(median(RAMP, k, 9))]);
+  if (med.length > 1) A.path(ctx, med, { color: '#ffb454', width: 1.6, dash: [5, 4] });
+  // z
+  for (let k = 0; k < reveal; k++) A.dot(ctx, P.X(RAMP[k].t), P.Y(RAMP[k].z), 1.6, 'rgba(255,255,255,.35)');
+  // KF
+  const pts = [];
+  for (let k = 0; k < reveal; k++) pts.push([P.X(RAMP[k].t), P.Y(KFR[k].hr)]);
+  if (pts.length > 1) A.path(ctx, pts, { color: '#62f0b6', width: 2.2, glow: '#62f0b6' });
+  A.text(ctx, '真实心率（合成阶梯）', bx + bw - 4, by + 18, { size: 10, mono: true, color: '#8fa5a2', align: 'right' });
+  A.text(ctx, '卡尔曼', bx + bw - 4, by + 36, { size: 10, mono: true, color: '#62f0b6', align: 'right' });
+  A.text(ctx, '9 拍中值（旧）', bx + bw - 4, by + 54, { size: 10, mono: true, color: '#ffb454', align: 'right' });
+  const last = KFR[Math.max(0, reveal - 1)];
+  const rx = 860;
+  A.text(ctx, '加速段', rx, y0 + 82, { size: 10, mono: true, color: '#637875' });
+  A.text(ctx, last.hr.toFixed(0), rx, y0 + 142, { size: 52, mono: true, color: '#62f0b6' });
+  A.text(ctx, 'BPM', rx + 112, y0 + 142, { size: 12, mono: true, color: '#8fa5a2' });
+  A.text(ctx, 'v = ' + last.v.toFixed(1) + ' BPM/s', rx, y0 + 178, { size: 13, mono: true, color: '#a78bfa' });
+  A.text(ctx, '9 拍中值滞后约 3–5 s', rx, y0 + 222, { size: 11.5, color: '#ffb454' });
+  A.text(ctx, '速度状态把这段补上', rx, y0 + 246, { size: 11.5, color: '#8ef0c8' });
+  A.text(ctx, '80 → 150 BPM · 合成轨迹', rx, y0 + 290, { size: 10, mono: true, color: '#637875' });
+  A.text(ctx, '参数按设计文档，非实测', rx, y0 + 310, { size: 10, mono: true, color: '#637875' });
+}
+function gates(ctx, t, y0) {
+  const rows = [
+    ['4σ 新息门', '|z − 预测| 超过 4σ → 本拍不采信', '#57c8ff'],
+    ['45 BPM 绝对门', '单拍心率跳变 >45 → 生理上不可能', '#ffb454'],
+    ['2.5 s 无有效拍', '状态转 SRCH，显示 ---', '#ff6f6f'],
+    ['质量门不过', '输出 0，但滤波器内部继续跑', '#62f0b6'],
+    ['v 贴限幅 3 s', '判失控 → 重置，防发散', '#a78bfa']
+  ];
+  rows.forEach((r, i) => {
+    const y = y0 + 40 + i * 62;
+    const on = Math.floor(t / 1.2) === i;
+    A.rr(ctx, 60, y, 640, 50, 2);
+    ctx.fillStyle = on ? 'rgba(255,255,255,.05)' : 'rgba(14,22,25,.6)'; ctx.fill();
+    ctx.strokeStyle = on ? r[2] : '#1d2c31'; ctx.stroke();
+    A.dot(ctx, 78, y + 25, 3, r[2], on);
+    A.text(ctx, r[0], 94, y + 22, { size: 12, mono: true, color: r[2] });
+    A.text(ctx, r[1], 94, y + 40, { size: 10.5, color: on ? '#c6d6d2' : '#6b827e' });
+  });
+  // right scenario
+  const rx = 760;
+  A.rr(ctx, rx, y0 + 44, 350, 250, 3); ctx.fillStyle = 'rgba(14,22,25,.8)'; ctx.fill();
+  ctx.strokeStyle = '#1d2c31'; ctx.stroke();
+  A.text(ctx, '离群拍：丢掉，不硬接', rx + 18, y0 + 76, { size: 13, weight: 600, color: '#e8f2ef' });
+  const bx = rx + 24, by = y0 + 100, bw = 300, bh = 150;
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 30 });
+  const Y = v => by + bh - (v - 60) / 60 * bh;
+  const pts = [];
+  for (let k = 0; k < 18; k++) { const hr = 82 + Math.sin(k * .7) * 2; pts.push([bx + k / 17 * bw, Y(hr)]); }
+  A.path(ctx, pts, { color: '#62f0b6', width: 1.6 });
+  const ox = bx + 12 / 17 * bw, oy = Y(118);
+  A.dot(ctx, ox, oy, 5, '#ff6f6f', true);
+  A.line(ctx, ox, oy, ox, Y(86), { color: '#ff6f6f', dash: [3, 4] });
+  A.text(ctx, '118', ox + 8, oy + 4, { size: 10, mono: true, color: '#ff6f6f' });
+  A.text(ctx, '一个 118 的野值', rx + 18, y0 + 280, { size: 11, color: '#ff9a9a' });
+  A.text(ctx, '下一拍马上回到 83', rx + 18, y0 + 300, { size: 11, color: '#8fa5a2' });
+}
+const steps = [
+  {
+    tag: '直觉', dur: 7,
+    title: '卡尔曼 = 开车导航：先猜你在哪，再用路口修正',
+    body: '它同时记两件事：<b>现在心率多少</b>，以及<b>心率正在变快还是变慢</b>（速度）。每来一拍，先用“速度”猜下一拍在哪，并承认“我不确定”；拿到真实间隔后，再按可信度把估计拉过去。',
+    extra: '导航也是：先按车速推测位置，再用路口地标纠正。'
+  },
+  {
+    tag: '真实数据', dur: 9,
+    title: '故意报一个离谱的 120，看它多久改口',
+    body: '用 ★会话真实的逐拍间隔喂进去，初值故意设成 <b>120 BPM</b>。第一拍测量一到，就被拉到 <b>83</b> 附近，随后稳定在 82–83；橙色点是每拍的原始测量，绿线是修正后的估计，绿色带是它给自己画的“可能范围”（±2σ）。',
+    extra: '像新手开车：一开始方向偏得离谱，看到第一个路牌就赶紧回正。'
+  },
+  {
+    tag: '速度状态', dur: 8,
+    title: '加速段：中值像后视镜，卡尔曼像看前方',
+    body: '合成一条 80 → 150 BPM 的加速轨迹。9 拍中值相当于“看后视镜”：在 150 BPM 时窗口横跨 3–5 秒，天然慢半拍；卡尔曼的 <b>速度状态</b>学到“正在变快”，会把下一拍往前推，所以跟得上。',
+    extra: '一个只看过去 9 个数取平均，一个知道“我正在加速”。'
+  },
+  {
+    tag: '兜底', dur: 8,
+    title: '野值、漏拍、信号丢失：宁可说不知道',
+    body: '一个 118 的野值会被“新息门”挡住（和预测差太远就不信），下一拍立刻回到 83；连续 <b>2.5 秒</b>没有有效拍就转 <b>SRCH</b> 显示 <b>---</b>；质量门不过时输出 0，但滤波器内部继续跑，信号一恢复就立刻出数。',
+    extra: '像 GPS：隧道里没信号就说“定位中”，不会硬编一个位置。'
+  }
+];
+const deck = new Deck({
+  steps,
+  draw(ctx, W, H) {
+    view(ctx, W, H);
+    const y0 = 78, s = deck.step, t = deck.t;
+    if (s === 0) { header(ctx, '先猜，再改口', '状态 [hr, v] · 预测 + 修正'); concept(ctx, t, y0); }
+    else if (s === 1) { header(ctx, '把真实间隔喂进去，看它改口', '★会话 · 95 拍 · 初值 120'); realKF(ctx, t, y0); }
+    else if (s === 2) { header(ctx, '加速时，别只看后视镜', '合成阶梯 80→150 · 参数按设计'); rampKF(ctx, t, y0); }
+    else { header(ctx, '兜底：野值丢掉，测不了就承认', '新息门 · 绝对门 · 超时'); gates(ctx, t, y0); }
+    footer(ctx, s < 3 ? '下一页：模板匹配 →' : '下一页：模板匹配 →');
+    ctx.restore();
+  }
+});
+</script>
+</body>
+</html>

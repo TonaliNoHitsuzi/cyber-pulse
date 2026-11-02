@@ -1,0 +1,20 @@
+{
+ "round": 1,
+ "ok": false,
+ "bpm": 99.2,
+ "beats": 3,
+ "median_iv_ms": 605,
+ "coupling_qc": "正确佩戴",
+ "bpm_posthoc": 0,
+ "beats_posthoc": 3,
+ "fills": 0,
+ "reasons": [
+  "贴膜质量:正确佩戴",
+  "99BPM 3拍 中位605ms 桶[3]",
+  "检出不足(3/39)",
+  "补偿后0.0BPM(3拍,补0剔0)"
+ ],
+ "note": "大腿-BCG判别",
+ "outdir": "D:\\Espressif\\workspace\\pulse_meter\\logs\\rounds_20261031_173328_大腿-BCG判别\\round_01_20261031_173328",
+ "stamp": "17:34:09"
+}

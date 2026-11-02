@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>01 · 信号从哪来 | 赛博把脉</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><b>赛博把脉</b><span>CYBER-PULSE</span></div>
+    <div class="crumb"><span>讲解动画</span><i>/</i><span>01</span></div>
+    <div class="spacer"></div>
+    <div class="topic-tag">01 · 信号从哪来</div>
+    <a class="home" href="index.html">目录</a>
+  </header>
+  <main class="stage">
+    <div class="source" id="source">真实波形：session_20261030_224652 / raw_r.log · 200 Hz</div>
+    <canvas id="cv"></canvas>
+    <div class="hint">空格 播放/暂停 · ← → 单步 · R 重置</div>
+  </main>
+  <section class="narr">
+    <div class="narr-main">
+      <div class="step-head"><span id="step-count"></span><span id="step-tag"></span></div>
+      <h2 id="step-title"></h2>
+      <div id="step-body"></div>
+      <div class="human" id="step-human"></div>
+    </div>
+    <aside class="side">
+      <div>
+        <div class="meter"><span>TIMELINE</span><span>自动播放，末帧停住</span></div>
+        <div class="bar" id="timebar"><i></i></div>
+        <div class="dots" id="dots" style="margin-top:10px"></div>
+      </div>
+      <div id="extra"><div class="iter-card">
+        <div class="ic-head"><span>本页在迭代中的位置</span><a href="00-演进.html">全程 →</a></div>
+        <div class="ic-row"><b>问题</b><span>旧状态机在真实双峰上 0 拍</span></div>
+        <div class="ic-row"><b>线索</b><span>每拍两个鼓包，间隔稳定</span></div>
+        <div class="ic-row"><b>改动</b><span>峰普查：阈值 40 + 间距 350ms</span></div>
+        <div class="ic-row"><b>结果</b><span>0 → 82 峰；这段 83 BPM</span></div>
+        <div class="ic-row bad"><b>遗留</b><span>双峰仍会让周期翻倍</span></div>
+      </div></div>
+      <div class="controls">
+        <button id="btn-prev">上一步</button>
+        <button id="btn-play" class="primary">播放</button>
+        <button id="btn-next">下一步</button>
+        <button id="btn-reset">重置</button>
+        <button id="btn-speed">1×</button>
+      </div>
+    </aside>
+  </section>
+</div>
+<script src="assets/data/pulse-data.js"></script>
+<script src="assets/engine.js"></script>
+<script>
+const D = window.PULSE_DATA.good;
+const ENV = A.envMax(D.seg_dev, 9, 9);
+const VW = 1180, VH = 520;
+function view(ctx, W, H) {
+  const s = Math.min(W / VW, H / VH);
+  ctx.save(); ctx.translate((W - VW * s) / 2, (H - VH * s) / 2); ctx.scale(s, s);
+  return s;
+}
+const stages = [
+  { t: '压电膜', s: '形变 → 电荷', c: '#ffb454' },
+  { t: '电荷 → 电压', s: '高阻 · AC 耦合', c: '#a78bfa' },
+  { t: 'ADC 采样', s: '1 kHz · 5 点/窗', c: '#57c8ff' },
+  { t: '整流偏差 dev', s: '偏离基线多少', c: '#62f0b6' },
+  { t: '峰普查', s: '阈值 40 · 隔峰配对', c: '#c8f560' }
+];
+function stageRow(ctx, active, alpha) {
+  const x0 = 40, y = 6, w = 208, h = 86, gap = 20;
+  stages.forEach((s, i) => {
+    const x = x0 + i * (w + gap);
+    const on = i === active;
+    ctx.save(); ctx.globalAlpha = alpha == null ? 1 : alpha;
+    A.rr(ctx, x, y, w, h, 3);
+    ctx.fillStyle = on ? 'rgba(98,240,182,.08)' : 'rgba(14,22,25,.72)'; ctx.fill();
+    ctx.strokeStyle = on ? s.c : '#1d2c31'; ctx.lineWidth = on ? 1.4 : 1;
+    if (on) { ctx.shadowColor = s.c; ctx.shadowBlur = 16; }
+    ctx.stroke(); ctx.shadowBlur = 0;
+    A.text(ctx, String(i + 1).padStart(2, '0'), x + 14, y + 24, { size: 10, mono: true, color: on ? s.c : '#3c5459' });
+    A.text(ctx, s.t, x + 14, y + 52, { size: 17, weight: 600, color: on ? '#e8f2ef' : '#8fa5a2' });
+    A.text(ctx, s.s, x + 14, y + 72, { size: 10.5, mono: true, color: on ? s.c : '#637875' });
+    ctx.restore();
+    if (i < 4) A.arrow(ctx, x + w + 4, y + h / 2, x + w + gap - 4, y + h / 2, '#2a4046', 1.2);
+  });
+}
+function heartShape(ctx, hx, hy, sz, color, glow) {
+  ctx.save(); ctx.fillStyle = color; ctx.shadowColor = glow || color; ctx.shadowBlur = 16;
+  ctx.beginPath();
+  ctx.moveTo(hx, hy + sz * 0.25);
+  ctx.bezierCurveTo(hx, hy - sz * 0.05, hx - sz, hy - sz * 0.15, hx - sz, hy + sz * 0.25);
+  ctx.bezierCurveTo(hx - sz, hy + sz * 0.6, hx, hy + sz * 0.75, hx, hy + sz);
+  ctx.bezierCurveTo(hx, hy + sz * 0.75, hx + sz, hy + sz * 0.6, hx + sz, hy + sz * 0.25);
+  ctx.bezierCurveTo(hx + sz, hy - sz * 0.15, hx, hy - sz * 0.05, hx, hy + sz * 0.25);
+  ctx.fill(); ctx.restore();
+}
+function pathScene(ctx, t, y0) {
+  // left: heart -> multiple paths -> one contact point
+  const hx = 105, hy = y0 + 155, cx = 500, cy = y0 + 155;
+  A.text(ctx, '同一个接触点，收到的是很多条路径的“合奏”', 60, y0 + 24, { size: 13, color: '#e8f2ef' });
+  heartShape(ctx, hx, hy, 28, '#ff6f6f', '#ff6f6f');
+  A.text(ctx, '心脏', hx, hy + 52, { size: 10.5, mono: true, color: '#ff9a9a', align: 'center' });
+  // vessel path (fast, strong)
+  ctx.save(); ctx.strokeStyle = '#ffb454'; ctx.lineWidth = 5; ctx.shadowColor = '#ffb454'; ctx.shadowBlur = 12;
+  ctx.beginPath(); ctx.moveTo(hx + 26, hy + 2);
+  ctx.quadraticCurveTo(hx + 180, hy - 42, cx - 30, cy);
+  ctx.stroke(); ctx.restore();
+  A.text(ctx, '血管：快、衰减小 → 主峰', hx + 70, hy - 82, { size: 10.5, mono: true, color: '#ffb454' });
+  // tissue / bone paths (slow, weak)
+  [1, -1].forEach((dir, i) => {
+    ctx.save(); ctx.strokeStyle = 'rgba(143,165,162,.55)'; ctx.lineWidth = 1.2; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(hx + 26, hy + 10);
+    ctx.quadraticCurveTo(hx + 170 + i * 30, hy + dir * 78, cx - 30, cy + dir * 10);
+    ctx.stroke(); ctx.restore();
+  });
+  A.text(ctx, '组织 / 骨骼：慢、弱 → 尾巴 / 底噪', hx + 60, hy + 92, { size: 10.5, mono: true, color: '#8fa5a2' });
+  // contact patch
+  A.rr(ctx, cx - 10, cy - 42, 20, 84, 6); ctx.fillStyle = 'rgba(255,180,84,.18)'; ctx.fill();
+  ctx.strokeStyle = 'rgba(255,180,84,.7)'; ctx.stroke();
+  A.text(ctx, '膜', cx + 18, cy + 4, { size: 11, mono: true, color: '#ffb454' });
+  // right: components sum
+  const bx = 610, by = y0 + 50, bw = 500, bh = 300;
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 30 });
+  const xmin = 0, xmax = 420;
+  const X = v => bx + (v - xmin) / (xmax - xmin) * bw;
+  const Y = v => by + bh - Math.min(v, 1.25) / 1.25 * bh;
+  const comp = (v, mu, sg, amp) => amp * Math.exp(-0.5 * Math.pow((v - mu) / sg, 2));
+  const a1 = [], a2 = [], a3 = [], sum = [];
+  for (let v = 0; v <= xmax; v += 2) {
+    const c1 = comp(v, 80, 30, 1), c2 = comp(v, 200, 55, .22), c3 = comp(v, 300, 70, .10);
+    a1.push([X(v), Y(c1)]); a2.push([X(v), Y(c2)]); a3.push([X(v), Y(c3)]);
+    sum.push([X(v), Y(c1 + c2 + c3)]);
+  }
+  const p = A.clamp(t / 2.2, 0, 1);
+  A.path(ctx, a1, { color: '#ffb454', width: 1.3, dash: [4, 3], alpha: .8 * p });
+  A.path(ctx, a2, { color: '#8fa5a2', width: 1.1, dash: [4, 3], alpha: .8 * p });
+  A.path(ctx, a3, { color: '#637875', width: 1.1, dash: [4, 3], alpha: .8 * p });
+  if (p > .55) A.path(ctx, sum.slice(0, Math.floor(sum.length * p)), { color: '#62f0b6', width: 2.4, glow: '#62f0b6' });
+  A.text(ctx, '三路到达时间不同，叠出来的形状', bx, by - 12, { size: 11, mono: true, color: '#8fa5a2' });
+  A.text(ctx, '主峰 = 血管路先到', X(80), Y(1.05) - 6, { size: 10, mono: true, color: '#ffb454', align: 'center' });
+  A.text(ctx, '尾巴 = 其他路径后到', X(260), Y(.62), { size: 10, mono: true, color: '#8fa5a2' });
+  A.text(ctx, '0 ms', bx, by + bh + 16, { size: 9, mono: true, color: '#637875' });
+  A.text(ctx, '420 ms', bx + bw, by + bh + 16, { size: 9, mono: true, color: '#637875', align: 'right' });
+  A.text(ctx, '工作模型示意：路径延迟按数量级画，不是实测波形', bx + bw, by + bh + 34, { size: 9.5, mono: true, color: '#4d6663', align: 'right' });
+}
+function filmScene(ctx, t, y0) {
+  const cx = 300, cy = y0 + 210;
+  const press = 18 + 8 * Math.sin(t * 2.2);
+  A.text(ctx, '侧视剖面（示意）', 60, y0 + 30, { size: 10, mono: true, color: '#637875' });
+  // finger
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,180,84,.10)'; ctx.strokeStyle = 'rgba(255,180,84,.55)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(cx, cy - 96 + press, 86, 58, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  A.text(ctx, '指腹', cx, cy - 92 + press, { size: 14, align: 'center', color: '#ffb454' });
+  ctx.restore();
+  // film
+  ctx.save();
+  const flex = 8 + press * .3;
+  ctx.beginPath();
+  ctx.moveTo(cx - 150, cy);
+  ctx.quadraticCurveTo(cx, cy + flex, cx + 150, cy);
+  ctx.lineWidth = 7; ctx.strokeStyle = '#ffd08a'; ctx.shadowColor = '#ffb454'; ctx.shadowBlur = 16; ctx.stroke();
+  A.text(ctx, '压电薄膜', cx + 162, cy + 4, { size: 12, color: '#ffcf8a' });
+  ctx.restore();
+  // rigid plate
+  ctx.save(); ctx.fillStyle = 'rgba(87,200,255,.12)'; ctx.strokeStyle = 'rgba(87,200,255,.55)';
+  A.rr(ctx, cx - 165, cy + 26, 330, 22, 2); ctx.fill(); ctx.stroke();
+  A.text(ctx, '刚性背板', cx + 178, cy + 42, { size: 12, color: '#57c8ff' });
+  ctx.restore();
+  // charges
+  const dir = Math.sin(t * 2.2) >= 0 ? 1 : -1;
+  for (let i = 0; i < 7; i++) {
+    const x = cx - 105 + i * 35;
+    A.dot(ctx, x, cy - 14, 3.2, dir > 0 ? '#ff6f6f' : '#57c8ff', true);
+    A.text(ctx, dir > 0 ? '+' : '−', x, cy - 26, { size: 11, align: 'center', color: dir > 0 ? '#ff8a8a' : '#7fd4ff' });
+  }
+  // heart + transmission
+  const hx = 105, hy = cy - 46;
+  heartShape(ctx, hx, hy, 24, '#ff6f6f', '#ff6f6f');
+  for (let k = 0; k < 3; k++) {
+    ctx.save(); ctx.strokeStyle = 'rgba(255,111,111,' + (.32 - k * .08) + ')'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(hx, hy + 16, 30 + k * 12, -0.7, 0.7); ctx.stroke(); ctx.restore();
+  }
+  A.text(ctx, '心脏', hx, hy - 26, { size: 11, mono: true, color: '#ff9a9a', align: 'center' });
+  A.arrow(ctx, hx + 40, hy + 16, cx - 92, cy - 76, '#ff9a9a', 1.3);
+  A.text(ctx, '震动沿身体传导', hx + 44, hy + 40, { size: 10, mono: true, color: '#ff9a9a' });
+  A.text(ctx, '信号源：心脏 → 全身传导 → 手指', cx, cy - 178, { size: 10.5, mono: true, align: 'center', color: '#8fa5a2' });
+  // right notes
+  const nx = 640;
+  A.text(ctx, '震动让电荷搬家', nx, y0 + 92, { size: 26, weight: 600, serif: true });
+  A.text(ctx, '心脏的震动传到膜上 → 正负电荷分离 → 出现电压。', nx, y0 + 126, { size: 14, color: '#b9cbc7' });
+  A.text(ctx, '它不需要贴着动脉，收的是整条路径传过来的振动。', nx, y0 + 152, { size: 14, color: '#8fa5a2' });
+  A.chip(ctx, nx, y0 + 176, 'Q = d · F', '#ffb454');
+  A.text(ctx, 'd = 压电常数，F = 作用力', nx + 100, y0 + 192, { size: 11, mono: true, color: '#637875' });
+  A.text(ctx, '关键：它收的是“传导来的震动”', nx, y0 + 244, { size: 15, color: '#e8f2ef' });
+  A.text(ctx, '不是手指下那根血管在跳：拇指按桌面，', nx, y0 + 270, { size: 13.5, color: '#8fa5a2' });
+  A.text(ctx, '也能测到按压者的心 —— 来源是身体传导。', nx, y0 + 293, { size: 13.5, color: '#8fa5a2' });
+  A.text(ctx, '所以贴拇指、手腕、手背都能测，位置不挑血管。', nx, y0 + 316, { size: 13.5, color: '#8fa5a2' });
+}
+function acScene(ctx, t, y0) {
+  const panels = [
+    { x: 70, title: '错误 · 盯住静态压力', ok: false, sub: '一直保持同一个压力 → 电压很快回到 0' },
+    { x: 620, title: '正确 · 只看每次变化', ok: true, sub: '每拍一次传来的震动 → 一个可计时的尖峰' }
+  ];
+  panels.forEach((p, pi) => {
+    const w = 490, h = 250, x = p.x, y = y0 + 16;
+    A.rr(ctx, x, y, w, h, 3); ctx.fillStyle = 'rgba(14,22,25,.8)'; ctx.fill();
+    ctx.strokeStyle = p.ok ? 'rgba(98,240,182,.4)' : 'rgba(255,111,111,.35)'; ctx.stroke();
+    A.text(ctx, p.title, x + 18, y + 30, { size: 15, weight: 600, color: p.ok ? '#62f0b6' : '#ff6f6f' });
+    A.text(ctx, p.sub, x + 18, y + 52, { size: 11.5, color: '#8fa5a2' });
+    const bx = x + 24, by = y + 74, bw = w - 48, bh = 145;
+    A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 28 });
+    A.line(ctx, bx, by + bh * .62, bx + bw, by + bh * .62, { color: '#2a4046', dash: [4, 5] });
+    A.text(ctx, '电压', bx - 6, by + 10, { size: 10, mono: true, color: '#637875', align: 'right' });
+    const pts = [];
+    const N = 240;
+    for (let i = 0; i < N; i++) {
+      const u = i / (N - 1), tt = u * 6;
+      let v = 0;
+      if (p.ok) {
+        const beats = [0.7, 1.6, 2.5, 3.4, 4.3, 5.2];
+        beats.forEach(bt => { const dt = tt - bt; if (dt >= 0) v += Math.exp(-dt / .16); });
+      } else {
+        if (tt > 1.2) v = Math.exp(-(tt - 1.2) / .55);
+      }
+      v = Math.min(1, v);
+      pts.push([bx + u * bw, by + bh - 12 - v * (bh - 34)]);
+    }
+    A.path(ctx, pts, { color: p.ok ? '#62f0b6' : '#ff6f6f', width: 2, glow: p.ok ? '#62f0b6' : '#ff6f6f' });
+    if (!p.ok) A.text(ctx, '按下去只有一次跳变，之后读数为 0', bx + bw / 2, by + bh + 22, { size: 12, color: '#ff9a9a', align: 'center' });
+    else A.text(ctx, '每次变化都能被计时 → 间隔 → BPM', bx + bw / 2, by + bh + 22, { size: 12, color: '#8ef0c8', align: 'center' });
+  });
+}
+function adcScene(ctx, t, y0) {
+  const bx = 90, by = y0 + 50, bw = 800, bh = 268;
+  const base = 2200;
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 32 });
+  const n = Math.round(.9 / .005);
+  const raw = D.seg_raw.slice(0, n);
+  let lo = 1e9, hi = -1e9;
+  raw.forEach(r => { lo = Math.min(lo, r[0]); hi = Math.max(hi, r[1]); });
+  const pad = 30, ymin = lo - pad, ymax = hi + pad;
+  const yy = v => by + bh - (v - ymin) / (ymax - ymin) * bh;
+  // raw min-max band: exactly what each 5 ms window keeps
+  for (let i = 0; i < raw.length; i++) {
+    const x = bx + i / (raw.length - 1) * bw;
+    A.line(ctx, x, yy(raw[i][0]), x, yy(raw[i][1]), { color: i % 20 === 0 ? 'rgba(87,200,255,.85)' : 'rgba(98,240,182,.28)', width: i % 20 === 0 ? 1.4 : 1 });
+  }
+  // sliding window
+  const pos = (t * .22) % 1;
+  const start = 6 + Math.floor(pos * (raw.length - 10));
+  const x1 = bx + start / (raw.length - 1) * bw, x2 = bx + (start + 5) / (raw.length - 1) * bw;
+  ctx.save(); ctx.fillStyle = 'rgba(255,180,84,.12)'; ctx.fillRect(x1, by, Math.max(3, x2 - x1), bh);
+  ctx.strokeStyle = '#ffb454'; ctx.strokeRect(x1, by, Math.max(3, x2 - x1), bh); ctx.restore();
+  A.text(ctx, '5 个点 → 1 行 R', x1 + 6, by + 14, { size: 10, mono: true, color: '#ffb454' });
+  A.text(ctx, '基线 ≈ 2200', bx + bw - 4, yy(2200) - 6, { size: 9.5, mono: true, color: '#57c8ff', align: 'right' });
+  A.text(ctx, '原始 ADC（每 5 ms 的 min–max）', bx, by - 10, { size: 11, mono: true, color: '#62f0b6' });
+  // right readout
+  const rx = 930;
+  A.text(ctx, '每一行长这样', rx, y0 + 62, { size: 12, mono: true, color: '#637875' });
+  A.rr(ctx, rx, y0 + 74, 200, 104, 3); ctx.fillStyle = 'rgba(87,200,255,.06)'; ctx.fill();
+  ctx.strokeStyle = 'rgba(87,200,255,.3)'; ctx.stroke();
+  A.text(ctx, 'R, 4756, 2120, 2176', rx + 14, y0 + 106, { size: 13, mono: true, color: '#57c8ff' });
+  A.text(ctx, '序号 · 窗内最小 · 窗内最大', rx + 14, y0 + 132, { size: 10.5, mono: true, color: '#637875' });
+  A.text(ctx, '200 行/秒', rx + 14, y0 + 158, { size: 16, mono: true, color: '#e8f2ef' });
+  A.text(ctx, '→', rx + 104, y0 + 158, { size: 16, color: '#3c5459' });
+  A.text(ctx, '2 KB/s 原始数据', rx, y0 + 210, { size: 11.5, color: '#8fa5a2' });
+  A.text(ctx, '不存电压绝对值，只存', rx, y0 + 244, { size: 12, color: '#8fa5a2' });
+  A.text(ctx, '每个 5 ms 窗口的极值', rx, y0 + 266, { size: 12, color: '#e8f2ef' });
+  A.text(ctx, '1 ms 一个点 → 5 点一窗', rx, y0 + 316, { size: 10.5, mono: true, color: '#c8f560' });
+  for (let i = 0; i < 15; i++) {
+    const x = rx + 8 + i * 12, y = y0 + 340 + (i % 5 === 0 ? 0 : 2);
+    A.dot(ctx, x, y, 2, i % 5 === 0 ? '#ffb454' : '#62f0b6');
+    if (i % 5 === 4) A.line(ctx, x - 44, y0 + 352, x + 2, y0 + 352, { color: '#ffb454', alpha: .55 });
+  }
+  A.text(ctx, '5 点 = 5 ms = 1 行 R 记录', rx, y0 + 374, { size: 10.5, color: '#8fa5a2' });
+}
+function devPlot(ctx, t, y0, withCursor) {
+  const bx = 90, by = y0 + 46, bw = 1000, bh = 272;
+  const ymax = 380;
+  const tmax = 2.5, nmax = Math.round(tmax / .005);
+  const seg = D.seg_dev.slice(0, nmax);
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 40 });
+  A.axis(ctx, { x: bx, y: by, w: bw, h: bh }, { xlabel: '时间 / s', ylabel: 'dev' });
+  for (let s = 0; s <= tmax; s++) A.text(ctx, s + 's', bx + s / tmax * bw, by + bh + 16, { size: 9.5, mono: true, color: '#637875', align: 'center' });
+  [0, 200, 400].forEach(v => {
+    const y = by + bh - v / ymax * bh;
+    A.line(ctx, bx - 5, y, bx, y, { color: '#2a4046' });
+    A.text(ctx, String(v), bx - 9, y + 3, { size: 9.5, mono: true, color: '#637875', align: 'right' });
+  });
+  const yth = by + bh - 40 / ymax * bh;
+  A.line(ctx, bx, yth, bx + bw, yth, { color: '#ff6f6f', dash: [6, 5], width: 1.2 });
+  A.text(ctx, '阈值 40', bx + bw - 4, yth - 6, { size: 10.5, mono: true, color: '#ff6f6f', align: 'right' });
+  const pts = seg.map((v, i) => [bx + i / (seg.length - 1) * bw, by + bh - Math.min(v, ymax) / ymax * bh]);
+  A.path(ctx, pts, { color: '#62f0b6', width: 1.7, glow: '#62f0b6' });
+    [20, 50, 90, 150, 260, 380].forEach(i => {
+    if (!seg[i]) return;
+    const x = bx + i / (seg.length - 1) * bw;
+    A.line(ctx, x, by + bh, x, by + bh - Math.min(seg[i], ymax) / ymax * bh, { color: 'rgba(255,180,84,.45)', width: 1 });
+  });
+  if (withCursor) {
+    const u = (t * .18) % 1;
+    const x = bx + u * bw;
+    A.line(ctx, x, by, x, by + bh, { color: '#c8f560', alpha: .5 });
+    const idx = Math.floor(u * (seg.length - 1));
+    const v = seg[idx];
+    A.dot(ctx, x, by + bh - Math.min(v, ymax) / ymax * bh, 3.5, '#c8f560', true);
+    A.text(ctx, 'dev = ' + v.toFixed(0), x + 10, by + 18, { size: 12, mono: true, color: '#c8f560' });
+  }
+  A.text(ctx, 'dev 已经把波形“翻正”了：只关心离基线多远', bx, by - 12, { size: 12, color: '#8fa5a2' });
+}
+function segPeaks() {
+  return D.peaks.filter(p => p[0] >= D.seg_t0 && p[0] < D.seg_t0 + 6).map(p => [p[0] - D.seg_t0, p[1]]);
+}
+function finalScene(ctx, t, y0) {
+  const bx = 70, by = y0 + 46, bw = 1040, bh = 272;
+  const ymax = 380;
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 40 });
+  const pts = D.seg_dev.map((v, i) => [bx + i / (D.seg_dev.length - 1) * bw, by + bh - Math.min(v, ymax) / ymax * bh]);
+  A.path(ctx, pts, { color: 'rgba(98,240,182,.35)', width: 1.1 });
+  const envPts = ENV.map((v, i) => [bx + i / (ENV.length - 1) * bw, by + bh - Math.min(v, ymax) / ymax * bh]);
+  A.path(ctx, envPts, { color: '#7df9c4', width: 2.2, glow: '#62f0b6' });
+  A.text(ctx, '亮线 = 显示用包络（不参与计算）', bx + bw - 4, by + 16, { size: 9.5, mono: true, color: '#7a938e', align: 'right' });
+  const peaks = segPeaks();
+  peaks.forEach((p, i) => {
+    const idx = Math.max(0, Math.min(ENV.length - 1, Math.round(p[0] / .005)));
+    const x = bx + p[0] / 6 * bw, y = by + bh - Math.min(ENV[idx], ymax) / ymax * bh;
+    const main = i % 2 === 0;
+    A.dot(ctx, x, y, main ? 3.6 : 3, main ? '#ffb454' : '#57c8ff', true, main ? '#ffb454' : '#57c8ff');
+  });
+  // legend
+  A.dot(ctx, bx + 6, by + 16, 3.4, '#ffb454', true);
+  A.text(ctx, '主峰（心缩冲击）', bx + 16, by + 20, { size: 10.5, color: '#ffb454' });
+  A.dot(ctx, bx + 166, by + 16, 3, '#57c8ff', true);
+  A.text(ctx, '第二峰', bx + 176, by + 20, { size: 10.5, color: '#57c8ff' });
+  const a = peaks[2], b = peaks[3], c = peaks[4];
+  if (a && b && c) {
+    const xa = bx + a[0] / 6 * bw, xb = bx + b[0] / 6 * bw, xc = bx + c[0] / 6 * bw;
+    const yy = by + bh + 26;
+    A.line(ctx, xa, yy, xb, yy, { color: '#ffb454', width: 1.2 });
+    A.line(ctx, xa, yy - 5, xa, yy + 5, { color: '#ffb454' });
+    A.line(ctx, xb, yy - 5, xb, yy + 5, { color: '#ffb454' });
+    A.text(ctx, '双峰间隔 ≈ 360 ms', (xa + xb) / 2, yy - 7, { size: 10, mono: true, color: '#ffb454', align: 'center' });
+    const y2 = yy + 24;
+    A.line(ctx, xa, y2, xc, y2, { color: '#62f0b6', width: 1.2 });
+    A.line(ctx, xa, y2 - 5, xa, y2 + 5, { color: '#62f0b6' });
+    A.line(ctx, xc, y2 - 5, xc, y2 + 5, { color: '#62f0b6' });
+    A.text(ctx, '隔一个信号：整拍 ≈ 725 ms', (xa + xc) / 2, y2 - 7, { size: 10, mono: true, color: '#62f0b6', align: 'center' });
+  }
+  A.text(ctx, '一次测量里两个峰：主峰 + 第二峰', bx, by - 14, { size: 13, color: '#e8f2ef' });
+  A.text(ctx, '这不是噪声 —— 下一页解释为什么必须“跳一个峰”', bx + bw, by - 14, { size: 11.5, color: '#8fa5a2', align: 'right' });
+}
+
+function footer(ctx, s) {
+  A.line(ctx, 40, 480, 1140, 480, { color: '#1d2c31' });
+  A.text(ctx, '工程参数', 40, 502, { size: 10, mono: true, color: '#637875' });
+  const items = [['采样', '1 kHz'], ['R 记录', '200 Hz'], ['峰阈值', '40'], ['基线 τ', '4 s'], ['窗长', '5 点']];
+  let x = 120;
+  items.forEach(([k, v]) => {
+    A.text(ctx, k, x, 502, { size: 10, mono: true, color: '#637875' });
+    A.text(ctx, v, x + 36, 502, { size: 11, mono: true, color: s >= 3 ? '#62f0b6' : '#c6d6d2' });
+    x += 128;
+  });
+  A.text(ctx, '下一页：为什么要“跳一个峰” →', 1140, 502, { size: 10.5, mono: true, color: '#637875', align: 'right' });
+}
+
+const steps = [
+  {
+    tag: '物理', dur: 7,
+    title: '心脏每跳一下，全身都会轻轻震一下',
+    body: '压电膜更像一枚贴在身上的<em>接触麦克风</em>：心脏收缩的机械震动，会沿血管和组织传到全身；膜跟着微微变形，表面就冒出电荷。<span class="wrong">它测的不是手指下那根血管的“一跳”</span>，而是<span class="right">整条传导路径传来的那一下震动</span>。',
+    extra: '所以贴拇指、手腕、手背都能测；把拇指按在桌面上，测到的仍是按压者的心。'
+  },
+  {
+    tag: '容积传导', dur: 8,
+    title: '一个峰，其实是很多路震动叠出来的“合奏”',
+    body: '心脏的震动不是只沿一条线过来：血管、肌肉、骨骼都在传，速度快慢、衰减大小都不同。<span class="right">血管这条路最快、衰减小，先到并构成主峰</span>；其他路径晚到、弱，叠成后面的尾巴，也就是我们眼里的“底噪”。同一个接触点收到的，是很多路震动的叠加。',
+    extra: '这里讲的是主峰；早期测量还会带进第二路信号，下一页单独拆。'
+  },
+  {
+    tag: 'AC 耦合', dur: 7,
+    title: '它像接触麦克风：只收“动”，不收“静”',
+    body: '一直保持同一个压力，电荷会慢慢漏掉，电压回到 0；<span class="wrong">盯着静态压力看，只会看到 0</span>。但每次心跳传来的震动让膜微微变形，<span class="right">就冒出一个尖峰</span>。我们要数的，是这些“被震动”的时刻，不是“被按”的力度。',
+    extra: '麦克风不会因为房间一直有气压就输出，只有声波让膜片动起来才输出。'
+  },
+  {
+    tag: '采样', dur: 7,
+    title: '每秒拍 1000 张照片，每 5 张记一次最高最低',
+    body: 'ADC 每秒采 <b>1000</b> 个点。固件不是把 1000 个点全存下来，而是每 <b>5</b> 个点挑出<em>最高和最低</em>，压成一行，变成每秒 <b>200</b> 行。就像监控每 5 帧只存“最亮”和“最暗”两个数。',
+    extra: '为什么要压？因为后面只关心“这一小段里，信号冲得多高”。'
+  },
+  {
+    tag: '整流', dur: 7,
+    title: 'dev：把波形“翻正”，只问离平常水位多远',
+    body: '信号会上下游动，还会慢慢漂。固件先画一条缓慢移动的“平常水位线”（基线），再算 <em>dev = 离这条线最远有多远</em>。往上冲、往下掉，最后都变成一个正数，后面的门槛才好设。',
+    extra: '像水位报警器：不管水是涨还是落，只问“离开正常水位多少”。'
+  },
+  {
+    tag: '真实数据', dur: 9,
+    title: '真实波形：一次测量里出现两个鼓包',
+    body: '这是 ★ 会话 6 秒的真实曲线，这段大约 <b>83 BPM</b>。一次测量里出现两个鼓包：<b>主峰</b>和<b>第二峰</b>，相隔约 <b>360 ms</b>；隔一个再数，整拍约 <b>725 ms</b>。后来回看，第二峰其实是早期“右拇指按左腕”时带进来的第二路信号。',
+    extra: '两个人交替敲门：只数其中一个人的节奏，次数才不会翻倍。亮线只是显示用包络，算法仍直接数原始峰。'
+  }
+];
+const deck = new Deck({
+  steps,
+  draw(ctx, W, H) {
+    view(ctx, W, H);
+    const t = deck.t, s = deck.step;
+    const map = [0, 0, 1, 2, 3, 4];
+    stageRow(ctx, map[Math.min(s, map.length - 1)]);
+    const y0 = 104;
+    if (s === 0) filmScene(ctx, t, y0);
+    else if (s === 1) pathScene(ctx, t, y0);
+    else if (s === 2) acScene(ctx, t, y0);
+    else if (s === 3) adcScene(ctx, t, y0);
+    else if (s === 4) { devPlot(ctx, t, y0, true); A.text(ctx, '阈值 40：超过才算一个候选峰', 90, y0 + 430, { size: 12, color: '#ff9a9a' }); }
+    else finalScene(ctx, t, y0);
+    footer(ctx, s);
+    ctx.restore();
+  }
+});
+</script>
+</body>
+</html>

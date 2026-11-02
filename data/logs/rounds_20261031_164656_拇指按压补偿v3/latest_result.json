@@ -1,0 +1,18 @@
+{
+ "round": 2,
+ "ok": false,
+ "bpm": 64.5,
+ "beats": 3,
+ "median_iv_ms": 930,
+ "bpm_posthoc": 0,
+ "beats_posthoc": 3,
+ "fills": 0,
+ "reasons": [
+  "65BPM 3拍 中位930ms 桶[2, 1]",
+  "检出不足(3/39)",
+  "补偿后0.0BPM(3拍,补0剔0)"
+ ],
+ "note": "拇指按压补偿v3",
+ "outdir": "D:\\Espressif\\workspace\\pulse_meter\\logs\\rounds_20261031_164656_拇指按压补偿v3\\round_02_20261031_164752",
+ "stamp": "16:48:32"
+}

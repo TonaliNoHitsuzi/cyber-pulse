@@ -1,0 +1,14 @@
+{
+ "round": 5,
+ "ok": false,
+ "bpm": 90.9,
+ "beats": 15,
+ "median_iv_ms": 660,
+ "reasons": [
+  "91BPM 15拍 中位660ms 桶[8, 4, 3]",
+  "检出不足(15/39)",
+  "桶不均衡[8, 4, 3]"
+ ],
+ "outdir": "D:\\Espressif\\workspace\\pulse_meter\\logs\\rounds_20261030_232634\\round_05_20261030_233014",
+ "stamp": "23:30:54"
+}

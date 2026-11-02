@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>04 · 佩戴状态机 | 赛博把脉</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><b>赛博把脉</b><span>CYBER-PULSE</span></div>
+    <div class="crumb"><span>讲解动画</span><i>/</i><span>04</span></div>
+    <div class="spacer"></div>
+    <div class="topic-tag">04 · 佩戴状态机</div>
+    <a class="home" href="index.html">目录</a>
+  </header>
+  <main class="stage">
+    <div class="source" id="source">判据来自固件 main.c · 统计区间来自 dangle_test 与 ★会话实测</div>
+    <canvas id="cv"></canvas>
+    <div class="hint">空格 播放/暂停 · ← → 单步 · R 重置</div>
+  </main>
+  <section class="narr">
+    <div class="narr-main">
+      <div class="step-head"><span id="step-count"></span><span id="step-tag"></span></div>
+      <h2 id="step-title"></h2>
+      <div id="step-body"></div>
+      <div class="human" id="step-human"></div>
+    </div>
+    <aside class="side">
+      <div>
+        <div class="meter"><span>TIMELINE</span><span>自动播放，末帧停住</span></div>
+        <div class="bar" id="timebar"><i></i></div>
+        <div class="dots" id="dots" style="margin-top:10px"></div>
+      </div>
+      <div id="extra"><div class="iter-card">
+        <div class="ic-head"><span>本页在迭代中的位置</span><a href="00-演进.html">全程 →</a></div>
+        <div class="ic-row"><b>问题</b><span>有信号 ≠ 能信；状态反复跳</span></div>
+        <div class="ic-row"><b>线索</b><span>p95 在门槛附近徘徊</span></div>
+        <div class="ic-row"><b>改动</b><span>五状态 + 质量优先 + 平滑/滞回</span></div>
+        <div class="ic-row"><b>结果</b><span>GOOD 91–100%；松手 <1s 归零</span></div>
+        <div class="ic-row bad"><b>遗留</b><span>跑步场景还没覆盖</span></div>
+      </div></div>
+      <div class="controls">
+        <button id="btn-prev">上一步</button>
+        <button id="btn-play" class="primary">播放</button>
+        <button id="btn-next">下一步</button>
+        <button id="btn-reset">重置</button>
+        <button id="btn-speed">1×</button>
+      </div>
+    </aside>
+  </section>
+</div>
+<script src="assets/data/pulse-data.js"></script>
+<script src="assets/engine.js"></script>
+<script>
+const VW = 1180, VH = 520;
+const STATES = [
+  { k: 'IDLE', c: '#8fa5a2', t: '没贴 / 没信号', d: 'p95 < 38' },
+  { k: 'VIB', c: '#a78bfa', t: '悬空振荡', d: 'p50 < 15 且 p95 ≥ 35' },
+  { k: 'WEAK', c: '#ffb454', t: '贴了，但耦合弱', d: '有能量，门槛没过' },
+  { k: 'OVER', c: '#ff6f6f', t: '压太紧，幅度反而降', d: '基线 ≥ 2600 且 p95 < 55' },
+  { k: 'GOOD', c: '#62f0b6', t: '可以信', d: 'p95 ≥ 45 且 p50 ≥ 18' },
+  { k: 'SRCH', c: '#57c8ff', t: '质量够，还没算出一拍', d: 'q_ok 且 bpm = 0' }
+];
+function view(ctx, W, H) {
+  const s = Math.min(W / VW, H / VH);
+  ctx.save(); ctx.translate((W - VW * s) / 2, (H - VH * s) / 2); ctx.scale(s, s);
+}
+function header(ctx, title, sub) {
+  A.text(ctx, title, 60, 34, { size: 20, serif: true, weight: 600 });
+  A.text(ctx, sub, 60, 56, { size: 11.5, mono: true, color: '#637875' });
+}
+function footer(ctx, right) {
+  A.line(ctx, 40, 480, 1140, 480, { color: '#1d2c31' });
+  A.text(ctx, '状态判据', 40, 502, { size: 10, mono: true, color: '#637875' });
+  const items = [['p95 门', '45'], ['p50 门', '18'], ['滞回', '0–4'], ['p95 平滑', 'τ≈2 s'], ['超时归零', '1.5 / 2.5 s']];
+  let x = 120;
+  items.forEach(([k, v]) => {
+    A.text(ctx, k, x, 502, { size: 10, mono: true, color: '#637875' });
+    A.text(ctx, v, x + 58, 502, { size: 11, mono: true, color: '#c6d6d2' });
+    x += 170;
+  });
+  A.text(ctx, right, 1140, 502, { size: 10.5, mono: true, color: '#637875', align: 'right' });
+}
+function stateOf(p50, p95, base) {
+  const q = p95 >= 45 && p50 >= 18;
+  if (q) {
+    if (base >= 2600 && p95 < 55) return 'OVER';
+    return 'GOOD';
+  }
+  if (p50 < 15 && p95 >= 35) return 'VIB';
+  if (p95 < 38) return 'IDLE';
+  return 'WEAK';
+}
+function mapBox(ctx) {
+  const bx = 70, by = 108, bw = 680, bh = 300;
+  const X = v => bx + Math.min(v, 80) / 80 * bw;
+  const Y = v => by + bh - Math.min(v, 240) / 240 * bh;
+  // regions
+  ctx.save();
+  ctx.fillStyle = 'rgba(143,165,162,.05)'; ctx.fillRect(bx, Y(38), bw, by + bh - Y(38));
+  ctx.fillStyle = 'rgba(167,139,250,.10)'; ctx.fillRect(bx, Y(240), X(15) - bx, Y(35) - Y(240));
+  ctx.fillStyle = 'rgba(255,180,84,.07)'; ctx.fillRect(bx, Y(45), bw, Y(38) - Y(45));
+  ctx.fillStyle = 'rgba(255,180,84,.05)'; ctx.fillRect(bx, Y(240), X(18) - bx, Y(45) - Y(240));
+  ctx.fillStyle = 'rgba(98,240,182,.07)'; ctx.fillRect(X(18), Y(240), bx + bw - X(18), Y(45) - Y(240));
+  ctx.restore();
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 34 });
+  A.line(ctx, bx, Y(45), bx + bw, Y(45), { color: '#62f0b6', dash: [5, 4], alpha: .8 });
+  A.line(ctx, bx, Y(18), bx + bw, Y(18), { color: '#ffb454', dash: [5, 4], alpha: 0 });
+  A.line(ctx, X(18), by, X(18), by + bh, { color: '#62f0b6', dash: [5, 4], alpha: .7 });
+  A.line(ctx, X(15), by, X(15), by + bh, { color: '#a78bfa', dash: [5, 4], alpha: .7 });
+  // labels
+  A.text(ctx, 'p50 →', bx + bw, by + bh + 34, { size: 10, mono: true, color: '#637875', align: 'right' });
+  A.text(ctx, 'p95 ↑', bx - 48, by + 12, { size: 10, mono: true, color: '#637875' });
+  [0, 120, 240].forEach(v => A.text(ctx, String(v), bx - 8, Y(v) + 3, { size: 9.5, mono: true, color: '#637875', align: 'right' }));
+  [0, 20, 40, 60, 80].forEach(v => A.text(ctx, String(v), X(v), by + bh + 16, { size: 9.5, mono: true, color: '#637875', align: 'center' }));
+  A.text(ctx, 'p95 = 45', X(74), Y(45) - 6, { size: 9.5, mono: true, color: '#62f0b6', align: 'right' });
+  A.text(ctx, 'p50 = 18', X(18) + 5, by + 14, { size: 9.5, mono: true, color: '#ffb454' });
+  A.text(ctx, 'GOOD', X(62), Y(120), { size: 22, serif: true, weight: 600, color: 'rgba(98,240,182,.5)' });
+  A.text(ctx, 'WEAK', X(30), Y(41.8) + 3, { size: 9, mono: true, weight: 600, color: 'rgba(255,180,84,.9)' });
+  A.text(ctx, 'VIB', X(6), Y(150), { size: 18, serif: true, weight: 600, color: 'rgba(167,139,250,.6)' });
+  A.text(ctx, 'IDLE', X(52), Y(20), { size: 16, serif: true, weight: 600, color: 'rgba(143,165,162,.6)' });
+  return { bx, by, bw, bh, X, Y };
+}
+function stateList(ctx, active, y0) {
+  const x = 800;
+  STATES.forEach((s, i) => {
+    const y = y0 + 42 + i * 48;
+    const on = s.k === active;
+    A.rr(ctx, x, y, 310, 44, 2);
+    ctx.fillStyle = on ? 'rgba(255,255,255,.06)' : 'rgba(14,22,25,.55)'; ctx.fill();
+    ctx.strokeStyle = on ? s.c : '#1d2c31'; ctx.lineWidth = on ? 1.3 : 1; ctx.stroke();
+    A.dot(ctx, x + 14, y + 22, 4, s.c, on);
+    A.text(ctx, s.k, x + 26, y + 26, { size: 12, mono: true, color: s.c });
+    A.text(ctx, s.t, x + 82, y + 21, { size: 11, color: on ? '#e8f2ef' : '#8fa5a2' });
+    A.text(ctx, s.d, x + 82, y + 36, { size: 8.5, mono: true, color: on ? s.c : '#4d6663' });
+  });
+}
+function marker(ctx, M, p50, p95, label, color) {
+  const x = M.X(p50), y = M.Y(p95);
+  A.dot(ctx, x, y, 5, color || '#c8f560', true);
+  if (label) {
+    A.line(ctx, x + 6, y - 6, x + 28, y - 28, { color: color || '#c8f560', alpha: .7 });
+    A.text(ctx, label, x + 32, y - 30, { size: 10.5, mono: true, color: color || '#c8f560' });
+  }
+}
+function mapScene(ctx, t, y0, mode) {
+  const M = mapBox(ctx);
+  if (mode === 0) {
+    marker(ctx, M, 12, 35, '悬空实测 (12, 35)', '#a78bfa');
+    A.text(ctx, '悬空的点落在左下：高幅尖峰有一点，但常见幅度很低', 70, 452, { size: 11.5, color: '#8fa5a2' });
+    stateList(ctx, 'VIB', y0);
+  } else {
+    const pts = [[12, 35], [16, 42], [28, 58], [45, 92], [60, 150], [64, 178]];
+    const names = ['VIB', 'WEAK', 'WEAK', 'WEAK', 'GOOD', 'GOOD'];
+    const u = A.easeIO(t / 5.2) * (pts.length - 1);
+    const i = Math.min(pts.length - 2, Math.floor(u)), f = u - i;
+    const p50 = A.lerp(pts[i][0], pts[i + 1][0], f), p95 = A.lerp(pts[i][1], pts[i + 1][1], f);
+    const st = stateOf(p50, p95, 2000);
+    marker(ctx, M, p50, p95, null, '#c8f560');
+    A.text(ctx, 'p50 ' + p50.toFixed(0) + ' · p95 ' + p95.toFixed(0), M.X(p50) + 12, M.Y(p95) + 4, { size: 10, mono: true, color: '#c8f560' });
+    stateList(ctx, st, y0);
+    // trail
+    for (let k = 0; k < Math.min(pts.length, Math.floor(u) + 1); k++) {
+      A.dot(ctx, M.X(pts[k][0]), M.Y(pts[k][1]), 2, '#3d5a55');
+    }
+    A.text(ctx, '按压逐渐变实：p50 与 p95 一起上来', 70, 452, { size: 11.5, color: '#8fa5a2' });
+    A.text(ctx, '门槛是“与”关系：两个都过才是 GOOD', 70, 470, { size: 11.5, color: '#62f0b6' });
+  }
+}
+function overScene(ctx, t, y0) {
+  const bx = 70, by = y0 + 70, bw = 660, bh = 280;
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 34 });
+  A.text(ctx, '压力 → p95（示意曲线，锚点为实测）', bx, by - 12, { size: 11.5, mono: true, color: '#8fa5a2' });
+  const pts = [];
+  for (let i = 0; i <= 100; i++) {
+    const u = i / 100;
+    let v;
+    if (u < .62) v = 20 + 140 * Math.pow(Math.sin(u / .62 * Math.PI / 2), 1.1);
+    else v = 142 * Math.exp(-Math.pow((u - .62) / .16, 2)) + 18;
+    pts.push([bx + u * bw, by + bh - v / 180 * bh]);
+  }
+  A.path(ctx, pts, { color: '#62f0b6', width: 2, glow: '#62f0b6' });
+  const y55 = by + bh - 55 / 180 * bh;
+  A.line(ctx, bx, y55, bx + bw, y55, { color: '#ff6f6f', dash: [6, 5] });
+  A.text(ctx, 'p95 = 55', bx + bw, y55 - 6, { size: 9.5, mono: true, color: '#ff6f6f', align: 'right' });
+  // sweet spot
+  const sx = bx + .62 * bw;
+  A.line(ctx, sx, by, sx, by + bh, { color: '#ffb454', dash: [4, 4], alpha: .7 });
+  A.text(ctx, '甜区：p95 最大', sx, by - 12, { size: 10.5, mono: true, color: '#ffb454', align: 'center' });
+  // pressure hand
+  const u = (Math.sin(t * .9 - Math.PI / 2) * .5 + .5) * .95 + .02;
+  const px = bx + u * bw;
+  const pv = u < .62 ? 20 + 140 * Math.pow(Math.sin(u / .62 * Math.PI / 2), 1.1) : 142 * Math.exp(-Math.pow((u - .62) / .16, 2)) + 18;
+  A.dot(ctx, px, by + bh - pv / 180 * bh, 5, '#c8f560', true);
+  A.text(ctx, '当前压力', px, by + bh + 18, { size: 9.5, mono: true, color: '#c8f560', align: 'center' });
+  // right
+  const rx = 790;
+  A.text(ctx, '越紧 ≠ 越好', rx, y0 + 94, { size: 22, serif: true, weight: 600, color: '#ff6f6f' });
+  A.text(ctx, '压到局部血管闭合、主路径被压扁，', rx, y0 + 130, { size: 13, color: '#b9cbc7' });
+  A.text(ctx, '底噪还在、信噪比下降，p95 掉到 55 以下。', rx, y0 + 154, { size: 13, color: '#b9cbc7' });
+  A.text(ctx, '固件判据', rx, y0 + 196, { size: 10, mono: true, color: '#637875' });
+  A.rr(ctx, rx, y0 + 208, 300, 72, 3); ctx.fillStyle = 'rgba(255,111,111,.06)'; ctx.fill();
+  ctx.strokeStyle = 'rgba(255,111,111,.35)'; ctx.stroke();
+  A.text(ctx, '基线 ≥ 2600 且 p95 < 55', rx + 12, y0 + 236, { size: 12, mono: true, color: '#ff9a9a' });
+  A.text(ctx, '→ 判 OVER，提示松一点', rx + 12, y0 + 260, { size: 11, color: '#8fa5a2' });
+  A.text(ctx, '实测锚点', rx, y0 + 308, { size: 10, mono: true, color: '#637875' });
+  A.text(ctx, '刚性板 154 · 胶带 127', rx, y0 + 332, { size: 11.5, mono: true, color: '#c6d6d2' });
+  A.text(ctx, '表带 42–55 · 棉花 ≤ 50', rx, y0 + 354, { size: 11.5, mono: true, color: '#c6d6d2' });
+}
+function timeoutScene(ctx, t, y0) {
+  const rows = [
+    { label: '松手 / 信号消失', after: 1.5, action: 'BPM 归 0', c: '#62f0b6' },
+    { label: '连续无峰', after: 2.5, action: '清空间隔链', c: '#ffb454' },
+    { label: '实测松手归零', after: 1.0, action: '< 1 s 出 0', c: '#57c8ff' }
+  ];
+  const bx = 100, by = y0 + 80, bw = 680;
+  A.line(ctx, bx, by, bx + bw, by, { color: '#2a4046' });
+  for (let s = 0; s <= 3; s++) {
+    const x = bx + s / 3 * bw;
+    A.line(ctx, x, by - 6, x, by + 6, { color: '#2a4046' });
+    A.text(ctx, s + ' s', x, by + 24, { size: 9.5, mono: true, color: '#637875', align: 'center' });
+  }
+  rows.forEach((r, i) => {
+    const y = by + 60 + i * 78;
+    const x = bx + Math.min(r.after, 3) / 3 * bw;
+    const p = Math.min(1, t / 1.2);
+    A.line(ctx, bx, y, bx + (x - bx) * p, y, { color: r.c, width: 2 });
+    A.dot(ctx, bx + (x - bx) * p, y, 5, r.c, true);
+    A.text(ctx, r.label, bx, y - 16, { size: 11.5, color: '#8fa5a2' });
+    if (p > .9) {
+      A.text(ctx, r.after.toFixed(1) + ' s → ' + r.action, x + 12, y + 4, { size: 11.5, mono: true, color: r.c });
+    }
+  });
+  A.text(ctx, '屏幕显示 0 / ---，而不是把旧数字留在那里', 100, y0 + 348, { size: 15, color: '#e8f2ef' });
+  A.text(ctx, '“诚实输出”是产品要求：测不了就说测不了。', 100, y0 + 374, { size: 13, color: '#8fa5a2' });
+  // display mock
+  const dx = 830, dy = y0 + 90;
+  A.rr(ctx, dx, dy, 220, 150, 6); ctx.fillStyle = '#04070a'; ctx.fill();
+  ctx.strokeStyle = '#2a4046'; ctx.stroke();
+  A.text(ctx, t < 3 ? 'GOOD' : 'IDLE', dx + 14, dy + 24, { size: 10, mono: true, color: t < 3 ? '#62f0b6' : '#ff6f6f' });
+  A.text(ctx, t < 3 ? '78' : '---', dx + 14, dy + 92, { size: 48, mono: true, color: t < 3 ? '#62f0b6' : '#ff6f6f' });
+  A.text(ctx, 'BPM', dx + 120, dy + 92, { size: 11, mono: true, color: '#637875' });
+  A.text(ctx, t < 3 ? 'p95 112' : '信号丢失', dx + 14, dy + 126, { size: 11, mono: true, color: t < 3 ? '#8fa5a2' : '#ff9a9a' });
+}
+const steps = [
+  {
+    tag: '为什么', dur: 7,
+    title: '屏幕先回答“能不能信”，再决定显不显示数字',
+    body: '同一个“有信号”的情况，可能是没贴、贴歪、太松、太紧，也可能真的可以测。固件用五个状态分开：<b>IDLE / VIB / WEAK / OVER / GOOD</b>，外加“质量够但还没算出一拍”的 <b>SRCH</b>。屏幕只显示当前状态允许显示的东西。',
+    extra: '像医院分诊：先判断“要不要看”，再决定“看什么”。'
+  },
+  {
+    tag: '判据', dur: 7,
+    title: '一张图看懂：横轴看“平时”，纵轴看“最猛”',
+    body: '横轴 <b>p50</b> = 大多数时候的主路径强度；纵轴 <b>p95</b> = 最猛那 5% 的强度。悬空落在左下角 <b>(12, 35)</b>：p50 很低，先判 <b>VIB</b>；p95 低于 38 判 <b>IDLE</b>；有能量但两门槛没过是 <b>WEAK</b>；两个都过才是 <b>GOOD</b>。',
+    extra: '像体检：不只看“最高血压”，也看“平时血压”，两个都正常才放心。'
+  },
+  {
+    tag: '走一遍', dur: 9,
+    title: '从悬空到贴实：状态一步步变绿',
+    body: '按压逐渐变实，p50 和 p95 一起上升：悬空 → <b>VIB</b> → <b>WEAK</b> → <b>GOOD</b>。门槛是“与”关系：p95 很高但 p50 不够，仍然不算 GOOD。状态切换还带一点“迟滞”（0–4）和 2 秒平滑，避免在门槛附近来回跳。',
+    extra: '像空调温控：不会差 0.1 度就开开关关，给一点缓冲。'
+  },
+  {
+    tag: '过压', dur: 8,
+    title: '太用力反而更差：把水管压扁了',
+    body: '压太紧会把血管这条“主路径”压扁：主峰衰减，其他路径和底噪还在，<b>信噪比下降</b>。固件用第三个量 —— 基线（长时间的平均压力线）—— 判 <b>OVER</b>：<b>基线≥2600 且 p95<55</b>。所以校准口诀是“调到 p95 最大”，不是“能压多紧压多紧”。',
+    extra: '像捏水管：捏太死，水就不跳了；要的是“贴实但不掐死”。'
+  },
+  {
+    tag: '诚实', dur: 8,
+    title: '测不了就说测不了',
+    body: '信号消失 <b>1.5 秒</b>或连续无峰 <b>2.5 秒</b>就归零/清链；实测松手 <b><1 秒</b>出 0。质量够但还没算出拍时显示 <b>SRCH / ---</b>，绝不把上一个数字冻在屏幕上。',
+    extra: '体温计没夹好会显示“--”，而不是一直停在 36.5。'
+  }
+];
+const deck = new Deck({
+  steps,
+  draw(ctx, W, H) {
+    view(ctx, W, H);
+    const y0 = 78, s = deck.step, t = deck.t;
+    if (s === 0) { header(ctx, '五个状态，各回答一个问题', 'IDLE · VIB · WEAK · OVER · GOOD（+ SRCH）'); mapBox(ctx); stateList(ctx, null, y0); A.text(ctx, '先问“有没有贴”，再问“贴得够不够好”，最后才问“这一拍算出来没有”。', 70, 452, { size: 12.5, color: '#b9cbc7' }); }
+    else if (s === 1) { header(ctx, '横轴看平时，纵轴看最猛', '真实实测点：悬空 (12, 35)'); mapScene(ctx, t, y0, 0); }
+    else if (s === 2) { header(ctx, '贴实的过程：两个统计量一起上来', '示意路径 · 端点来自悬空与贴肤实测'); mapScene(ctx, t, y0, 1); }
+    else if (s === 3) { header(ctx, '第三种失败：压得太紧', '压力–幅度曲线（示意）· 锚点为实测'); overScene(ctx, t, y0); }
+    else { header(ctx, '最后一条防线：诚实输出', '超时与 SRCH 的行为'); timeoutScene(ctx, t, y0); }
+    footer(ctx, s < 4 ? '下一页：卡尔曼 →' : '下一页：卡尔曼 →');
+    ctx.restore();
+  }
+});
+</script>
+</body>
+</html>

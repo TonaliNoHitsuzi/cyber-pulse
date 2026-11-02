@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>03 · 假阳性从哪来 | 赛博把脉</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><b>赛博把脉</b><span>CYBER-PULSE</span></div>
+    <div class="crumb"><span>讲解动画</span><i>/</i><span>03</span></div>
+    <div class="spacer"></div>
+    <div class="topic-tag">03 · 假阳性</div>
+    <a class="home" href="index.html">目录</a>
+  </header>
+  <main class="stage">
+    <div class="source" id="source">真实对照：logs/dangle_test / raw_r.log · 悬空 119.5 s · 200 Hz</div>
+    <canvas id="cv"></canvas>
+    <div class="hint">空格 播放/暂停 · ← → 单步 · R 重置</div>
+  </main>
+  <section class="narr">
+    <div class="narr-main">
+      <div class="step-head"><span id="step-count"></span><span id="step-tag"></span></div>
+      <h2 id="step-title"></h2>
+      <div id="step-body"></div>
+      <div class="human" id="step-human"></div>
+    </div>
+    <aside class="side">
+      <div>
+        <div class="meter"><span>TIMELINE</span><span>自动播放，末帧停住</span></div>
+        <div class="bar" id="timebar"><i></i></div>
+        <div class="dots" id="dots" style="margin-top:10px"></div>
+      </div>
+      <div id="extra"><div class="iter-card">
+        <div class="ic-head"><span>本页在迭代中的位置</span><a href="00-演进.html">全程 →</a></div>
+        <div class="ic-row"><b>问题</b><span>悬空 120s 里 118s 出假 BPM</span></div>
+        <div class="ic-row"><b>线索</b><span>悬空 p50 12/p95 35，贴肤更高</span></div>
+        <div class="ic-row"><b>改动</b><span>输出端门：p95≥45 且 p50≥18</span></div>
+        <div class="ic-row"><b>结果</b><span>118s → 0s；贴肤仍 76–78</span></div>
+        <div class="ic-row bad"><b>遗留</b><span>门放错位置会丢峰断链</span></div>
+      </div></div>
+      <div class="controls">
+        <button id="btn-prev">上一步</button>
+        <button id="btn-play" class="primary">播放</button>
+        <button id="btn-next">下一步</button>
+        <button id="btn-reset">重置</button>
+        <button id="btn-speed">1×</button>
+      </div>
+    </aside>
+  </section>
+</div>
+<script src="assets/data/pulse-data.js"></script>
+<script src="assets/engine.js"></script>
+<script>
+const D = window.PULSE_DATA.dangle;
+const PS = D.per_sec;
+const VW = 1180, VH = 520;
+const N = PS.length;
+function view(ctx, W, H) {
+  const s = Math.min(W / VW, H / VH);
+  ctx.save(); ctx.translate((W - VW * s) / 2, (H - VH * s) / 2); ctx.scale(s, s);
+}
+function header(ctx, title, sub) {
+  A.text(ctx, title, 60, 34, { size: 20, serif: true, weight: 600 });
+  A.text(ctx, sub, 60, 56, { size: 11.5, mono: true, color: '#637875' });
+}
+function footer(ctx, right) {
+  A.line(ctx, 40, 480, 1140, 480, { color: '#1d2c31' });
+  A.text(ctx, '质量门', 40, 502, { size: 10, mono: true, color: '#637875' });
+  const items = [['p95', '≥ 45'], ['p50', '≥ 18'], ['滞回', '0–4'], ['窗口', '4 s'], ['判据', '两个都过']];
+  let x = 120;
+  items.forEach(([k, v]) => {
+    A.text(ctx, k, x, 502, { size: 10, mono: true, color: '#637875' });
+    A.text(ctx, v, x + 34, 502, { size: 11, mono: true, color: '#c6d6d2' });
+    x += 150;
+  });
+  A.text(ctx, right || '', 1140, 502, { size: 10.5, mono: true, color: '#637875', align: 'right' });
+}
+function xsec(sec, bx, bw) { return bx + sec / (N - 1) * bw; }
+function waveform(ctx, t, y0) {
+  const bx = 60, by = y0 + 54, bw = 700, bh = 300;
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 35 });
+  const seg = D.seg_dev, ymax = 220;
+  const pts = seg.map((v, i) => [bx + i / (seg.length - 1) * bw, by + bh - Math.min(v, ymax) / ymax * bh]);
+  A.path(ctx, pts, { color: '#ffb454', width: 1.3, glow: '#ffb454', alpha: .9 });
+  A.text(ctx, '悬空薄膜的 dev 波形（6 秒真实片段）', bx, by - 12, { size: 11, mono: true, color: '#8fa5a2' });
+  A.text(ctx, '没有周期性搏动，只有随机噪声尖峰', bx + bw, by - 12, { size: 10.5, color: '#ff9a9a', align: 'right' });
+  // random intervals illustration
+  const marks = [0.45, 0.95, 1.4, 1.95, 2.55, 3.1, 3.6, 4.2, 4.75, 5.3];
+  marks.forEach((m, i) => {
+    if (i % 2) return;
+    const x = bx + m / 6 * bw;
+    A.line(ctx, x, by + 20, x, by + bh, { color: 'rgba(87,200,255,.22)', dash: [3, 5] });
+  });
+  // right panel
+  const rx = 800;
+  A.text(ctx, '只看“有没有峰”：', rx, y0 + 86, { size: 13, color: '#8fa5a2' });
+  A.text(ctx, '噪声尖峰随机出现', rx, y0 + 116, { size: 18, serif: true, weight: 600 });
+  A.text(ctx, '两个尖峰之间恰好落进', rx, y0 + 152, { size: 13, color: '#b9cbc7' });
+  A.text(ctx, '500 ~ 1400 ms 的“合法”区间，', rx, y0 + 176, { size: 13, color: '#b9cbc7' });
+  A.text(ctx, '算法就当成一次心跳。', rx, y0 + 200, { size: 13, color: '#b9cbc7' });
+  A.chip(ctx, rx, y0 + 228, '500–1400 ms', '#57c8ff');
+  A.text(ctx, '→ 67 BPM', rx + 140, y0 + 245, { size: 18, mono: true, color: '#ff6f6f' });
+  A.text(ctx, '不是脉搏，是巧合', rx, y0 + 292, { size: 15, color: '#ffb454' });
+}
+function bpmChart(ctx, t, y0, revealAll) {
+  const bx = 60, by = y0 + 50, bw = 830, bh = 280;
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 36 });
+  [0, 30, 60, 90].forEach(v => {
+    const y = by + bh - v / 100 * bh;
+    A.line(ctx, bx - 5, y, bx, y, { color: '#2a4046' });
+    A.text(ctx, v, bx - 9, y + 3, { size: 9.5, mono: true, color: '#637875', align: 'right' });
+  });
+  const upto = revealAll ? N : Math.floor(t * 26);
+  const pts = [];
+  for (let i = 0; i < Math.min(upto, N); i++) {
+    if (PS[i][3] > 0) pts.push([xsec(i, bx, bw), by + bh - PS[i][3] / 100 * bh]);
+  }
+  if (pts.length) A.path(ctx, pts, { color: '#ff6f6f', width: 1.4, glow: '#ff6f6f' });
+  for (let i = 0; i < Math.min(upto, N); i++) {
+    if (PS[i][3] > 0) A.dot(ctx, xsec(i, bx, bw), by + bh - PS[i][3] / 100 * bh, 1.2, '#ff6f6f');
+  }
+  A.text(ctx, '现场输出的 BPM', bx, by - 12, { size: 11, mono: true, color: '#ff9a9a' });
+  A.text(ctx, '0 s', bx, by + bh + 16, { size: 9.5, mono: true, color: '#637875' });
+  A.text(ctx, '120 s', bx + bw, by + bh + 16, { size: 9.5, mono: true, color: '#637875', align: 'right' });
+  const rx = 940;
+  A.text(ctx, '118', rx, y0 + 168, { size: 64, mono: true, color: '#ff6f6f', glow: 'rgba(255,111,111,.35)' });
+  A.text(ctx, '秒 有读数', rx + 10, y0 + 196, { size: 13, color: '#8fa5a2' });
+  A.text(ctx, '120', rx + 170, y0 + 168, { size: 22, mono: true, color: '#3c5459' });
+  A.text(ctx, '中位数', rx, y0 + 236, { size: 10, mono: true, color: '#637875' });
+  A.text(ctx, '67 BPM', rx, y0 + 264, { size: 24, mono: true, color: '#ffb454' });
+  A.text(ctx, '真值 0', rx, y0 + 306, { size: 13, color: '#62f0b6' });
+  return { bx, by, bw, bh };
+}
+function qualityChart(ctx, t, y0) {
+  const bx = 60, by = y0 + 46, bw = 760, bh = 250;
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 36 });
+  const yv = v => by + bh - Math.min(v, 130) / 130 * bh;
+  [0, 45, 90, 130].forEach(v => {
+    const y = yv(v);
+    A.line(ctx, bx - 5, y, bx, y, { color: '#2a4046' });
+    A.text(ctx, v, bx - 9, y + 3, { size: 9.5, mono: true, color: '#637875', align: 'right' });
+  });
+  // p95 area
+  const p95 = PS.map((p, i) => [xsec(i, bx, bw), yv(p[2])]);
+  A.path(ctx, p95, { color: '#57c8ff', width: 1.2, fill: 'rgba(87,200,255,.14)', baseY: by + bh, topY: by });
+  const p50 = PS.map((p, i) => [xsec(i, bx, bw), yv(p[1])]);
+  A.path(ctx, p50, { color: '#ffb454', width: 1.2 });
+  // thresholds
+  A.line(ctx, bx, yv(45), bx + bw, yv(45), { color: '#57c8ff', dash: [5, 4] });
+  A.text(ctx, 'p95 门槛 45', bx + 4, yv(45) - 6, { size: 9.5, mono: true, color: '#57c8ff' });
+  A.line(ctx, bx, yv(18), bx + bw, yv(18), { color: '#ffb454', dash: [5, 4] });
+  A.text(ctx, 'p50 门槛 18', bx + 4, yv(18) - 6, { size: 9.5, mono: true, color: '#ffb454' });
+  A.text(ctx, 'p95（蓝色面积）', bx, by - 12, { size: 10.5, mono: true, color: '#57c8ff' });
+  A.text(ctx, 'p50（橙线）', bx + 130, by - 12, { size: 10.5, mono: true, color: '#ffb454' });
+  A.text(ctx, '0 s', bx, by + bh + 16, { size: 9.5, mono: true, color: '#637875' });
+  A.text(ctx, '120 s', bx + bw, by + bh + 16, { size: 9.5, mono: true, color: '#637875', align: 'right' });
+  // right comparison
+  const rx = 860;
+  A.text(ctx, '120 秒的中位数', rx, y0 + 62, { size: 10, mono: true, color: '#637875' });
+  const rows = [
+    { k: '悬空', p50: '12', p95: '35', c: '#ff6f6f' },
+    { k: '贴肤', p50: '42–62', p95: '114–221', c: '#62f0b6' }
+  ];
+  rows.forEach((r, i) => {
+    const y = y0 + 84 + i * 96;
+    A.rr(ctx, rx, y, 260, 82, 3); ctx.fillStyle = 'rgba(14,22,25,.8)'; ctx.fill();
+    ctx.strokeStyle = i ? 'rgba(98,240,182,.3)' : 'rgba(255,111,111,.3)'; ctx.stroke();
+    A.text(ctx, r.k, rx + 12, y + 24, { size: 12, weight: 600, color: r.c });
+    A.text(ctx, 'p50 ' + r.p50, rx + 12, y + 50, { size: 11, mono: true, color: '#c6d6d2' });
+    A.text(ctx, 'p95 ' + r.p95, rx + 110, y + 50, { size: 11, mono: true, color: '#c6d6d2' });
+    A.text(ctx, i ? '两个门槛都明显超过' : 'p50 始终够不到 · p95 只偶尔冲高', rx + 12, y + 70, { size: 10, color: i ? '#8ef0c8' : '#ff9a9a' });
+  });
+  A.text(ctx, '→ 一票否决：悬空', rx, y0 + 300, { size: 13, color: '#ff6f6f' });
+}
+function gateScene(ctx, t, y0) {
+  const bx = 60, by = y0 + 50, bw = 720, bh = 280;
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 36 });
+  // timeline rows
+  const rows = [
+    { y: by + 80, label: '只看峰', color: '#ff6f6f', on: true },
+    { y: by + 190, label: '过质量门', color: '#62f0b6', on: false }
+  ];
+  rows.forEach(r => {
+    A.text(ctx, r.label, bx - 10, r.y - 22, { size: 11, mono: true, color: r.color, align: 'right' });
+    A.line(ctx, bx, r.y, bx + bw, r.y, { color: '#1d2c31' });
+  });
+  const reveal = Math.min(N, Math.floor(t * 40));
+  let raw = 0, gate = 0;
+  for (let i = 0; i < reveal; i++) {
+    const x = xsec(i, bx, bw);
+    if (PS[i][3] > 0) {
+      raw++;
+      A.dot(ctx, x, rows[0].y, 2.4, '#ff6f6f');
+      if (PS[i][4]) {
+        gate++;
+        A.dot(ctx, x, rows[1].y, 2.4, '#62f0b6');
+      }
+    }
+  }
+  A.text(ctx, '每一秒一根：有 BPM 输出就点亮', bx, by - 12, { size: 10.5, mono: true, color: '#637875' });
+  // counters
+  const rx = 810;
+  A.rr(ctx, rx, y0 + 66, 300, 84, 3); ctx.fillStyle = 'rgba(255,111,111,.06)'; ctx.fill();
+  ctx.strokeStyle = 'rgba(255,111,111,.35)'; ctx.stroke();
+  A.text(ctx, '有读数的秒数', rx + 14, y0 + 92, { size: 10, mono: true, color: '#8fa5a2' });
+  A.text(ctx, String(raw), rx + 14, y0 + 136, { size: 40, mono: true, color: '#ff6f6f' });
+  A.text(ctx, '/ 120 s', rx + 118, y0 + 136, { size: 12, mono: true, color: '#637875' });
+  A.rr(ctx, rx, y0 + 166, 300, 84, 3); ctx.fillStyle = 'rgba(98,240,182,.06)'; ctx.fill();
+  ctx.strokeStyle = 'rgba(98,240,182,.35)'; ctx.stroke();
+  A.text(ctx, '过门后剩下的秒数', rx + 14, y0 + 192, { size: 10, mono: true, color: '#8fa5a2' });
+  A.text(ctx, String(gate), rx + 14, y0 + 236, { size: 40, mono: true, color: '#62f0b6' });
+  A.text(ctx, '/ 120 s', rx + 90, y0 + 236, { size: 13, mono: true, color: '#637875' });
+  A.text(ctx, '真值：悬空应当恒为 0', rx, y0 + 288, { size: 12, color: '#8fa5a2' });
+  // reveal line
+  const xr = xsec(Math.min(reveal, N - 1), bx, bw);
+  A.line(ctx, xr, by + 30, xr, by + bh - 20, { color: '#c8f560', alpha: .35 });
+}
+function gatePlacement(ctx, t, y0) {
+  const lanes = [
+    { x: 60, title: '错误：门加在峰值检测里', bad: true },
+    { x: 610, title: '正确：门只加在输出端', bad: false }
+  ];
+  lanes.forEach(l => {
+    const y = y0 + 26, w = 510, h = 300;
+    A.rr(ctx, l.x, y, w, h, 3); ctx.fillStyle = 'rgba(14,22,25,.8)'; ctx.fill();
+    ctx.strokeStyle = l.bad ? 'rgba(255,111,111,.35)' : 'rgba(98,240,182,.35)'; ctx.stroke();
+    A.text(ctx, l.title, l.x + 18, y + 30, { size: 13, weight: 600, color: l.bad ? '#ff6f6f' : '#62f0b6' });
+    const steps = l.bad
+      ? ['峰检测', '质量门', '丢峰', 'i+2 断链', 'BPM 空 / 56']
+      : ['峰检测（自由）', '间隔链', 'i+2 配对', '输出端门控', 'BPM 0 / 83'];
+    steps.forEach((s, i) => {
+      const yy = y + 64 + i * 46;
+      A.rr(ctx, l.x + 24, yy, 300, 34, 2);
+      ctx.fillStyle = (l.bad && i === 1) || (!l.bad && i === 3) ? 'rgba(255,180,84,.10)' : 'rgba(255,255,255,.025)';
+      ctx.fill();
+      ctx.strokeStyle = (l.bad && i === 1) || (!l.bad && i === 3) ? 'rgba(255,180,84,.5)' : '#1d2c31'; ctx.stroke();
+      A.text(ctx, s, l.x + 36, yy + 22, { size: 12, mono: true, color: (l.bad && i >= 2) ? '#ff9a9a' : '#c6d6d2' });
+      if (i < steps.length - 1) A.arrow(ctx, l.x + 174, yy + 34, l.x + 174, yy + 46, '#2a4046', 1);
+    });
+    A.text(ctx, l.bad ? '丢峰 → 配对错位 → 56 / 空白' : '检测完整 → 只决定是否采信', l.x + 24, y + 292, { size: 11, color: l.bad ? '#ff9a9a' : '#8ef0c8' });
+  });
+  A.text(ctx, '这是我们真正踩过的坑：门加错位置，好信号也会被算坏。', 60, y0 + 352, { size: 14, color: '#e8f2ef' });
+}
+const steps = [
+  {
+    tag: '现象', dur: 7,
+    title: '悬空 120 秒：没有脉搏，屏幕却在跳数字',
+    body: '把薄膜空放在桌上录 120 秒，波形里没有规律搏动，只有随机噪声尖峰。旧算法“见峰就配”，两个尖峰偶尔正好隔 <b>500–1400 ms</b>，就被当成一次心跳，输出约 <b>67 BPM</b>。它测到的不是人，是巧合。',
+    extra: '像听一屋子杂音，偶尔有两个声音间隔像鼓点，就以为有人在打拍子。'
+  },
+  {
+    tag: '真实数据', dur: 8,
+    title: '120 秒里，有 118 秒都在“算命”',
+    body: '逐秒复算这段悬空录音：<b>118 / 120 秒</b>都有非零 BPM，数值在 <b>54–73</b> 之间晃，看上去还挺稳定。这正是最危险的地方 —— 一个完全没贴人的传感器，屏幕上却有数。',
+    extra: '“稳定”不等于“正确”：噪声也可以很稳定地骗人。'
+  },
+  {
+    tag: '质量门', dur: 8,
+    title: '先量“这段信号有没有劲”，再决定信不信',
+    body: '同时看两个数：<b>p95</b> 是“最猛的 5% 有多猛”，<b>p50</b> 是“大多数时候有多猛”。可以把它们想成<b>信噪比</b>：p95 是血管主路径的强度，p50 是底噪水平。悬空时 p50 只有 <b>12</b>、p95 约 <b>35</b>；贴肤 p50 有 <b>42–62</b>、p95 高达 <b>114–221</b>。门槛设成 <b>p95≥45 且 p50≥18</b>，两个都过才算数。',
+    extra: 'p95 看主路径有没有力气，p50 看底噪高不高；缺一不可。'
+  },
+  {
+    tag: '结果', dur: 9,
+    title: '假 BPM：118 秒 → 0 秒',
+    body: '把质量门加在<b>输出端</b>后，同一段悬空录音的假读数从 <span class="wrong">118 秒</span> 降到 <span class="right">0 秒</span>；贴肤好信号的复算结果不受影响，仍然 76–78 BPM。松手后 <b><1 秒</b>归零。',
+    extra: '相当于给屏幕加一个“先验货再上架”的关卡：没货就不摆。'
+  },
+  {
+    tag: '易错点', dur: 8,
+    title: '门装错位置，会把好信号也弄坏',
+    body: '如果把质量门塞进<b>峰值检测</b>里，信号一弱就丢峰；隔峰配对一旦断链，就会算出 <b>56</b> 或直接空白。正确做法是：<em>检测归检测，采信归采信</em>，门只装在最后出口。',
+    extra: '像安检：不能在传送带中途把包拿走，否则后面的配对全乱。'
+  }
+];
+const deck = new Deck({
+  steps,
+  draw(ctx, W, H) {
+    view(ctx, W, H);
+    const y0 = 78, s = deck.step, t = deck.t;
+    if (s === 0) { header(ctx, '悬空 120 秒：一个没有脉搏的“病人”', 'dangle_test · 真实录音 · 200 Hz'); waveform(ctx, t, y0); }
+    else if (s === 1) { header(ctx, '只看“有没有尖”：118 秒都有读数', '同一段悬空录音 · 逐秒复算'); bpmChart(ctx, t, y0, false); }
+    else if (s === 2) { header(ctx, '先看“有没有劲”，再看“信不信”', 'p95 / p50 · 4 秒滑窗'); qualityChart(ctx, t, y0); }
+    else if (s === 3) { header(ctx, '把噪声关在门外', '每一秒一根 · 上方=原始输出，下方=过门后'); gateScene(ctx, t, y0); }
+    else { header(ctx, '门放错位置，会反伤好信号', 'Q11 的教训 · 两种接法对比'); gatePlacement(ctx, t, y0); }
+    footer(ctx, s < 4 ? '下一页：佩戴状态机 →' : '下一页：佩戴状态机 →');
+    ctx.restore();
+  }
+});
+</script>
+</body>
+</html>

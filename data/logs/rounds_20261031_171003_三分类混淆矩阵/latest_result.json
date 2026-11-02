@@ -1,0 +1,19 @@
+{
+ "round": 3,
+ "ok": false,
+ "bpm": 0,
+ "beats": 0,
+ "median_iv_ms": 0,
+ "coupling_qc": "悬空",
+ "bpm_posthoc": 0,
+ "beats_posthoc": 0,
+ "fills": 0,
+ "reasons": [
+  "贴膜质量:悬空",
+  "零检出",
+  "补偿后0.0BPM(0拍,补0剔0)"
+ ],
+ "note": "三分类混淆矩阵",
+ "outdir": "D:\\Espressif\\workspace\\pulse_meter\\logs\\rounds_20261031_171003_三分类混淆矩阵\\round_03_20261031_171154",
+ "stamp": "17:12:34"
+}

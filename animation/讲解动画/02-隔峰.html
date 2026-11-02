@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>02 · 为什么要“跳一个峰” | 赛博把脉</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><b>赛博把脉</b><span>CYBER-PULSE</span></div>
+    <div class="crumb"><span>讲解动画</span><i>/</i><span>02</span></div>
+    <div class="spacer"></div>
+    <div class="topic-tag">02 · 隔峰配对</div>
+    <a class="home" href="index.html">目录</a>
+  </header>
+  <main class="stage">
+    <div class="source" id="source">真实波形：session_20261030_224652 / raw_r.log · 6 s 片段</div>
+    <canvas id="cv"></canvas>
+    <div class="hint">空格 播放/暂停 · ← → 单步 · R 重置</div>
+  </main>
+  <section class="narr">
+    <div class="narr-main">
+      <div class="step-head"><span id="step-count"></span><span id="step-tag"></span></div>
+      <h2 id="step-title"></h2>
+      <div id="step-body"></div>
+      <div class="human" id="step-human"></div>
+    </div>
+    <aside class="side">
+      <div>
+        <div class="meter"><span>TIMELINE</span><span>自动播放，末帧停住</span></div>
+        <div class="bar" id="timebar"><i></i></div>
+        <div class="dots" id="dots" style="margin-top:10px"></div>
+      </div>
+      <div id="extra"><div class="iter-card">
+        <div class="ic-head"><span>本页在迭代中的位置</span><a href="00-演进.html">全程 →</a></div>
+        <div class="ic-row"><b>问题</b><span>每个鼓包都数 → 167 BPM</span></div>
+        <div class="ic-row"><b>线索</b><span>加质量不移频，排除余震；其实是双源</span></div>
+        <div class="ic-row"><b>改动</b><span>跳过一个信号，i+2 配对</span></div>
+        <div class="ic-row"><b>结果</b><span>725ms → 83，手表 80–82</span></div>
+        <div class="ic-row bad"><b>遗留</b><span>150 BPM 两路信号挤在一起 → 75</span></div>
+      </div></div>
+      <div class="controls">
+        <button id="btn-prev">上一步</button>
+        <button id="btn-play" class="primary">播放</button>
+        <button id="btn-next">下一步</button>
+        <button id="btn-reset">重置</button>
+        <button id="btn-speed">1×</button>
+      </div>
+    </aside>
+  </section>
+</div>
+<script src="assets/data/pulse-data.js"></script>
+<script src="assets/engine.js"></script>
+<script>
+const D = window.PULSE_DATA.good;
+const ENV = A.envMax(D.seg_dev, 9, 9);
+const VW = 1180, VH = 520;
+const segPeaks = () => D.peaks.filter(p => p[0] >= D.seg_t0 && p[0] < D.seg_t0 + 6).map(p => [p[0] - D.seg_t0, p[1]]);
+const PK = segPeaks();
+const DOUB = D.doub_gap_median_ms;      // 360 ms
+const BEAT = D.i2_median_ms;            // 725 ms
+function view(ctx, W, H) {
+  const s = Math.min(W / VW, H / VH);
+  ctx.save(); ctx.translate((W - VW * s) / 2, (H - VH * s) / 2); ctx.scale(s, s);
+}
+function header(ctx, title, sub, color) {
+  A.text(ctx, title, 60, 34, { size: 20, serif: true, weight: 600 });
+  if (sub) A.text(ctx, sub, 60, 56, { size: 11.5, mono: true, color: color || '#637875' });
+}
+function footer(ctx, right) {
+  A.line(ctx, 40, 480, 1140, 480, { color: '#1d2c31' });
+  A.text(ctx, '峰参数', 40, 502, { size: 10, mono: true, color: '#637875' });
+  const items = [['阈值', '40'], ['最小间距', '350 ms'], ['间隔窗口', '300–1400 ms'], ['配对', 'i+2']];
+  let x = 120;
+  items.forEach(([k, v]) => {
+    A.text(ctx, k, x, 502, { size: 10, mono: true, color: '#637875' });
+    A.text(ctx, v, x + 50, 502, { size: 11, mono: true, color: '#c6d6d2' });
+    x += 170;
+  });
+  A.text(ctx, right || '', 1140, 502, { size: 10.5, mono: true, color: '#637875', align: 'right' });
+}
+function waveBox(ctx, y0, label, W, span) {
+  const bx = 60, by = y0, bw = W || 1040, bh = 300;
+  span = span || 6;
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 40 });
+  const ymax = 380;
+  const n = Math.round(span / .005);
+  const pts = D.seg_dev.slice(0, n).map((v, i) => [bx + i / (n - 1) * bw, by + bh - Math.min(v, ymax) / ymax * bh]);
+  A.path(ctx, pts, { color: 'rgba(98,240,182,.32)', width: 1.0 });
+  const env = ENV.slice(0, n).map((v, i) => [bx + i / (n - 1) * bw, by + bh - Math.min(v, ymax) / ymax * bh]);
+  A.path(ctx, env, { color: '#7df9c4', width: 2.2, glow: '#62f0b6' });
+  A.text(ctx, '亮线 = 显示用包络（不参与计算）', bx + bw - 4, by + 16, { size: 9.5, mono: true, color: '#7a938e', align: 'right' });
+  A.text(ctx, '圆点 = 检出峰', bx + 4, by + bh - 8, { size: 9.5, mono: true, color: '#ffb454' });
+  if (label) A.text(ctx, label, bx, by - 10, { size: 11, mono: true, color: '#8fa5a2' });
+  return { bx, by, bw, bh, ymax, span };
+}
+function peakDots(ctx, B) {
+  PK.filter(p => p[0] <= B.span).forEach((p, i) => {
+    const idx = Math.max(0, Math.min(ENV.length - 1, Math.round(p[0] / .005)));
+    const x = B.bx + p[0] / B.span * B.bw, y = B.by + B.bh - Math.min(ENV[idx], B.ymax) / B.ymax * B.bh;
+    A.dot(ctx, x, y, 3, i % 2 === 0 ? '#ffb454' : '#57c8ff');
+  });
+}
+function arc(ctx, B, i, j, color, label, prog) {
+  const a = PK[i], b = PK[j];
+  if (!a || !b) return;
+  const x1 = B.bx + a[0] / B.span * B.bw, x2 = B.bx + b[0] / B.span * B.bw;
+  const y = B.by + B.bh + 18;
+  const xx2 = x1 + (x2 - x1) * prog;
+  A.line(ctx, x1, y, xx2, y, { color, width: 2.2 });
+  A.line(ctx, x1, y - 5, x1, y + 5, { color, width: 1.2 });
+  if (prog > .95) A.line(ctx, x2, y - 5, x2, y + 5, { color, width: 1.2 });
+  if (label && prog > .6) A.text(ctx, label, (x1 + x2) / 2, y - 6, { size: 10.5, mono: true, color, align: 'center' });
+}
+function readout(ctx, x, y, big, sub, color, bad) {
+  A.rr(ctx, x, y, 236, 92, 3);
+  ctx.fillStyle = bad ? 'rgba(255,111,111,.06)' : 'rgba(98,240,182,.06)'; ctx.fill();
+  ctx.strokeStyle = bad ? 'rgba(255,111,111,.35)' : 'rgba(98,240,182,.35)'; ctx.stroke();
+  A.text(ctx, big, x + 16, y + 46, { size: 40, mono: true, color });
+  A.text(ctx, sub, x + 16, y + 72, { size: 11, color: '#8fa5a2' });
+}
+function experiment(ctx, t, y0) {
+  const cards = [
+    { x: 70, title: '原状态', gap: 360, note: '膜 + 手' },
+    { x: 420, title: '刚性板 + 质量加载', gap: 365, note: '系统共振频率已改变' }
+  ];
+  cards.forEach((c, i) => {
+    const y = y0 + 20, w = 300, h = 220;
+    A.rr(ctx, c.x, y, w, h, 3); ctx.fillStyle = 'rgba(14,22,25,.8)'; ctx.fill();
+    ctx.strokeStyle = i ? 'rgba(255,180,84,.4)' : '#1d2c31'; ctx.stroke();
+    A.text(ctx, c.title, c.x + 16, y + 28, { size: 13, weight: 600, color: i ? '#ffb454' : '#c6d6d2' });
+    A.text(ctx, c.note, c.x + 16, y + 48, { size: 10.5, color: '#637875' });
+    // double peak mini plot
+    const bx = c.x + 18, by = y + 70, bw = w - 36, bh = 96;
+    A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 24 });
+    const pts = [];
+    for (let k = 0; k < 120; k++) {
+      const u = k / 119, g1 = Math.exp(-Math.pow((u - .22) / .055, 2));
+      const g2 = .82 * Math.exp(-Math.pow((u - .58) / .07, 2));
+      pts.push([bx + u * bw, by + bh - (g1 + g2 + .06 * Math.sin(u * 90)) * (bh - 18) - 8]);
+    }
+    A.path(ctx, pts, { color: '#62f0b6', width: 1.6, glow: '#62f0b6' });
+    A.line(ctx, bx + .22 * bw, by + bh - 6, bx + .58 * bw, by + bh - 6, { color: '#ffb454' });
+    A.text(ctx, c.gap + ' ms', bx + .4 * bw, by + bh + 16, { size: 12, mono: true, color: '#ffb454', align: 'center' });
+  });
+  A.arrow(ctx, 380, y0 + 130, 414, y0 + 130, '#ffb454', 1.5);
+  A.text(ctx, '如果双峰是机械振铃，加质量会改共振 → 间距应该变', 60, y0 + 280, { size: 14, color: '#b9cbc7' });
+  A.text(ctx, '实测：360 → 365 ms，纹丝不动', 60, y0 + 312, { size: 20, serif: true, weight: 600, color: '#ffb454' });
+  A.text(ctx, '→ 不是振铃；但双峰来源还要看测量方式：早期右拇指按左腕，会同时收到两路心跳。', 60, y0 + 344, { size: 14, color: '#62f0b6' });
+  // verdict stamp
+  const p = A.ease(t / 1.2);
+  ctx.save(); ctx.globalAlpha = p;
+  A.rr(ctx, 830, y0 + 270, 280, 90, 3); ctx.fillStyle = 'rgba(98,240,182,.06)'; ctx.fill();
+  ctx.strokeStyle = 'rgba(98,240,182,.45)'; ctx.stroke();
+  A.text(ctx, '判决', 846, y0 + 298, { size: 10, mono: true, color: '#637875' });
+  A.text(ctx, '第二路信号', 846, y0 + 328, { size: 20, serif: true, weight: 600, color: '#62f0b6' });
+  A.text(ctx, '右拇指按左腕 = 两个身体', 846, y0 + 350, { size: 9.5, mono: true, color: '#8fa5a2' });
+  ctx.restore();
+}
+function pairScene(ctx, t, y0, mode) {
+  const span = 3.0;
+  const B = waveBox(ctx, y0 + 54, mode === 1 ? '每个信号都配：间隔 360 ms' : '隔一个信号配：间隔 725 ms', 760, span);
+  peakDots(ctx, B);
+  const z = PK.filter(p => p[0] <= span);
+  const step = mode === 1 ? 1 : 2;
+  const show = Math.min(z.length - 1, 2 + Math.floor(t * 2) * (mode === 1 ? 2 : 1));
+  for (let i = 0; i < show; i += step) {
+    const j = i + step;
+    if (j >= z.length) break;
+    arc(ctx, B, i, j, mode === 1 ? '#ff6f6f' : '#62f0b6', i === 0 ? (mode === 1 ? '360 ms' : '725 ms') : null, Math.min(1, t * 2 - i / step));
+  }
+  const bpm = mode === 1 ? 60000 / DOUB : 60000 / BEAT;
+  const rx = 855;
+  readout(ctx, rx, y0 + 54, Math.round(bpm) + ' BPM', mode === 1 ? '＝ 真值的两倍（假心率）' : '≈ 这一段真实心率', mode === 1 ? '#ff6f6f' : '#62f0b6', mode === 1);
+  A.text(ctx, mode === 1 ? 'i+1 配对' : 'i+2 配对', rx, y0 + 172, { size: 11, mono: true, color: mode === 1 ? '#ff6f6f' : '#62f0b6' });
+  A.text(ctx, mode === 1 ? '两路信号被算成两拍' : '跳过第二路，取第一路同相位', rx, y0 + 192, { size: 11, color: '#8fa5a2' });
+  A.text(ctx, '这段：' + (D.bpm).toFixed(1) + ' BPM · 两信号 ' + DOUB + ' ms · 整拍 ' + BEAT + ' ms', rx, y0 + 250, { size: 10.5, mono: true, color: '#637875' });
+  A.text(ctx, '真值（同刻手表 80–82）', rx, y0 + 272, { size: 11, color: '#8fa5a2' });
+}
+function boundary(ctx, t, y0) {
+  const panels = [
+    { x: 60, title: '静息 80 BPM', period: 750, dicro: 360, merged: false },
+    { x: 610, title: '跑步 150 BPM', period: 400, dicro: 100, merged: true }
+  ];
+  panels.forEach((p, pi) => {
+    const y = y0 + 18, w = 510, h = 288;
+    A.rr(ctx, p.x, y, w, h, 3); ctx.fillStyle = 'rgba(14,22,25,.8)'; ctx.fill();
+    ctx.strokeStyle = pi ? 'rgba(255,111,111,.4)' : 'rgba(98,240,182,.35)'; ctx.stroke();
+    A.text(ctx, p.title, p.x + 18, y + 28, { size: 13, weight: 600, color: pi ? '#ff6f6f' : '#62f0b6' });
+    const bx = p.x + 20, by = y + 46, bw = w - 40, bh = 120;
+    A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 28 });
+    const beats = 4;
+    const pts = [];
+    const wm = p.merged ? 26 : p.period * .075;
+    for (let i = 0; i < bw; i += 1) {
+      const tt = i / bw * beats * p.period;
+      let v = 0;
+      for (let b = 0; b < beats + 1; b++) {
+        const dt = tt - b * p.period;
+        v += Math.exp(-Math.pow((dt - 25) / wm, 2));
+        v += (p.merged ? .55 : .55) * Math.exp(-Math.pow((dt - p.dicro) / (p.merged ? 42 : p.period * .1), 2));
+      }
+      pts.push([bx + i, by + bh - Math.min(1.25, v) / 1.3 * (bh - 10)]);
+    }
+    A.path(ctx, pts, { color: pi ? '#ff6f6f' : '#62f0b6', width: 1.6, glow: pi ? '#ff6f6f' : '#62f0b6' });
+    A.text(ctx, pi ? '两路信号挤在一起' : '两个信号分得很开', p.x + 18, y + 212, { size: 12, color: '#8fa5a2' });
+    const yy = by + bh + 20;
+    if (pi) {
+      const x1 = bx + 8, x2 = bx + 8 + bw * (2 * p.period) / (beats * p.period);
+      A.line(ctx, x1, yy, x2, yy, { color: '#ff6f6f' });
+      A.line(ctx, x1, yy - 4, x1, yy + 4, { color: '#ff6f6f' });
+      A.line(ctx, x2, yy - 4, x2, yy + 4, { color: '#ff6f6f' });
+      A.text(ctx, 'i+2 = 800 ms = 2 拍', (x1 + x2) / 2, yy - 7, { size: 10.5, mono: true, color: '#ff6f6f', align: 'center' });
+      A.text(ctx, '→ 检测只剩 1 峰/拍，i+2 跨 2 拍 → 显示 75', p.x + 18, y + 244, { size: 13, color: '#ff8a8a' });
+    } else {
+      const x1 = bx + 8, x2 = bx + 8 + bw * p.period / (beats * p.period);
+      A.line(ctx, x1, yy, x2, yy, { color: '#62f0b6' });
+      A.line(ctx, x1, yy - 4, x1, yy + 4, { color: '#62f0b6' });
+      A.line(ctx, x2, yy - 4, x2, yy + 4, { color: '#62f0b6' });
+      A.text(ctx, 'i+2 = 750 ms = 1 拍', (x1 + x2) / 2, yy - 7, { size: 10.5, mono: true, color: '#62f0b6', align: 'center' });
+      A.text(ctx, '→ 正确定出 80', p.x + 18, y + 244, { size: 13, color: '#8ef0c8' });
+    }
+  });
+  A.text(ctx, '同一个 i+2 规则，在 80 和 150 BPM 下含义相反', 60, y0 + 322, { size: 14, color: '#e8f2ef' });
+  A.text(ctx, '所以跑步必须换“动态配对”，不能把 350 ms 和 i+2 写死。', 60, y0 + 348, { size: 14, color: '#ffb454' });
+}
+const steps = [
+  {
+    tag: '回看修正', dur: 8,
+    title: '回看：双峰是余震，还是测量方式带进来的两个信号？',
+    body: '早期测法是右手拇指带着传感器，按在左手腕的脉搏上。膜同时接触按压者的拇指和被按者的手腕，于是会同时收到两个人的心跳 —— <b>两路信号</b>。给刚性板加质量后，峰间距 <b>360 → 365 ms</b> 几乎不动，只能排除“板子余震”；后来回看，双峰其实是测量方式带进来的<b>第二路信号</b>，而不是当时以为的重搏波。',
+    extra: '一个传感器同时踩在两个人身上，当然会收到两路心跳。'
+  },
+  {
+    tag: '错误做法', dur: 7,
+    title: '两路信号都数，心率直接翻倍',
+    body: '最直觉的做法是“见到峰就记一拍”。可一次测量里有两路信号，间隔 <b>360 ms</b>，一除就是 <span class="wrong">≈167 BPM</span>，而真实心率只有 80 出头。不是传感器坏，是<b>一拍被数成了两拍</b>。',
+    extra: '两个人交替敲门，你把每一声都当成同一人的拜访，次数就翻倍。'
+  },
+  {
+    tag: '正确做法', dur: 7,
+    title: '跳过一个信号，周期就对上了',
+    body: '规则改成：看到峰先别急，<b>跳过一个</b>，和再下一个配对。这样第一路配第一路、第二路配第二路，得到 <b>725 ms</b> → <b>≈83 BPM</b>，和同刻手表 80–82 对得上。固件里“隔峰 i+2 中值”就是这句话。图里的亮线只是显示用包络，算法仍直接数原始峰；它在这批双源数据上稳定，但不能反过来证明双峰是重搏波。',
+    extra: '两路人马排成一队，只数第一路的“主峰”。'
+  },
+  {
+    tag: '边界', dur: 8,
+    title: '但这个办法只在“慢节奏”下成立',
+    body: '静息时两路信号分得开，隔一个正好是一拍。跑到 150 BPM，周期只有 400 ms，两路信号挤在一起；这时“隔一个”实际跨了<b>两拍</b>（800 ms），输出 <span class="wrong">75（半值）</span>。所以高心率不能靠改一个数字，必须换“按当前节奏动态配对”。',
+    extra: '队伍变短后，还按老规则“隔一个”，就会少数一拍。'
+  }
+];
+const deck = new Deck({
+  steps,
+  draw(ctx, W, H) {
+    view(ctx, W, H);
+    const y0 = 78, s = deck.step, t = deck.t;
+    if (s === 0) { header(ctx, '回看：双峰是余震，还是两个源？', '加质量只能排除余震；双峰来源还要看测量方式'); experiment(ctx, t, y0); }
+    else if (s === 1) { header(ctx, '两路信号，配错了就翻倍', '真实波形 · ★会话 · 左图 3 秒'); pairScene(ctx, t, y0, 1); }
+    else if (s === 2) { header(ctx, '跳过一个信号，周期就对上了', '真实波形 · ★会话 · 左图 3 秒'); pairScene(ctx, t, y0, 2); }
+    else { header(ctx, '这条规则不是万能的', '静息 80 vs 跑步 150 · 同一套 i+2'); boundary(ctx, t, y0); }
+    footer(ctx, s < 3 ? '下一页：假阳性从哪来 →' : '下一页：佩戴状态机 →');
+    ctx.restore();
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+ "round": 3,
+ "ok": false,
+ "bpm": 69.8,
+ "beats": 28,
+ "median_iv_ms": 860,
+ "reasons": [
+  "70BPM 28拍 中位860ms 桶[12, 12, 4]",
+  "检出不足(28/39)",
+  "桶不均衡[12, 12, 4]"
+ ],
+ "note": "拇指按压",
+ "outdir": "D:\\Espressif\\workspace\\pulse_meter\\logs\\rounds_20261031_155414_拇指按压\\round_03_20261031_155604",
+ "stamp": "15:56:44"
+}

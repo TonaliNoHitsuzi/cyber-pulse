@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>08 · 数据链 | 赛博把脉</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><b>赛博把脉</b><span>CYBER-PULSE</span></div>
+    <div class="crumb"><span>讲解动画</span><i>/</i><span>08</span></div>
+    <div class="spacer"></div>
+    <div class="topic-tag">08 · 数据链</div>
+    <a class="home" href="index.html">目录</a>
+  </header>
+  <main class="stage">
+    <div class="source" id="source">协议来自固件 main.c · 端到端验证：79 条 / 36.9 s / 无断档</div>
+    <canvas id="cv"></canvas>
+    <div class="hint">空格 播放/暂停 · ← → 单步 · R 重置</div>
+  </main>
+  <section class="narr">
+    <div class="narr-main">
+      <div class="step-head"><span id="step-count"></span><span id="step-tag"></span></div>
+      <h2 id="step-title"></h2>
+      <div id="step-body"></div>
+      <div class="human" id="step-human"></div>
+    </div>
+    <aside class="side">
+      <div>
+        <div class="meter"><span>TIMELINE</span><span>自动播放，末帧停住</span></div>
+        <div class="bar" id="timebar"><i></i></div>
+        <div class="dots" id="dots" style="margin-top:10px"></div>
+      </div>
+      <div id="extra"><div class="iter-card">
+        <div class="ic-head"><span>本页在迭代中的位置</span><a href="00-演进.html">全程 →</a></div>
+        <div class="ic-row"><b>问题</b><span>断线就丢数据；手机要能懂</span></div>
+        <div class="ic-row"><b>线索</b><span>波形可抽稀；断线是常态</span></div>
+        <div class="ic-row"><b>改动</b><span>FFE1–4 + 60s 环形缓存补发</span></div>
+        <div class="ic-row"><b>结果</b><span>79 条 / 36.9s / 无断档</span></div>
+        <div class="ic-row bad"><b>遗留</b><span>长时跑步录制与功耗待测</span></div>
+      </div></div>
+      <div class="controls">
+        <button id="btn-prev">上一步</button>
+        <button id="btn-play" class="primary">播放</button>
+        <button id="btn-next">下一步</button>
+        <button id="btn-reset">重置</button>
+        <button id="btn-speed">1×</button>
+      </div>
+    </aside>
+  </section>
+</div>
+<script src="assets/data/pulse-data.js"></script>
+<script src="assets/engine.js"></script>
+<script>
+const VW = 1180, VH = 520;
+function view(ctx, W, H) {
+  const s = Math.min(W / VW, H / VH);
+  ctx.save(); ctx.translate((W - VW * s) / 2, (H - VH * s) / 2); ctx.scale(s, s);
+}
+function header(ctx, title, sub) {
+  A.text(ctx, title, 60, 34, { size: 20, serif: true, weight: 600 });
+  A.text(ctx, sub, 60, 56, { size: 11.5, mono: true, color: '#637875' });
+}
+function footer(ctx, right) {
+  A.line(ctx, 40, 480, 1140, 480, { color: '#1d2c31' });
+  A.text(ctx, '链路', 40, 502, { size: 10, mono: true, color: '#637875' });
+  const items = [['FFE1', '500 ms 指标'], ['FFE2', '100 Hz 波形'], ['FFE3', '补发'], ['FFE4', '补发请求'], ['MTU', '512']];
+  let x = 120;
+  items.forEach(([k, v]) => {
+    A.text(ctx, k, x, 502, { size: 10, mono: true, color: '#637875' });
+    A.text(ctx, v, x + 42, 502, { size: 11, mono: true, color: '#c6d6d2' });
+    x += 180;
+  });
+  A.text(ctx, right, 1140, 502, { size: 10.5, mono: true, color: '#637875', align: 'right' });
+}
+function box(ctx, x, y, w, h, title, sub, color, active) {
+  A.rr(ctx, x, y, w, h, 4);
+  ctx.fillStyle = active ? 'rgba(98,240,182,.07)' : 'rgba(14,22,25,.8)'; ctx.fill();
+  ctx.strokeStyle = active ? color : '#1d2c31'; ctx.lineWidth = active ? 1.5 : 1;
+  if (active) { ctx.shadowColor = color; ctx.shadowBlur = 18; }
+  ctx.stroke(); ctx.shadowBlur = 0;
+  A.text(ctx, title, x + 14, y + 30, { size: 14, weight: 600, color: active ? color : '#c6d6d2' });
+  A.text(ctx, sub, x + 14, y + 52, { size: 10, mono: true, color: '#637875' });
+}
+function packet(ctx, x, y, w, label, color) {
+  A.rr(ctx, x, y, w, 20, 2);
+  ctx.fillStyle = color + '22'; ctx.fill();
+  ctx.strokeStyle = color; ctx.globalAlpha = .7; ctx.stroke(); ctx.globalAlpha = 1;
+  A.text(ctx, label, x + 6, y + 14, { size: 8, mono: true, color });
+}
+function flowScene(ctx, t, y0) {
+  const boxes = [
+    { x: 70, title: '压电膜 + ADC', sub: '1 kHz · dev', c: '#ffb454' },
+    { x: 380, title: 'ESP32-C3', sub: '算法 / 缓存 / BLE', c: '#62f0b6' },
+    { x: 690, title: '安卓 App', sub: '显示 / 入库 / 导出', c: '#57c8ff' }
+  ];
+  boxes.forEach((b, i) => box(ctx, b.x, y0 + 60, 280, 110, b.title, b.sub, b.c, Math.floor(t * 1.2) % 3 === i));
+  A.arrow(ctx, 354, y0 + 115, 376, y0 + 115, '#2a4046', 1.4);
+  A.arrow(ctx, 664, y0 + 115, 686, y0 + 115, '#2a4046', 1.4);
+  // moving packets
+  const u = (t * .35) % 1;
+  A.dot(ctx, 354 + 22 * u, y0 + 115, 3, '#ffb454', true);
+  A.dot(ctx, 664 + 22 * u, y0 + 115, 3, '#57c8ff', true);
+  // characteristics
+  const chars = [
+    ['FFE1', '指标 · JSON · 500 ms', '{"bpm":82,"state":"GOOD","p95":112,"beat":1}', '#62f0b6'],
+    ['FFE2', '波形 · int16 ×10 · 100 ms', '100 Hz 原始 ADC，20 B/包', '#57c8ff'],
+    ['FFE3', '断线补发 · 带时间戳', '从 60 s 缓存里回放 12 KB', '#ffb454'],
+    ['FFE4', '补发请求 · 4 B LE', '起始毫秒；0 = 整个缓存', '#a78bfa']
+  ];
+  chars.forEach((c, i) => {
+    const y = y0 + 180 + i * 52;
+    A.rr(ctx, 70, y, 1030, 46, 2); ctx.fillStyle = 'rgba(14,22,25,.55)'; ctx.fill();
+    ctx.strokeStyle = '#1d2c31'; ctx.stroke();
+    A.text(ctx, c[0], 88, y + 20, { size: 11, mono: true, color: c[3] });
+    A.text(ctx, c[1], 150, y + 20, { size: 11, color: '#c6d6d2' });
+    A.text(ctx, c[2], 470, y + 20, { size: 10, mono: true, color: '#637875' });
+    A.text(ctx, i === 0 ? '← 屏幕/App 的状态' : i === 1 ? '← 实时曲线' : i === 2 ? '← 断线不丢数据' : '← App 主动要', 1000, y + 20, { size: 9.5, color: '#4d6663' });
+  });
+  A.text(ctx, '手机不需要理解传感器，只要按这四个特征取数。', 600, y0 + 30, { size: 12.5, color: '#8fa5a2' });
+}
+function wavePackets(ctx, t, y0) {
+  // left: decimation
+  const bx = 70, by = y0 + 70, bw = 470, bh = 120;
+  A.grid(ctx, { x: bx, y: by, w: bw, h: bh }, { step: 26 });
+  A.text(ctx, '1 kHz 采样', bx, by - 12, { size: 10.5, mono: true, color: '#ffb454' });
+  for (let i = 0; i < 60; i++) {
+    const x = bx + i / 60 * bw;
+    A.line(ctx, x, by + 10, x, by + bh - 10, { color: i % 10 === 0 ? '#ffb454' : 'rgba(255,180,84,.18)', width: 1 });
+  }
+  A.text(ctx, '每 10 个抽 1 个', bx + bw + 12, by + 50, { size: 10, mono: true, color: '#8fa5a2' });
+  A.arrow(ctx, bx + bw + 4, by + 64, bx + bw + 54, by + 64, '#256', 1);
+  // right: 100Hz packet grid
+  const rx = 620, rw = 480, ry = y0 + 70, rh = 120;
+  A.grid(ctx, { x: rx, y: ry, w: rw, h: rh }, { step: 26 });
+  A.text(ctx, '100 Hz 波形流', rx, ry - 12, { size: 10.5, mono: true, color: '#57c8ff' });
+  const p = (t * .8) % 1;
+  for (let k = 0; k < 10; k++) {
+    for (let j = 0; j < 10; j++) {
+      const on = (k * 10 + j) / 100 < p;
+      A.dot(ctx, rx + 20 + j * 42, ry + 24 + k * 9, 1.6, on ? '#57c8ff' : '#20363c');
+    }
+  }
+  A.text(ctx, '10 个 int16 = 20 B / 包 · 每 100 ms', rx, ry + rh + 18, { size: 10, mono: true, color: '#637875' });
+  // packet detail
+  const dx = 70, dy = y0 + 280;
+  A.text(ctx, '一包 FFE2 长这样', dx, dy - 8, { size: 10.5, mono: true, color: '#637875' });
+  for (let j = 0; j < 10; j++) packet(ctx, dx + j * 62, dy, 56, 's' + (j + 1), '#57c8ff');
+  A.text(ctx, 'int16 little-endian ×10', dx, dy + 42, { size: 10.5, mono: true, color: '#8fa5a2' });
+  A.text(ctx, 'App 端 5 秒滚动窗口：500 个点，画一条平滑曲线', dx, dy + 72, { size: 11.5, color: '#b9cbc7' });
+  // right stats
+  const sx = 820;
+  A.text(ctx, '为什么是 100 Hz', sx, y0 + 300, { size: 11, mono: true, color: '#637875' });
+  A.text(ctx, '脉搏主要能量 < 10 Hz', sx, y0 + 328, { size: 13, color: '#e8f2ef' });
+  A.text(ctx, '100 Hz 足够画形态，', sx, y0 + 352, { size: 12, color: '#8fa5a2' });
+  A.text(ctx, '又比 1 kHz 省 10 倍带宽', sx, y0 + 374, { size: 12, color: '#8fa5a2' });
+}
+function replayScene(ctx, t, y0) {
+  const u = A.clamp(t / 7, 0, 1);
+  // event timeline 0..10 s
+  const ex = 70, ey = y0 + 62, ew = 1000;
+  A.line(ctx, ex, ey, ex + ew, ey, { color: '#2a4046' });
+  for (let s = 0; s <= 10; s += 2) {
+    const x = ex + s / 10 * ew;
+    A.line(ctx, x, ey - 4, x, ey + 4, { color: '#2a4046' });
+    A.text(ctx, s + 's', x, ey + 16, { size: 9, mono: true, color: '#637875', align: 'center' });
+  }
+  const tDisc = 2, tReco = 8;
+  const xd = ex + tDisc / 10 * ew, xr = ex + tReco / 10 * ew;
+  A.line(ctx, xd, ey - 30, xd, ey + 34, { color: '#ff6f6f', dash: [4, 4] });
+  A.text(ctx, 'BLE 断开', xd, ey - 38, { size: 10, mono: true, color: '#ff6f6f', align: 'center' });
+  A.line(ctx, xr, ey - 30, xr, ey + 34, { color: '#62f0b6', dash: [4, 4] });
+  A.text(ctx, '重连 + FFE4', xr, ey - 38, { size: 10, mono: true, color: '#62f0b6', align: 'center' });
+  if (u > tDisc / 10 && u < tReco / 10) {
+    A.line(ctx, ex + u * ew, ey - 18, ex + u * ew, ey - 6, { color: '#ffb454' });
+  }
+  // cache bar 60 s
+  const bx = 70, by = y0 + 140, bw = 1000, bh = 64, slots = 60;
+  A.text(ctx, '60 秒环形缓存（@100 Hz = 6000 个 int16 = 12 KB）', bx, by - 12, { size: 10.5, mono: true, color: '#8fa5a2' });
+  const offline = A.clamp((u - tDisc / 10) / (tReco / 10 - tDisc / 10), 0, 1);
+  const cachedSec = offline * 6;                 // 演示离线 6 s
+  const drained = u > tReco / 10 ? A.clamp((u - tReco / 10) / .25, 0, 1) : 0;
+  for (let i = 0; i < slots; i++) {
+    const x = bx + i / slots * bw, w = bw / slots - 3;
+    const isCached = i < Math.floor(cachedSec);
+    let fill = '#0e1619', stroke = '#1d2c31';
+    if (isCached) { fill = 'rgba(255,180,84,.22)'; stroke = '#ffb454'; }
+    if (isCached && drained > i / 6) { fill = 'rgba(87,200,255,.18)'; stroke = '#57c8ff'; }
+    A.rr(ctx, x, by, w, bh, 2); ctx.fillStyle = fill; ctx.fill();
+    ctx.strokeStyle = stroke; ctx.stroke();
+  }
+  A.text(ctx, '已缓存 ' + cachedSec.toFixed(0) + ' s（演示 6 s）', bx, by + bh + 24, { size: 11, mono: true, color: cachedSec >= 6 ? '#ffb454' : '#637875' });
+  A.text(ctx, '满 60 s 覆盖最旧', bx + bw, by + bh + 24, { size: 10.5, mono: true, color: '#637875', align: 'right' });
+  const phase = u < tDisc / 10 ? '在线：FFE1 / FFE2 正常推送' : u < tReco / 10 ? '离线：仍在采样，写入缓存' : '重连：FFE4 要起点，FFE3 回放';
+  A.text(ctx, phase, 70, y0 + 258, { size: 14, color: u > tDisc / 10 && u < tReco / 10 ? '#ffb454' : '#8ef0c8' });
+  // steps
+  const dy = y0 + 280;
+  const steps = [
+    ['① 断开', '板子检测到连接丢失', '继续采样，写入 60 s 环形缓存'],
+    ['② 缓存', '每秒 100 个 int16', '满 60 s 自动覆盖最旧'],
+    ['③ 重连', 'App 读缓存起点', '发 4 B：起始毫秒（0=全部）'],
+    ['④ 补发', 'FFE3 带时间戳', '按序回放，App 去重拼接']
+  ];
+  steps.forEach((s, i) => {
+    const x = 70 + i * 265;
+    const on = (u > [0, tDisc / 10, tReco / 10, tReco / 10 + .05][i]);
+    A.rr(ctx, x, dy, 245, 100, 3);
+    ctx.fillStyle = on ? 'rgba(255,255,255,.04)' : 'rgba(14,22,25,.55)'; ctx.fill();
+    ctx.strokeStyle = on ? '#62f0b6' : '#1d2c31'; ctx.stroke();
+    A.text(ctx, s[0], x + 14, dy + 24, { size: 11, mono: true, color: on ? '#62f0b6' : '#4d6663' });
+    A.text(ctx, s[1], x + 14, dy + 50, { size: 11.5, color: on ? '#e8f2ef' : '#637875' });
+    A.text(ctx, s[2], x + 14, dy + 74, { size: 10, color: on ? '#8fa5a2' : '#4d6663' });
+    if (i < 3) A.arrow(ctx, x + 249, dy + 50, x + 261, dy + 50, on ? '#62f0b6' : '#2a4046', 1.2);
+  });
+}
+function resultScene(ctx, t, y0) {
+  const stats = [
+    ['79', '条样本', '一次 36.9 s 按压'],
+    ['36.9', '秒', '平均 512 ms / 条'],
+    ['0', '断档', 'CSV + manifest 正常'],
+    ['512', 'MTU', '20 B 的 FFE2 也兼容 MTU 23']
+  ];
+  stats.forEach((s, i) => {
+    const x = 70 + i * 260;
+    A.rr(ctx, x, y0 + 60, 240, 150, 3); ctx.fillStyle = 'rgba(14,22,25,.8)'; ctx.fill();
+    ctx.strokeStyle = i === 2 ? 'rgba(98,240,182,.4)' : '#1d2c31'; ctx.stroke();
+    A.text(ctx, s[0], x + 18, y0 + 126, { size: 46, mono: true, color: i === 2 ? '#62f0b6' : '#e8f2ef' });
+    A.text(ctx, s[1], x + 18, y0 + 154, { size: 12, mono: true, color: '#8fa5a2' });
+    A.text(ctx, s[2], x + 18, y0 + 186, { size: 10.5, color: '#637875' });
+  });
+  // chain check
+  const chain = ['BLE 连接', '订阅 FFE1/FFE2', '建会话', '记录', '入库', 'CSV 导出'];
+  chain.forEach((c, i) => {
+    const x = 80 + i * 172;
+    A.rr(ctx, x, y0 + 230, 150, 44, 2); ctx.fillStyle = 'rgba(98,240,182,.05)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(98,240,182,.3)'; ctx.stroke();
+    A.text(ctx, c, x + 12, y0 + 256, { size: 11, mono: true, color: '#8ef0c8' });
+    if (i < 5) A.arrow(ctx, x + 154, y0 + 252, x + 168, y0 + 252, '#2a4046', 1);
+  });
+  A.text(ctx, '端到端验证：远程建会话 → 按压 → 入库 → 导出，全链路无人工干预。', 80, y0 + 360, { size: 13, color: '#b9cbc7' });
+  A.text(ctx, '数据链的价值不是“能连上”，而是断线、补发、导出都不丢。', 80, y0 + 388, { size: 13, color: '#62f0b6' });
+}
+const steps = [
+  {
+    tag: '四个窗口', dur: 8,
+    title: '手机只认四个“窗口”：状态、波形、补发、要数据',
+    body: '<b>FFE1</b> 每 500 ms 报一次状态（BPM、GOOD/WEAK、p95）；<b>FFE2</b> 每 100 ms 送一小段波形；<b>FFE3</b> 是断线后的补发；<b>FFE4</b> 是 App 发来的“请从某时刻补”的请求。分工清楚，App 不用懂算法。',
+    extra: '像快递四个窗口：查状态、取包裹、补发、申请重送。'
+  },
+  {
+    tag: '波形包', dur: 8,
+    title: '1 秒 1000 个点太肥，抽成 100 个',
+    body: '原始 1 kHz 太占带宽，按 <b>10:1</b> 抽成 <b>100 Hz</b>；每 100 ms 发一包，每包 <b>10 个整数</b>（int16，20 B）。App 端 5 秒滚动窗口 = <b>500 个点</b>，足够画出完整脉搏波形。',
+    extra: '像视频抽帧：每秒留 100 帧，动作照样看得清，文件小 10 倍。'
+  },
+  {
+    tag: '断线补发', dur: 9,
+    title: '断线 60 秒也不丢：像行车记录仪循环录像',
+    body: '连接断了，固件继续采样，把波形写进 <b>60 秒 / 6000 点 / 12 KB</b> 的环形缓存。重连后 App 发 <b>FFE4</b>（4 字节起始毫秒），板子用 <b>FFE3</b> 带时间戳回放，App 拼接去重。缓存满了就覆盖最旧 —— 明确告诉用户“最多补 60 秒”。',
+    extra: '行车记录仪也是循环覆盖，撞车前的片段还能调出来。'
+  },
+  {
+    tag: '验收', dur: 8,
+    title: '验收：79 条、36.9 秒、没有断档',
+    body: '远程建会话 → 按压 36.9 秒 → 入库 <b>79 条</b>，平均 <b>512 ms/条</b>，无断档；CSV + manifest 导出正常。MTU（一次能搬多少字节）协商到 <b>512</b>，但 20 B 的波形包在默认 MTU 23 下也能发。',
+    extra: '验的是整条流水线，不是某一个零件能转。'
+  }
+];
+const deck = new Deck({
+  steps,
+  draw(ctx, W, H) {
+    view(ctx, W, H);
+    const y0 = 78, s = deck.step, t = deck.t;
+    if (s === 0) { header(ctx, '从膜片到手机：四个特征各管一件事', 'BLE GATT 服务 FFE0'); flowScene(ctx, t, y0); }
+    else if (s === 1) { header(ctx, '波形怎么打包：10 个点一包', 'FFE2 · 100 Hz · int16 LE'); wavePackets(ctx, t, y0); }
+    else if (s === 2) { header(ctx, '断线不丢：60 秒环形缓存', 'FFE3 补发 / FFE4 请求'); replayScene(ctx, t, y0); }
+    else { header(ctx, '端到端验收：不是“能连上”就算完', '79 条 / 36.9 s / 无断档'); resultScene(ctx, t, y0); }
+    footer(ctx, s < 3 ? '下一页：机构 →' : '下一页：机构 →');
+    ctx.restore();
+  }
+});
+</script>
+</body>
+</html>

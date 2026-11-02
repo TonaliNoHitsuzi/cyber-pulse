@@ -1,0 +1,33 @@
+# ==== 构建产物 / 本地环境 ====
+build/
+.gradle/
+.idea/
+local.properties
+*.iml
+__pycache__/
+*.pyc
+.cache/
+
+# ==== GitHub 大文件过滤（单文件 >100MB 直接拒绝，>50MB 警告）====
+# 演示文稿、视频、设计源文件、压缩包一律不入库，放网盘或 Release 附件
+*.ppt
+*.pptx
+*.key
+*.doc
+*.docx
+*.pdf
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.psd
+*.ai
+*.zip
+*.7z
+*.rar
+*.tar.gz
+
+# ==== 系统文件 ====
+Thumbs.db
+desktop.ini
+.DS_Store

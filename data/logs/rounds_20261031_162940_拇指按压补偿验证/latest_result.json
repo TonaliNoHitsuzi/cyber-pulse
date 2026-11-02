@@ -1,0 +1,19 @@
+{
+ "round": 1,
+ "ok": false,
+ "bpm": 72.1,
+ "beats": 10,
+ "median_iv_ms": 832,
+ "bpm_posthoc": 75.0,
+ "beats_posthoc": 20,
+ "fills": 10,
+ "reasons": [
+  "72BPM 10拍 中位832ms 桶[1, 7, 2]",
+  "检出不足(10/39)",
+  "桶不均衡[1, 7, 2]",
+  "补偿后75.0BPM(20拍,补10剔0)"
+ ],
+ "note": "拇指按压补偿验证",
+ "outdir": "D:\\Espressif\\workspace\\pulse_meter\\logs\\rounds_20261031_162940_拇指按压补偿验证\\round_01_20261031_162940",
+ "stamp": "16:30:20"
+}

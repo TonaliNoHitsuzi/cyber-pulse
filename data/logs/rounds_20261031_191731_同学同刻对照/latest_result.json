@@ -1,0 +1,20 @@
+{
+ "round": 1,
+ "ok": false,
+ "bpm": 83.9,
+ "beats": 1,
+ "median_iv_ms": 715,
+ "coupling_qc": "正确佩戴",
+ "bpm_posthoc": 0,
+ "beats_posthoc": 1,
+ "fills": 0,
+ "reasons": [
+  "贴膜质量:正确佩戴",
+  "84BPM 1拍 中位715ms 桶[1]",
+  "检出不足(1/39)",
+  "补偿后0.0BPM(1拍,补0剔0)"
+ ],
+ "note": "同学同刻对照",
+ "outdir": "D:\\Espressif\\workspace\\pulse_meter\\logs\\rounds_20261031_191731_同学同刻对照\\round_01_20261031_191731",
+ "stamp": "19:18:11"
+}

@@ -1,0 +1,21 @@
+{
+ "round": 3,
+ "ok": false,
+ "bpm": 68.6,
+ "beats": 13,
+ "median_iv_ms": 875,
+ "coupling_qc": "正确佩戴",
+ "bpm_posthoc": 66.7,
+ "beats_posthoc": 13,
+ "fills": 0,
+ "reasons": [
+  "贴膜质量:正确佩戴",
+  "69BPM 13拍 中位875ms 桶[7, 5, 1]",
+  "检出不足(13/39)",
+  "桶不均衡[7, 5, 1]",
+  "补偿后66.7BPM(13拍,补0剔0)"
+ ],
+ "note": "三分类混淆矩阵-错位组",
+ "outdir": "D:\\Espressif\\workspace\\pulse_meter\\logs\\rounds_20261031_171458_三分类混淆矩阵-错位组\\round_03_20261031_171639",
+ "stamp": "17:17:20"
+}

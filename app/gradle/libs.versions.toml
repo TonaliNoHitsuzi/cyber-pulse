@@ -1,0 +1,5 @@
+[versions]
+agconnect = "1.9.1.304"
+
+[libraries]
+agconnect-core = { group = "com.huawei.agconnect", name = "agconnect-core", version.ref = "agconnect" }
