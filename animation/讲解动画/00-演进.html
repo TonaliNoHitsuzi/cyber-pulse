@@ -68,13 +68,28 @@ body.evo .shell{grid-template-rows:auto;height:auto;padding-bottom:60px}
 .readmap p{margin:0;font-size:12.5px;line-height:1.65;color:var(--dim)}
 .readmap a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line2)}
 .readmap a:hover{color:var(--mint)}
+.d4{margin-top:38px;border-top:1px solid var(--line);padding-top:26px}
+.d4-head{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.d4-head span{font:10px/1 var(--mono);letter-spacing:.16em;color:var(--amber)}
+.d4-head h2{font-family:var(--serif);font-size:26px;margin:0;font-weight:600}
+.d4-head p{margin:0;color:var(--dim);font-size:12.5px}
+.d4-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+.d4-grid a{display:block;text-decoration:none;color:inherit;border:1px solid var(--line);padding:13px 15px;background:rgba(14,22,25,.45)}
+.d4-grid a:hover{border-color:var(--mint);background:rgba(98,240,182,.05)}
+.d4-grid b{display:block;font:10px/1 var(--mono);letter-spacing:.1em;color:var(--mint);margin-bottom:7px}
+.d4-grid p{margin:0;font-size:12.5px;line-height:1.6;color:#c6d6c2}
+.d4-grid em{display:block;margin-top:5px;font-style:normal;font-size:10.5px;color:var(--dim2)}
+.d4-link{display:inline-block;margin-top:16px;font:10.5px/1 var(--mono);color:var(--cyan);text-decoration:none}
+.d4-link:hover{color:var(--mint)}
 @media(max-width:1100px){
   .ep{grid-template-columns:70px minmax(0,1fr);gap:18px}
   .ep-grid{grid-template-columns:1fr 1fr}
   .ep-next{grid-template-columns:1fr;gap:6px}
 }
+@media(max-width:1100px){.d4-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:900px){
   .evo .shell{padding:0 14px}
+  .d4-grid{grid-template-columns:1fr}
   .ep{grid-template-columns:1fr}
   .ep-rail{display:flex;gap:14px;align-items:baseline}
   .ep-rail::after{display:none}
@@ -306,6 +321,23 @@ body.evo .shell{grid-template-rows:auto;height:auto;padding-bottom:60px}
     </div>
   </article>
 
+  <section class="d4" id="d4">
+    <div class="d4-head">
+      <span>D4 · 边界线</span>
+      <h2>没有新方法，只有边界</h2>
+      <p>每一条都是“现象 → 识别原理 → 门控 → 结果”，目标是不伤真信号。</p>
+    </div>
+    <div class="d4-grid">
+      <a href="11-边界门控.html"><b>G1 时基</b><p>恒定 78：主循环滞后 217ms，窗口时间戳被压缩。</p><em>seq×5ms → 72–84，CV 0.17→0.09</em></a>
+      <a href="11-边界门控.html"><b>G2 CV 门</b><p>弱信号噪声卡 350ms 不应期，输出 78。</p><em>CV>0.12 不出数 → 1 BPM，46/49</em></a>
+      <a href="11-边界门控.html"><b>G3 冷启动</b><p>3 个间隔的 CV 不可靠，先空后跳 78。</p><em>≥5 间隔+2s → 首出 3.5s</em></a>
+      <a href="11-边界门控.html"><b>G4 补发 / 旧值</b><p>悬空 78：补发抬 p50，真因是 App 显示旧值。</p><em>p50 30 + 数据 1.5s → 57 帧零假阳</em></a>
+      <a href="11-边界门控.html"><b>G5 跑步边界</b><p>显示 78/82，不是伪迹；自相关真实 80–90。</p><em>i+2 仍偏 3–14，待自相关/模板</em></a>
+      <a href="11-边界门控.html"><b>G6 采集边界</b><p>DTR 复位、重复 GATT、扫描节流伪装成信号故障。</p><em>0 复位，49/49，105 帧零假阳</em></a>
+    </div>
+    <a class="d4-link" href="11-边界门控.html">进 11 看完整六条 →</a>
+  </section>
+
   <section class="summary">
     <h2>主线：每一层只解决上一层的失败</h2>
     <ol>
@@ -314,11 +346,12 @@ body.evo .shell{grid-template-rows:auto;height:auto;padding-bottom:60px}
       <li><b>然后让“时间”跟上变化</b>：卡尔曼加速度状态；动态配对按当前周期决定谁是第二路信号。</li>
       <li><b>最后让“形态”和“证据”进来</b>：模板 NCC 否决半段波形；贝叶斯把幅度与形态相乘，并自动给出 R。</li>
       <li><b>工程侧并行</b>：机构保证力传到膜；数据链保证断线不丢；同刻对照保证比的是同一件事。</li>
+      <li><b>最后守边界</b>：时基、CV、冷启动、数据新鲜度、采集链路；不加新方法，也能让结果更可信。</li>
     </ol>
     <div class="readmap">
       <div><b>想看“为什么能测”</b><p><a href="01-signal.html">01 信号</a> → <a href="02-隔峰.html">02 隔峰</a> → <a href="03-假阳性.html">03 假阳性</a></p></div>
       <div><b>想看“算法怎么升级”</b><p><a href="05-卡尔曼.html">05 卡尔曼</a> → <a href="06-模板匹配.html">06 模板 NCC</a> → <a href="07-贝叶斯.html">07 贝叶斯</a></p></div>
-      <div><b>想看“工程怎么落地”</b><p><a href="08-数据链.html">08 数据链</a> → <a href="09-机构.html">09 机构</a> → <a href="10-精度验证.html">10 验证</a></p></div>
+      <div><b>想看“工程怎么落地”</b><p><a href="08-数据链.html">08 数据链</a> → <a href="09-机构.html">09 机构</a> → <a href="10-精度验证.html">10 验证</a> → <a href="11-边界门控.html">11 边界</a></p></div>
     </div>
   </section>
 </div>

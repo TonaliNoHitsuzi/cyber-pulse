@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>11 · 边界门控（D4） | 赛博把脉</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><b>赛博把脉</b><span>CYBER-PULSE</span></div>
+    <div class="crumb"><span>讲解动画</span><i>/</i><span>11</span></div>
+    <div class="spacer"></div>
+    <div class="topic-tag">11 · 边界门控</div>
+    <a class="home" href="index.html">目录</a>
+  </header>
+  <main class="stage">
+    <div class="source" id="source">D4 实测记录 · 时间戳压缩 / CV 门 / 冷启动 / 补发期 / 跑步边界</div>
+    <canvas id="cv"></canvas>
+    <div class="hint">空格 播放/暂停 · ← → 单步 · R 重置</div>
+  </main>
+  <section class="narr">
+    <div class="narr-main">
+      <div class="step-head"><span id="step-count"></span><span id="step-tag"></span></div>
+      <h2 id="step-title"></h2>
+      <div id="step-body"></div>
+      <div class="human" id="step-human"></div>
+    </div>
+    <aside class="side">
+      <div>
+        <div class="meter"><span>TIMELINE</span><span>自动播放，末帧停住</span></div>
+        <div class="bar" id="timebar"><i></i></div>
+        <div class="dots" id="dots" style="margin-top:10px"></div>
+      </div>
+      <div id="extra"><div class="iter-card">
+        <div class="ic-head"><span>本页在迭代中的位置</span><a href="00-演进.html">全程 →</a></div>
+        <div class="ic-row"><b>问题</b><span>边界失守，算法会“编造”一个数</span></div>
+        <div class="ic-row"><b>线索</b><span>78 恒定 / 悬空 78 / 跑步 78</span></div>
+        <div class="ic-row"><b>改动</b><span>时基、CV、冷启动、数据新鲜度</span></div>
+        <div class="ic-row"><b>结果</b><span>0–1 BPM；0 假阳；46/49 出数</span></div>
+        <div class="ic-row bad"><b>遗留</b><span>跑步 i+2 仍偏 3–14 BPM</span></div>
+      </div></div>
+      <div class="controls">
+        <button id="btn-prev">上一步</button>
+        <button id="btn-play" class="primary">播放</button>
+        <button id="btn-next">下一步</button>
+        <button id="btn-reset">重置</button>
+        <button id="btn-speed">1×</button>
+      </div>
+    </aside>
+  </section>
+</div>
+<script src="assets/engine.js"></script>
+<script>
+const VW = 1180, VH = 520;
+function view(ctx, W, H) {
+  const s = Math.min(W / VW, H / VH);
+  ctx.save(); ctx.translate((W - VW * s) / 2, (H - VH * s) / 2); ctx.scale(s, s);
+}
+function header(ctx, title, sub) {
+  A.text(ctx, title, 60, 34, { size: 20, serif: true, weight: 600 });
+  A.text(ctx, sub, 60, 56, { size: 11.5, mono: true, color: '#637875' });
+}
+function footer(ctx, right) {
+  A.line(ctx, 40, 480, 1140, 480, { color: '#1d2c31' });
+  A.text(ctx, '今天的原则', 40, 502, { size: 10, mono: true, color: '#637875' });
+  const items = [['不是', '加新算法'], ['而是', '守住边界'], ['顺序', '现象→原理→门控→结果'], ['底线', '不伤真信号']];
+  let x = 140;
+  items.forEach(([k, v]) => {
+    A.text(ctx, k, x, 502, { size: 10, mono: true, color: '#637875' });
+    A.text(ctx, v, x + 34, 502, { size: 11, mono: true, color: '#c6d6d2' });
+    x += 220;
+  });
+  A.text(ctx, right, 1140, 502, { size: 10.5, mono: true, color: '#637875', align: 'right' });
+}
+function gateRow(ctx, cards, phase) {
+  const x0 = 40, y = 6, w = 262, h = 88, gap = 20;
+  cards.forEach((c, i) => {
+    const x = x0 + i * (w + gap), on = i === phase;
+    A.rr(ctx, x, y, w, h, 3);
+    ctx.fillStyle = on ? 'rgba(98,240,182,.07)' : 'rgba(14,22,25,.7)'; ctx.fill();
+    ctx.strokeStyle = on ? c.c : '#1d2c31'; ctx.lineWidth = on ? 1.4 : 1;
+    if (on) { ctx.shadowColor = c.c; ctx.shadowBlur = 14; }
+    ctx.stroke(); ctx.shadowBlur = 0;
+    A.text(ctx, ['现象', '识别原理', '门控 / 修复', '结果'][i], x + 14, y + 22, { size: 9.5, mono: true, color: on ? c.c : '#4d6663' });
+    A.text(ctx, c.v, x + 14, y + 56, { size: 13, weight: 600, color: on ? '#e8f2ef' : '#8fa5a2' });
+    A.text(ctx, c.s, x + 14, y + 76, { size: 9.5, mono: true, color: on ? c.c : '#637875' });
+    if (i < 3) A.arrow(ctx, x + w + 3, y + h / 2, x + w + gap - 3, y + h / 2, '#2a4046', 1.1);
+  });
+}
+function phaseOf(t) { return Math.min(3, Math.floor(t / 1.9)); }
+function overviewScene(ctx, y0) {
+  const items = [
+    ['时基', '恒定 78', 'seq×5ms', '72–84'],
+    ['CV 门', '弱信号 78', 'CV>0.12', '1 BPM'],
+    ['冷启动', '先空后 78', '≥5 间隔+2s', '3.5s'],
+    ['补发 / 旧值', '悬空 78', 'p50 30 + 1.5s', '零假阳'],
+    ['跑步', '显示 78/82', '暂无门控', '真值 80–92'],
+    ['采集', '莫名断连', 'DTR/互斥/停扫', '49/49']
+  ];
+  A.text(ctx, '六个边界案例：都按同一套模板讲', 60, y0 + 26, { size: 13, color: '#e8f2ef' });
+  items.forEach((it, i) => {
+    const x = 60 + (i % 3) * 350, y = y0 + 48 + Math.floor(i / 3) * 138;
+    A.rr(ctx, x, y, 330, 120, 3); ctx.fillStyle = 'rgba(14,22,25,.7)'; ctx.fill();
+    ctx.strokeStyle = '#1d2c31'; ctx.stroke();
+    A.text(ctx, it[0], x + 16, y + 26, { size: 12, mono: true, color: '#62f0b6' });
+    A.text(ctx, '现象', x + 16, y + 52, { size: 9, mono: true, color: '#637875' });
+    A.text(ctx, it[1], x + 54, y + 52, { size: 10.5, color: '#ff9a9a' });
+    A.text(ctx, '门控', x + 16, y + 76, { size: 9, mono: true, color: '#637875' });
+    A.text(ctx, it[2], x + 54, y + 76, { size: 10.5, color: '#8ef0c8' });
+    A.text(ctx, '结果', x + 16, y + 100, { size: 9, mono: true, color: '#637875' });
+    A.text(ctx, it[3], x + 54, y + 100, { size: 10.5, color: '#ffd08a' });
+  });
+}
+function timeScene(ctx, t, y0) {
+  const bx = 60, by = y0 + 70, bw = 640;
+  // ADC uniform ticks
+  A.text(ctx, 'ADC 采样：每 5ms 一个，真实时间均匀', bx, by, { size: 11, mono: true, color: '#57c8ff' });
+  A.line(ctx, bx, by + 22, bx + bw, by + 22, { color: '#2a4046' });
+  for (let i = 0; i <= 80; i++) {
+    const x = bx + i / 80 * bw;
+    A.line(ctx, x, by + 14, x, by + 30, { color: i % 10 === 0 ? '#57c8ff' : 'rgba(87,200,255,.25)' });
+  }
+  // loop blocks
+  A.text(ctx, '主循环：每 500ms 一次 + 15ms 模板 + 5s 调试打印', bx, by + 70, { size: 11, mono: true, color: '#ffb454' });
+  const pos = [.06, .3, .56, .8];
+  pos.forEach((p, i) => {
+    const x = bx + p * bw;
+    A.rr(ctx, x, by + 84, 64, 34, 2); ctx.fillStyle = 'rgba(255,180,84,.16)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,180,84,.6)'; ctx.stroke();
+    A.text(ctx, '处理', x + 14, by + 106, { size: 10, mono: true, color: '#ffb454' });
+    if (i < 3) A.arrow(ctx, x + 64, by + 100, x + 150, by + 100, '#2a4046', 1);
+  });
+  A.text(ctx, '滞后 217ms（实测）', bx + bw, by + 76, { size: 10.5, mono: true, color: '#ff6f6f', align: 'right' });
+  // compressed interval
+  const y = by + 176;
+  A.line(ctx, bx, y, bx + bw, y, { color: '#2a4046' });
+  const x1 = bx + .38 * bw, x2 = bx + .47 * bw;
+  A.line(ctx, x1, y - 8, x1, y + 8, { color: '#62f0b6' }); A.line(ctx, x2, y - 8, x2, y + 8, { color: '#62f0b6' });
+  A.text(ctx, 'Δt 被压缩', (x1 + x2) / 2, y - 12, { size: 10, mono: true, color: '#ff6f6f', align: 'center' });
+  A.text(ctx, '恢复处理时，多个窗口的时间戳几乎相同 → 间隔变短 → BPM 失真', bx, by + 220, { size: 11.5, color: '#8fa5a2' });
+  // right
+  const rx = 760;
+  A.text(ctx, '同一段按压，修复前后', rx, y0 + 92, { size: 11, mono: true, color: '#637875' });
+  A.text(ctx, '修复前', rx, y0 + 132, { size: 10.5, mono: true, color: '#ff6f6f' });
+  A.text(ctx, '78 恒定', rx, y0 + 166, { size: 28, mono: true, color: '#ff6f6f' });
+  A.text(ctx, 'CV 0.17 · σ 0.6', rx, y0 + 188, { size: 10.5, mono: true, color: '#ff9a9a' });
+  A.text(ctx, '修复后', rx, y0 + 230, { size: 10.5, mono: true, color: '#62f0b6' });
+  A.text(ctx, '72–84 自然波动', rx, y0 + 264, { size: 22, mono: true, color: '#62f0b6' });
+  A.text(ctx, 'CV 0.09', rx, y0 + 286, { size: 10.5, mono: true, color: '#8ef0c8' });
+  A.chip(ctx, rx, y0 + 316, '门控：seq × 5ms 时基', '#57c8ff');
+}
+function cvScene(ctx, t, y0) {
+  const bx = 60, by = y0 + 92, bw = 660;
+  A.line(ctx, bx, by + 70, bx + bw, by + 70, { color: '#2a4046' });
+  [300, 450, 600, 750, 900].forEach(v => {
+    const x = bx + (v - 300) / 600 * bw;
+    A.line(ctx, x, by + 62, x, by + 78, { color: '#2a4046' });
+    A.text(ctx, v + ' ms', x, by + 92, { size: 9, mono: true, color: '#637875', align: 'center' });
+  });
+  // true intervals
+  A.text(ctx, '真脉搏：间隔 750–780ms，CV = 0.020', bx, by + 24, { size: 10.5, mono: true, color: '#62f0b6' });
+  for (let i = 0; i < 12; i++) {
+    const v = 752 + (i % 5) * 5 + (i % 3) * 2;
+    A.dot(ctx, bx + (v - 300) / 600 * bw, by + 44, 3, '#62f0b6');
+  }
+  // artifact intervals
+  A.text(ctx, '弱信号：噪声卡 350ms 不应期，CV = 0.17', bx, by + 134, { size: 10.5, mono: true, color: '#ff6f6f' });
+  for (let i = 0; i < 12; i++) {
+    const v = 350 + (i * 37) % 90;
+    A.dot(ctx, bx + (v - 300) / 600 * bw, by + 154, 3, '#ff6f6f');
+  }
+  A.text(ctx, '输出 = 60000/(2×365) ≈ 82 → 稳定在 78', bx, by + 200, { size: 11, mono: true, color: '#ff9a9a' });
+  // gauge
+  const rx = 770, gy = y0 + 120, gw = 300;
+  A.text(ctx, '判据：间隔变异系数 CV = σ / μ', rx, gy - 18, { size: 11, mono: true, color: '#8fa5a2' });
+  A.rr(ctx, rx, gy, gw, 12, 3); ctx.fillStyle = '#1d2c31'; ctx.fill();
+  A.line(ctx, rx + .6 * gw, gy - 6, rx + .6 * gw, gy + 18, { color: '#ffb454', width: 1.5 });
+  A.text(ctx, '0.12', rx + .6 * gw, gy + 34, { size: 10, mono: true, color: '#ffb454', align: 'center' });
+  A.dot(ctx, rx + .1 * gw, gy + 6, 4, '#62f0b6', true);
+  A.text(ctx, '真 0.02', rx + .1 * gw, gy - 8, { size: 9.5, mono: true, color: '#62f0b6', align: 'center' });
+  A.dot(ctx, rx + .85 * gw, gy + 6, 4, '#ff6f6f', true);
+  A.text(ctx, '噪声 0.17', rx + .85 * gw, gy - 8, { size: 9.5, mono: true, color: '#ff6f6f', align: 'center' });
+  A.text(ctx, 'CV > 0.12 → 不出数', rx, gy + 78, { size: 15, color: '#e8f2ef' });
+  A.text(ctx, '同刻误差 1 BPM', rx, gy + 112, { size: 12, mono: true, color: '#62f0b6' });
+  A.text(ctx, '出数率 46 / 49', rx, gy + 136, { size: 12, mono: true, color: '#62f0b6' });
+  A.text(ctx, '真信号没被误杀', rx, gy + 160, { size: 11, color: '#8fa5a2' });
+}
+function coldScene(ctx, t, y0) {
+  const bx = 80, by = y0 + 110, bw = 620, bh = 170;
+  const X = s => bx + s / 5 * bw;
+  A.line(ctx, bx, by + bh, bx + bw, by + bh, { color: '#2a4046' });
+  for (let s = 0; s <= 5; s++) {
+    A.line(ctx, X(s), by + bh - 4, X(s), by + bh + 4, { color: '#2a4046' });
+    A.text(ctx, s + 's', X(s), by + bh + 20, { size: 9, mono: true, color: '#637875', align: 'center' });
+  }
+  // output step
+  const pts = [];
+  for (let s = 0; s <= 5; s += .02) {
+    const v = s >= 3.5 ? 78 : 0;
+    pts.push([X(s), by + bh - 10 - v / 90 * (bh - 30)]);
+  }
+  A.path(ctx, pts, { color: '#62f0b6', width: 2.2, glow: '#62f0b6' });
+  A.line(ctx, X(3.5), by + 10, X(3.5), by + bh, { color: '#ffb454', dash: [4, 4] });
+  A.text(ctx, '门开：3.5s', X(3.5), by + 6, { size: 10.5, mono: true, color: '#ffb454', align: 'center' });
+  A.text(ctx, '输出/---', bx, by + 10, { size: 10, mono: true, color: '#637875' });
+  // interval markers
+  for (let i = 0; i < 3; i++) A.dot(ctx, X(.6 + i * .5), by + bh + 40, 2.5, '#ff6f6f');
+  A.text(ctx, '3 个间隔：CV 不可靠', X(1.0), by + bh + 62, { size: 10, mono: true, color: '#ff9a9a', align: 'center' });
+  for (let i = 0; i < 5; i++) A.dot(ctx, X(.6 + i * .55), by + bh + 84, 2.5, '#62f0b6');
+  A.text(ctx, '≥5 个间隔 + 连续 2s 通过', X(1.6), by + bh + 106, { size: 10, mono: true, color: '#62f0b6', align: 'center' });
+  // right
+  const rx = 780;
+  A.text(ctx, '冷启动保护', rx, y0 + 78, { size: 11, mono: true, color: '#637875' });
+  A.text(ctx, '首出 3.5s', rx, y0 + 120, { size: 28, mono: true, color: '#ffb454' });
+  A.text(ctx, '复位后不再出现瞬态 78', rx, y0 + 150, { size: 11.5, color: '#8fa5a2' });
+  A.text(ctx, '0,0,0,0,0,0,0,[3.5s]78,78,...', rx, y0 + 186, { size: 10.5, mono: true, color: '#62f0b6' });
+  A.text(ctx, '宁可晚 3.5 秒，也不先给一个假数', rx, y0 + 232, { size: 12, color: '#e8f2ef' });
+}
+function replayScene(ctx, t, y0) {
+  // p50 timeline
+  const bx = 60, by = y0 + 100, bw = 560, bh = 180;
+  A.line(ctx, bx, by + bh, bx + bw, by + bh, { color: '#2a4046' });
+  A.text(ctx, 'p50（底噪）', bx, by - 10, { size: 10.5, mono: true, color: '#8fa5a2' });
+  const vals = [[0, 8], [1, 9], [2, 18], [3, 20], [4, 19], [5, 44], [6, 42], [7, 18], [8, 12], [9, 10]];
+  const X = s => bx + s / 9 * bw, Y = v => by + bh - Math.min(v, 55) / 55 * bh;
+  A.path(ctx, vals.map(v => [X(v[0]), Y(v[1])]), { color: '#57c8ff', width: 2, glow: '#57c8ff' });
+  A.line(ctx, bx, Y(18), bx + bw, Y(18), { color: '#ff6f6f', dash: [4, 4] });
+  A.text(ctx, '旧门 18', bx + bw, Y(18) - 5, { size: 9.5, mono: true, color: '#ff6f6f', align: 'right' });
+  A.line(ctx, bx, Y(30), bx + bw, Y(30), { color: '#62f0b6', dash: [4, 4] });
+  A.text(ctx, '补发期门 30', bx + bw, Y(30) - 5, { size: 9.5, mono: true, color: '#62f0b6', align: 'right' });
+  A.text(ctx, '补发 2–4s 把底噪抬到 18–20', bx + 40, by + 24, { size: 10, mono: true, color: '#ffb454' });
+  A.text(ctx, '按压时 p50=44，远高于 30', bx + 40, by + 64, { size: 10, mono: true, color: '#8ef0c8' });
+  // right: App stale
+  const rx = 700;
+  A.text(ctx, '同一次“悬空 78”，两次误判', rx, y0 + 78, { size: 11, mono: true, color: '#637875' });
+  A.text(ctx, '① 怪补发射频', rx, y0 + 112, { size: 12, color: '#ff9a9a' });
+  A.text(ctx, '② 验证时其实没连上', rx, y0 + 136, { size: 12, color: '#ff9a9a' });
+  A.text(ctx, '真因：App 显示了断线前的旧值', rx, y0 + 176, { size: 13, color: '#e8f2ef' });
+  A.text(ctx, '数据 1.5s 不新鲜 → 判未连接', rx, y0 + 204, { size: 10.5, color: '#8fa5a2' });
+  A.text(ctx, '4s 看门狗 + fail 清理僵尸', rx, y0 + 226, { size: 10.5, color: '#8fa5a2' });
+  A.text(ctx, '57 帧零假阳 · 12/12 双端一致', rx, y0 + 266, { size: 11, mono: true, color: '#62f0b6' });
+  A.text(ctx, '断线后 6s 自动恢复', rx, y0 + 288, { size: 10.5, color: '#8ef0c8' });
+}
+function runScene(ctx, t, y0) {
+  const bx = 70, by = y0 + 90, bw = 600, bh = 220;
+  A.line(ctx, bx, by + bh, bx + bw, by + bh, { color: '#2a4046' });
+  const data = [
+    { name: '赵', true: 80, dev: 78, step: 174 },
+    { name: '张', true: 90, dev: 82, step: 192 }
+  ];
+  const X = i => bx + 120 + i * 240;
+  data.forEach((d, i) => {
+    const x = X(i);
+    A.text(ctx, d.name, x, by + bh + 22, { size: 12, color: '#c6d6c2', align: 'center' });
+    // true bar
+    const h1 = d.true / 210 * bh, h2 = d.dev / 210 * bh;
+    A.rr(ctx, x - 55, by + bh - h1, 34, h1, 2); ctx.fillStyle = 'rgba(98,240,182,.35)'; ctx.fill();
+    A.rr(ctx, x + 4, by + bh - h2, 34, h2, 2); ctx.fillStyle = 'rgba(255,180,84,.45)'; ctx.fill();
+    A.text(ctx, d.true + '', x - 38, by + bh - h1 - 8, { size: 11, mono: true, color: '#62f0b6', align: 'center' });
+    A.text(ctx, d.dev + '', x + 21, by + bh - h2 - 8, { size: 11, mono: true, color: '#ffb454', align: 'center' });
+    A.text(ctx, '步频 ' + d.step, x - 38, by + bh + 44, { size: 9.5, mono: true, color: '#8fa5a2', align: 'center' });
+  });
+  A.text(ctx, '自相关真实心率', bx, by - 10, { size: 10.5, mono: true, color: '#62f0b6' });
+  A.text(ctx, '设备 i+2 输出', bx + 160, by - 10, { size: 10.5, mono: true, color: '#ffb454' });
+  // right
+  const rx = 760;
+  A.text(ctx, '跑步不是伪迹', rx, y0 + 84, { size: 20, serif: true, weight: 600, color: '#e8f2ef' });
+  A.text(ctx, '自相关：赵 80、张 90 BPM', rx, y0 + 120, { size: 12, color: '#62f0b6' });
+  A.text(ctx, '步频 174/192 ≠ 心率，r≈0.2', rx, y0 + 146, { size: 11.5, color: '#8fa5b2' });
+  A.text(ctx, '设备偏 3–14 BPM 来自 i+2', rx, y0 + 186, { size: 12, color: '#ffb454' });
+  A.text(ctx, '下一步：自相关 / 模板独立校验', rx, y0 + 222, { size: 11, color: '#8fa5a2' });
+  A.text(ctx, '别急着把“78”当伪迹删掉', rx, y0 + 262, { size: 11.5, color: '#ff9a9a' });
+}
+function connScene(ctx, t, y0) {
+  const rows = [
+    ['串口一开就复位', 'pyserial 默认拉 DTR/RTS', 'open 前 dtr=False, rts=False', '0 次复位'],
+    ['重复连接抢位', '扫描泄漏 → 两个 GATT', '实例校验 + 互斥 + 15s 超时', '单条连接'],
+    ['扫描 code=100', '自动化扫描触发节流', '测试前重启手机；正常用 1–2 次', '仅自动化受限']
+  ];
+  rows.forEach((r, i) => {
+    const y = y0 + 60 + i * 92;
+    A.rr(ctx, 70, y, 1000, 78, 3); ctx.fillStyle = 'rgba(14,22,25,.7)'; ctx.fill();
+    ctx.strokeStyle = '#1d2c31'; ctx.stroke();
+    A.text(ctx, r[0], 90, y + 30, { size: 12, weight: 600, color: i === 0 ? '#ffb454' : i === 1 ? '#57c8ff' : '#a78bfa' });
+    A.text(ctx, r[1], 330, y + 30, { size: 10.5, color: '#8fa5a2' });
+    A.text(ctx, r[2], 330, y + 54, { size: 10.5, mono: true, color: '#c6d6d2' });
+    A.text(ctx, r[3], 920, y + 34, { size: 11, mono: true, color: '#62f0b6' });
+  });
+  A.text(ctx, '结果：49/49 帧出数（78，76–78，σ=0.6）· 悬空 105 帧零假阳 · 0 次复位', 70, y0 + 352, { size: 12, color: '#e8f2ef' });
+}
+const steps = [
+  {
+    tag: '今天的原则', dur: 6,
+    title: '今天没有新方法，只有边界',
+    body: '今天没有引入新算法，做的都是边界：时间戳、CV、冷启动、补发期、连接状态。边界守不住，算法就会“编造”一个看起来稳定的数。下面的每一条都按同一套模板讲：<b>现象 → 识别原理 → 门控 → 结果（不伤真信号）</b>。',
+    extra: '边界工作不显眼，但它决定屏幕上的数是“测出来的”还是“猜出来的”。'
+  },
+  {
+    tag: '时基', dur: 8,
+    title: '恒定 78 的主因：时间戳被压缩',
+    body: '主循环每 500ms 有 15ms 模板匹配、每 5 秒还有调试打印，实测滞后 <b>217ms</b>。卡顿期间 ADC 一直在采样，恢复处理时多个窗口的时间戳几乎相同，间隔被压缩，BPM 就失真。修复不是加滤波，而是把时基换成<b>采样序号 seq×5ms</b>。',
+    extra: 'ADC 的序号是恒速时钟；不要用“程序什么时候处理”当时间。'
+  },
+  {
+    tag: '不应期锁定', dur: 8,
+    title: '弱信号恒 78：算法参数伪装成了测量结果',
+    body: '信号弱时，噪声峰在 350ms 不应期一到就被检出，间隔≈不应期，输出 60000/(2×365)≈82，稳定在 78。判别靠<b>间隔变异系数 CV</b>：真脉搏 0.020，噪声锁定 0.17；门限 <b>CV>0.12 不出数</b>。同刻误差 1 BPM，46/49 帧正常出数。',
+    extra: '真实生理量一定有波动；“太稳定”本身就是异常信号。'
+  },
+  {
+    tag: '冷启动', dur: 7,
+    title: '刚开机先别信：至少 5 个间隔 + 2 秒',
+    body: '冷启动只有 3 个间隔时，CV 统计不可靠，可能偶然放行一个伪值。固件改成<b>至少 5 个间隔、连续 4 帧（2 秒）通过 CV 校验</b>才输出。首次出数延迟到 <b>3.5 秒</b>，但复位后不再出现“先空一下再跳 78”。',
+    extra: '宁可晚 3.5 秒，也不先给一个假数。'
+  },
+  {
+    tag: '数据层', dur: 9,
+    title: '悬空 78：先怪射频，最后发现是 App 显示了旧值',
+    body: '补发突发确实把 p50 抬到 18–20，于是补发期把质量门从 18 收紧到 30。但“悬空 78”的真因是 App 被冻结后<b>显示了断线前的旧值</b>，连接状态是僵尸。<b>数据 1.5 秒不新鲜就判未连接</b>，配 4 秒看门狗；验证 57 帧零假阳，双端 12/12 一致。',
+    extra: '两次误判提醒：先确认“看到的数是不是新的”，再怀疑算法。'
+  },
+  {
+    tag: '跑步边界', dur: 8,
+    title: '跑步的 78 不是伪迹：真心率 80–92',
+    body: '两组慢跑用自相关算基频：赵 <b>80</b>、张 <b>90 BPM</b>；IMU 步频 <b>174/192</b>，与心率不同频、互相关 r≈0.2，步态耦合不成立。设备显示 78/82，偏差 <b>3–14 BPM</b> 来自 i+2 配对。这个边界暂时没有门控，下一步用自相关/模板独立校验。',
+    extra: '别把“设备显示 78”当成伪迹删掉；先问真值是多少。'
+  },
+  {
+    tag: '采集边界', dur: 8,
+    title: '连接层的三个“假故障”，也会伪装成信号问题',
+    body: '串口一开板子就复位（pyserial 默认拉 DTR/RTS）、重复 GATT 抢唯一连接位、Android 扫描节流 code=100。对应三个采集门控：<b>open 前关 DTR/RTS</b>、<b>连接互斥 + 15 秒超时</b>、<b>测试前重启手机</b>。结果：49/49 帧出数、悬空 105 帧零假阳、0 次复位。',
+    extra: '排查顺序：先确认链路和数据新鲜度，再怀疑算法。'
+  }
+];
+const C = {
+  mint: '#62f0b6', amber: '#ffb454', coral: '#ff6f6f', cyan: '#57c8ff', violet: '#a78bfa'
+};
+const deck = new Deck({
+  steps,
+  draw(ctx, W, H) {
+    view(ctx, W, H);
+    const y0 = 108, s = deck.step, t = deck.t;
+    const cards = [
+      [
+        { v: '屏幕上的数不对', s: '无检出 / 不稳 / 伪迹', c: C.coral },
+        { v: '先找数据里的证据', s: '时基、CV、p50、新鲜度', c: C.cyan },
+        { v: '用最窄的门挡住', s: '只挡异常，不动真信号', c: C.mint },
+        { v: '同刻对照验证', s: '0–1 BPM / 0 假阳', c: C.mint }
+      ],
+      [
+        { v: '恒定 78，σ=0.6', s: 'BPM 几乎不动', c: C.coral },
+        { v: '滞后 217ms', s: '窗口时间戳被压缩', c: C.cyan },
+        { v: '时基改用 seq×5ms', s: '采样序号就是时钟', c: C.mint },
+        { v: '72–84，CV 0.09', s: '自然波动', c: C.mint }
+      ],
+      [
+        { v: '弱信号恒 78', s: '同刻手表 76', c: C.coral },
+        { v: '噪声卡 350ms 不应期', s: '60000/(2×365)≈82', c: C.amber },
+        { v: 'CV > 0.12 不出数', s: '真 0.02 / 噪声 0.17', c: C.mint },
+        { v: '1 BPM，46/49 出数', s: '真信号没被误杀', c: C.mint }
+      ],
+      [
+        { v: '重启先空后跳 78', s: '瞬态假值', c: C.coral },
+        { v: '3 个间隔算 CV 不可靠', s: '冷启动保护', c: C.amber },
+        { v: '≥5 间隔 + 2s 连续', s: '首次出数 3.5s', c: C.mint },
+        { v: '复位无瞬态 78', s: '宁可晚一点', c: C.mint }
+      ],
+      [
+        { v: '悬空连蓝牙显示 78', s: '两次误判', c: C.coral },
+        { v: '补发抬 p50；真因是旧值', s: 'App 僵尸状态', c: C.amber },
+        { v: 'p50 30 + 数据 1.5s', s: '4s 看门狗', c: C.mint },
+        { v: '57 帧零假阳', s: '断线 6s 恢复', c: C.mint }
+      ],
+      [
+        { v: '跑步显示 78/82', s: '被当成伪迹', c: C.coral },
+        { v: '自相关 80/90', s: '步频 174/192 不同频', c: C.cyan },
+        { v: '暂无门控', s: 'i+2 仍偏 3–14', c: C.amber },
+        { v: '真实 80–92', s: '待自相关/模板', c: C.mint }
+      ],
+      [
+        { v: '莫名断连 / 复位', s: '像是传感器坏了', c: C.coral },
+        { v: 'DTR / GATT / 扫描节流', s: '三个采集层真凶', c: C.amber },
+        { v: '关 DTR / 互斥 / 停旧扫描', s: '采集门控', c: C.mint },
+        { v: '49/49，105 帧零假阳', s: '0 次复位', c: C.mint }
+      ],
+    ][s];
+    gateRow(ctx, cards, phaseOf(t));
+    if (s === 0) overviewScene(ctx, y0);
+    else if (s === 1) timeScene(ctx, t, y0);
+    else if (s === 2) cvScene(ctx, t, y0);
+    else if (s === 3) coldScene(ctx, t, y0);
+    else if (s === 4) replayScene(ctx, t, y0);
+    else if (s === 5) runScene(ctx, t, y0);
+    else if (s === 6) connScene(ctx, t, y0);
+    else { /* end */ }
+    footer(ctx, s < steps.length - 1 ? '下一页：' + steps[s + 1].tag + ' →' : '回到目录');
+    ctx.restore();
+  }
+});
+</script>
+</body>
+</html>
