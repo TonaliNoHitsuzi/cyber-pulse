@@ -20,7 +20,9 @@ data class PulseData(
     val beat: Boolean,
     val bpm2: Int = 0,
     val score: Float = 0f,
-    val boardMs: Long = 0L
+    val boardMs: Long = 0L,
+    val p50: Int = 0,
+    val q: Int = 0
 ) {
     val stateLabel: String get() = when(state) {
         "GOOD" -> "正常佩戴"
@@ -368,6 +370,8 @@ class PulseBleClient private constructor(private val context: Context) {
                 p95 = obj.optInt("p95", 0),
                 beat = obj.optInt("beat", 0) == 1,
                 boardMs = obj.optLong("t", 0L),
+                p50 = obj.optInt("p50", 0),
+                q = obj.optInt("q", 0),
                 bpm2 = obj.optInt("bpm2", 0),
                 score = obj.optDouble("sc", 0.0).toFloat()
             )

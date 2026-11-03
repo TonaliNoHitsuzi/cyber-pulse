@@ -73,6 +73,8 @@ static int   cfg_p_peak      = 1500;  /* x1000 */
 static int   cfg_b_gate      = 700;   /* x1000 */
 static int   cfg_decay       = 350;   /* x1000 秒 */
 static int   cfg_cons        = 40;    /* 0~100，越大越保守 */
+static int   cfg_mfilter     = 0;     /* 0=关闭运动门控（默认，利于静息） 1=启用 */
+static int   cfg_motiondet   = 0;     /* 运动判定（会误伤按压），默认关 */
 /* cons 派生门限 */
 static float g_cv_max   = 0.114f;
 static int   g_n_iv_min = 6;
@@ -85,6 +87,12 @@ static void apply_cons(void)
     g_cv_max   = 0.150f - 0.00090f * cfg_cons;   /* 0.150 -> 0.060 */
     g_n_iv_min = 5 + cfg_cons / 25;              /* 5 -> 9 */
     g_warm_min = 4 + cfg_cons / 30;              /* 4 -> 7 */
+    if (!cfg_mfilter) {
+        /* 关闭运动门控：静息采集不需要这些约束（CV 门会误杀 HRV，冷启动会拖慢出数） */
+        g_cv_max   = 9.9f;
+        g_n_iv_min = 3;
+        g_warm_min = 1;
+    }
 }   /* 灯效: 0关 1心跳 2彩虹旋转 3呼吸 4水位 5彩虹呼吸 */  /* 灯带亮度 %（AAA 电池，默认 20） */
 
 static nvs_handle_t cfg_nvs;
@@ -113,6 +121,8 @@ static void cfg_load(void)
     if (nvs_get_i32(cfg_nvs, "b_gate", &v) == ESP_OK) cfg_b_gate = v;
     if (nvs_get_i32(cfg_nvs, "decay", &v) == ESP_OK) cfg_decay = v;
     if (nvs_get_i32(cfg_nvs, "cons", &v) == ESP_OK) cfg_cons = v;
+    if (nvs_get_i32(cfg_nvs, "mfilter", &v) == ESP_OK) cfg_mfilter = v;
+    if (nvs_get_i32(cfg_nvs, "motiondet", &v) == ESP_OK) cfg_motiondet = v;
     ESP_LOGI(TAG, "配置加载: thr=%d gap=%d p50=%.0f p95=%.0f dbg=%d/%d/%d mode=%d",
              cfg_peak_thr, cfg_peak_gap_ms, cfg_p50_gate, cfg_p95_gate,
              cfg_dbg_ui, cfg_dbg_trk, cfg_dbg_dump, cfg_tracker_mode);
@@ -140,6 +150,8 @@ static void cfg_save(void)
     nvs_set_i32(cfg_nvs, "b_gate", cfg_b_gate);
     nvs_set_i32(cfg_nvs, "decay", cfg_decay);
     nvs_set_i32(cfg_nvs, "cons", cfg_cons);
+    nvs_set_i32(cfg_nvs, "mfilter", cfg_mfilter);
+    nvs_set_i32(cfg_nvs, "motiondet", cfg_motiondet);
     nvs_commit(cfg_nvs);
     ESP_LOGI(TAG, "配置已保存到 NVS");
 }
@@ -154,31 +166,10 @@ static void cfg_print(void)
              cfg_hue_idle / 1000.0f, cfg_hue_span / 1000.0f,
              cfg_p_base / 1000.0f, cfg_p_peak / 1000.0f, cfg_b_gate / 1000.0f,
              cfg_decay / 1000.0f);
-    ESP_LOGI(TAG, "CONS|%d cv_max=%.3f n_iv=%d warm=%d", cfg_cons, g_cv_max, g_n_iv_min, g_warm_min);
+    ESP_LOGI(TAG, "CONS|%d mfilter=%d cv_max=%.3f n_iv=%d warm=%d",
+             cfg_cons, cfg_mfilter, g_cv_max, g_n_iv_min, g_warm_min);
 }
 
-
-/* ---- 蜂鸣器标定：GPIO6 方波驱动，频率/时长可配 ---- */
-static void buzz_play(int hz, int secs)
-{
-    if (hz < 1) hz = 1;
-    if (hz > 200) hz = 200;
-    if (secs < 1) secs = 1;
-    if (secs > 30) secs = 30;
-    gpio_config_t io = {
-        .pin_bit_mask = 1ULL << 6,
-        .mode = GPIO_MODE_OUTPUT,
-    };
-    gpio_config(&io);
-    int half_us = 500000 / hz;
-    int64_t n = (int64_t)hz * secs * 2;   /* 半周期数 */
-    for (int64_t i = 0; i < n; i++) {
-        gpio_set_level(6, i & 1);
-        esp_rom_delay_us(half_us);
-    }
-    gpio_set_level(6, 0);
-    ESP_LOGI(TAG, "buzz 完成: %dHz %ds", hz, secs);
-}
 
 /* 命令解析：thr 40 / gap 350 / q 18 45 / dbg 0 / trk 0 / dump 0 / mode 2 / save / ? */
 static void cfg_cmd(const char *cmd)
@@ -213,12 +204,8 @@ static void cfg_cmd(const char *cmd)
     else if (!strcmp(tok, "gate")) { cfg_b_gate = (int)(atof(a1) * 1000); }
     else if (!strcmp(tok, "decay")) { cfg_decay = (int)(atof(a1) * 1000); }
     else if (!strcmp(tok, "cons")) { cfg_cons = atoi(a1); apply_cons(); }
-    else if (!strcmp(tok, "buzz")) {
-        char *a2 = strtok_r(NULL, " ", &save);
-        int secs = a2 ? atoi(a2) : 3;
-        buzz_play(atoi(a1), secs);
-        return;
-    }
+    else if (!strcmp(tok, "mfilter")) { cfg_mfilter = atoi(a1); apply_cons(); }
+    else if (!strcmp(tok, "motion")) { cfg_motiondet = atoi(a1); }
     else { ESP_LOGW(TAG, "未知命令: %s", tok); return; }
     led_fx_set_params(cfg_rot_idle / 1000.0f, cfg_rot_max / 1000.0f,
                       cfg_hue_idle / 1000.0f, cfg_hue_span / 1000.0f,
@@ -869,8 +856,36 @@ static void p95_smooth_update(float p95)
     p95_smooth = (p95_smooth <= 0.0f) ? p95 : p95_smooth + 0.25f * (p95 - p95_smooth);
 }
 
+/* ---- 运动判定：纯压电信号，2 秒滑动的"超阈占空比" ----
+   静息 7-11%，走路 34-67%，跑步 56-89%  → 阈值 22% */
+#define DUTY_WIN 400
+static uint16_t duty_buf[DUTY_WIN];
+static int duty_idx = 0;
+static int duty_cnt = 0;
+static int duty_filled = 0;
+static float motion_duty = 0.0f;
+static volatile int motion_state = 0;
+
+static void duty_feed(int above)
+{
+    if (duty_buf[duty_idx]) duty_cnt--;
+    duty_buf[duty_idx] = above ? 1 : 0;
+    if (above) duty_cnt++;
+    duty_idx = (duty_idx + 1) % DUTY_WIN;
+    if (duty_filled < DUTY_WIN) duty_filled++;
+    int n = duty_filled;
+    if (n > 100) {
+        motion_duty = (float)duty_cnt / n;
+        /* 滞回：>22% 判运动，<14% 判静息 */
+        if (!cfg_motiondet) { motion_state = 0; }
+        else if (motion_duty > 0.45f) motion_state = 1;
+        else if (motion_duty < 0.30f) motion_state = 0;
+    }
+}
+
 static const char* get_state(void)
 {
+    if (motion_state) return "MOTION";
     float p95 = (p95_smooth > 0.0f) ? p95_smooth : get_p95();
     float p50 = get_p50();
     /* 质量优先：q_ok 已经(带滞回)判定 p95>=45 且 p50>=18，
@@ -1071,6 +1086,13 @@ static void oled_task(void *arg)
         p95_smooth_update(p95);
         quality_update();
         int bpm = get_bpm();
+        int hold = 0;
+        /* 显示保持：短暂失锁时沿用上一次有效值（≤3s），避免画面跳空 */
+        static int last_bpm = 0;
+        static int64_t last_bpm_us = 0;
+        if (bpm > 0) { last_bpm = bpm; last_bpm_us = now_us; }
+        else if (last_bpm > 0 && now_us - last_bpm_us < 3000000LL) { bpm = last_bpm; hold = 1; }
+        if (motion_state) { bpm = 0; hold = 0; }
         if (bpm > 0) led_fx_set_bpm((float)bpm);
         const char *state = get_state();
         /* 闪烁衰减 */
@@ -1084,7 +1106,7 @@ static void oled_task(void *arg)
 
         /* Row1: 佩戴状态 */
         snprintf(line, sizeof(line), "%s", state);
-        ssd1306_text(&g_oled, line, 0, 1);
+        ssd1306_text(&g_oled, motion_state ? "MOTION" : line, 0, 1);
 
         /* Row2: p95 + BPM原始 */
         snprintf(line, sizeof(line), "p95=%.0f", p95);
@@ -1109,7 +1131,7 @@ static void oled_task(void *arg)
                 ssd1306_bignum_scaled(&g_oled, d1, 92, 0, 4);
                 ssd1306_bignum_scaled(&g_oled, d2, 105, 0, 4);
                 ssd1306_bignum_scaled(&g_oled, d3, 118, 0, 4);
-                ssd1306_text(&g_oled, "BPM", 98, 3);
+                ssd1306_text(&g_oled, hold ? "~" : "BPM", 98, 3);
         } else {
                 ssd1306_text(&g_oled, "---", 98, 1);
                 ssd1306_text(&g_oled, "BPM", 98, 2);
@@ -1127,8 +1149,9 @@ static void oled_task(void *arg)
         }
         #endif
 
-        if (cfg_dbg_ui) printf("UI|bpm=%d cv=%.3f conn=%d state=%s p95=%.0f p50=%.0f q=%d beat=%d flush=%d\n",
-                   bpm, get_iv_cv(), (int)conn_handle, state, p95, get_p50(), q_ok, beat_flash, flush_rc);
+        if (cfg_dbg_ui) printf("UI|bpm=%d cv=%.3f conn=%d state=%s p95=%.0f p50=%.0f q=%d beat=%d flush=%d duty=%.2f\n",
+                   bpm, get_iv_cv(), (int)conn_handle, state, p95, get_p50(), q_ok, beat_flash, flush_rc,
+                   motion_duty);
         if (cfg_dbg_dump && now_us - g_last_dump_us > 5000000) {
                 g_last_dump_us = now_us;
                 dump_fb(&g_oled);
@@ -1147,6 +1170,8 @@ static void oled_task(void *arg)
 
 void app_main(void)
 {
+    ESP_LOGW(TAG, "复位原因: %d (0未知 1上电 2外部 3软件 4异常 5看门狗 9欠压)", (int)esp_reset_reason());
+
     /* NVS：配置持久化 */
     esp_err_t nvs_rc = nvs_flash_init();
     if (nvs_rc == ESP_ERR_NVS_NO_FREE_PAGES || nvs_rc == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -1162,8 +1187,6 @@ void app_main(void)
     gpio_config(&io);
     gpio_config_t btn = { .pin_bit_mask = 1ULL << BTN_GPIO, .mode = GPIO_MODE_INPUT, .pull_up_en = GPIO_PULLUP_ENABLE };
     gpio_config(&btn);
-    ble_init();
-
     /* ---------- I2C + OLED ---------- */
     i2c_master_bus_config_t bus_cfg = {
         .i2c_port = 0, .sda_io_num = I2C_SDA, .scl_io_num = I2C_SCL,
@@ -1187,6 +1210,8 @@ void app_main(void)
                       cfg_hue_idle / 1000.0f, cfg_hue_span / 1000.0f,
                       cfg_p_base / 1000.0f, cfg_p_peak / 1000.0f,
                       cfg_b_gate / 1000.0f, cfg_decay / 1000.0f);
+
+    ble_init();
 
     /* ---------- ADC DMA ---------- */
     adc_continuous_handle_t adc = NULL;
@@ -1253,6 +1278,7 @@ void app_main(void)
                 } else snap_cnt = 0;
                 float dev = fmaxf(fabsf(win_max - baseline), fabsf(win_min - baseline));
                 census_feed(now_us, dev, win_slew, win_clip);
+                duty_feed(dev > cfg_peak_thr);
 #if USE_TRACKER == 2
                 trk_push(dev);
 #endif

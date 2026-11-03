@@ -80,7 +80,7 @@ object PulseSession {
                 synchronized(replayLock) {
                     uiBuf.add(UiFrameEntity(sessionId = sid, ts = System.currentTimeMillis(),
                         bpm = d.bpm, bpm2 = d.bpm2, sc = d.score, state = d.state,
-                        p95 = d.p95, p50 = 0, q = 0))
+                        p95 = d.p95, p50 = d.p50, q = d.q))
                 }
             }
             DevState.state = d.state
