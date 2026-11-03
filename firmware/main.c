@@ -15,6 +15,7 @@
 #include "driver/i2c_master.h"
 #include "esp_adc/adc_continuous.h"
 #include "ssd1306.h"
+#include "led_fx.h"
 #include "nimble/nimble_port.h"
 #include "nimble/nimble_port_freertos.h"
 #include "host/ble_hs.h"
@@ -60,7 +61,31 @@ static int   cfg_dbg_trk      = 1;
 static int   cfg_dbg_dump     = 1;
 static int   cfg_tracker_mode = 2;   /* 0=关 1=接管 2=影子 */
 static int   cfg_wave_tx      = 1;
-static int   cfg_raw_print   = 1;   /* R 行打印（200行/秒，最耗串口） */   /* 波形流开关（排查射频耦合用） */
+static int   cfg_raw_print   = 1;
+static int   cfg_led_level   = 12;
+static int   cfg_led_mode    = 1;
+static int   cfg_rot_idle    = 10;    /* x1000 */
+static int   cfg_rot_max     = 540;   /* x1000 */
+static int   cfg_hue_idle    = 580;   /* x1000 */
+static int   cfg_hue_span    = 580;   /* x1000 */
+static int   cfg_p_base      = 300;   /* x1000 */
+static int   cfg_p_peak      = 1500;  /* x1000 */
+static int   cfg_b_gate      = 700;   /* x1000 */
+static int   cfg_decay       = 350;   /* x1000 秒 */
+static int   cfg_cons        = 40;    /* 0~100，越大越保守 */
+/* cons 派生门限 */
+static float g_cv_max   = 0.114f;
+static int   g_n_iv_min = 6;
+static int   g_warm_min = 5;
+
+static void apply_cons(void)
+{
+    if (cfg_cons < 0) cfg_cons = 0;
+    if (cfg_cons > 100) cfg_cons = 100;
+    g_cv_max   = 0.150f - 0.00090f * cfg_cons;   /* 0.150 -> 0.060 */
+    g_n_iv_min = 5 + cfg_cons / 25;              /* 5 -> 9 */
+    g_warm_min = 4 + cfg_cons / 30;              /* 4 -> 7 */
+}   /* 灯效: 0关 1心跳 2彩虹旋转 3呼吸 4水位 5彩虹呼吸 */  /* 灯带亮度 %（AAA 电池，默认 20） */
 
 static nvs_handle_t cfg_nvs;
 static int cfg_nvs_ok = 0;
@@ -77,6 +102,17 @@ static void cfg_load(void)
     if (nvs_get_i32(cfg_nvs, "dbg_trk", &v) == ESP_OK) cfg_dbg_trk = v;
     if (nvs_get_i32(cfg_nvs, "dbg_dump", &v) == ESP_OK) cfg_dbg_dump = v;
     if (nvs_get_i32(cfg_nvs, "trk_mode", &v) == ESP_OK) cfg_tracker_mode = v;
+    if (nvs_get_i32(cfg_nvs, "led_lvl", &v) == ESP_OK) cfg_led_level = v;
+    if (nvs_get_i32(cfg_nvs, "led_mode", &v) == ESP_OK) cfg_led_mode = v;
+    if (nvs_get_i32(cfg_nvs, "rot_idle", &v) == ESP_OK) cfg_rot_idle = v;
+    if (nvs_get_i32(cfg_nvs, "rot_max", &v) == ESP_OK) cfg_rot_max = v;
+    if (nvs_get_i32(cfg_nvs, "hue_idle", &v) == ESP_OK) cfg_hue_idle = v;
+    if (nvs_get_i32(cfg_nvs, "hue_span", &v) == ESP_OK) cfg_hue_span = v;
+    if (nvs_get_i32(cfg_nvs, "p_base", &v) == ESP_OK) cfg_p_base = v;
+    if (nvs_get_i32(cfg_nvs, "p_peak", &v) == ESP_OK) cfg_p_peak = v;
+    if (nvs_get_i32(cfg_nvs, "b_gate", &v) == ESP_OK) cfg_b_gate = v;
+    if (nvs_get_i32(cfg_nvs, "decay", &v) == ESP_OK) cfg_decay = v;
+    if (nvs_get_i32(cfg_nvs, "cons", &v) == ESP_OK) cfg_cons = v;
     ESP_LOGI(TAG, "配置加载: thr=%d gap=%d p50=%.0f p95=%.0f dbg=%d/%d/%d mode=%d",
              cfg_peak_thr, cfg_peak_gap_ms, cfg_p50_gate, cfg_p95_gate,
              cfg_dbg_ui, cfg_dbg_trk, cfg_dbg_dump, cfg_tracker_mode);
@@ -93,6 +129,17 @@ static void cfg_save(void)
     nvs_set_i32(cfg_nvs, "dbg_trk", cfg_dbg_trk);
     nvs_set_i32(cfg_nvs, "dbg_dump", cfg_dbg_dump);
     nvs_set_i32(cfg_nvs, "trk_mode", cfg_tracker_mode);
+    nvs_set_i32(cfg_nvs, "led_lvl", cfg_led_level);
+    nvs_set_i32(cfg_nvs, "led_mode", cfg_led_mode);
+    nvs_set_i32(cfg_nvs, "rot_idle", cfg_rot_idle);
+    nvs_set_i32(cfg_nvs, "rot_max", cfg_rot_max);
+    nvs_set_i32(cfg_nvs, "hue_idle", cfg_hue_idle);
+    nvs_set_i32(cfg_nvs, "hue_span", cfg_hue_span);
+    nvs_set_i32(cfg_nvs, "p_base", cfg_p_base);
+    nvs_set_i32(cfg_nvs, "p_peak", cfg_p_peak);
+    nvs_set_i32(cfg_nvs, "b_gate", cfg_b_gate);
+    nvs_set_i32(cfg_nvs, "decay", cfg_decay);
+    nvs_set_i32(cfg_nvs, "cons", cfg_cons);
     nvs_commit(cfg_nvs);
     ESP_LOGI(TAG, "配置已保存到 NVS");
 }
@@ -102,6 +149,35 @@ static void cfg_print(void)
     ESP_LOGI(TAG, "CFG|thr=%d gap=%d p50=%.0f p95=%.0f|dbg_ui=%d dbg_trk=%d dbg_dump=%d|mode=%d wave=%d",
              cfg_peak_thr, cfg_peak_gap_ms, cfg_p50_gate, cfg_p95_gate,
              cfg_dbg_ui, cfg_dbg_trk, cfg_dbg_dump, cfg_tracker_mode, cfg_wave_tx);
+    ESP_LOGI(TAG, "FX|mode=%d led=%d%% rot=%.3f/%.3f hue=%.2f/%.2f pulse=%.2f/%.2f gate=%.2f decay=%.2f",
+             cfg_led_mode, cfg_led_level, cfg_rot_idle / 1000.0f, cfg_rot_max / 1000.0f,
+             cfg_hue_idle / 1000.0f, cfg_hue_span / 1000.0f,
+             cfg_p_base / 1000.0f, cfg_p_peak / 1000.0f, cfg_b_gate / 1000.0f,
+             cfg_decay / 1000.0f);
+    ESP_LOGI(TAG, "CONS|%d cv_max=%.3f n_iv=%d warm=%d", cfg_cons, g_cv_max, g_n_iv_min, g_warm_min);
+}
+
+
+/* ---- 蜂鸣器标定：GPIO6 方波驱动，频率/时长可配 ---- */
+static void buzz_play(int hz, int secs)
+{
+    if (hz < 1) hz = 1;
+    if (hz > 200) hz = 200;
+    if (secs < 1) secs = 1;
+    if (secs > 30) secs = 30;
+    gpio_config_t io = {
+        .pin_bit_mask = 1ULL << 6,
+        .mode = GPIO_MODE_OUTPUT,
+    };
+    gpio_config(&io);
+    int half_us = 500000 / hz;
+    int64_t n = (int64_t)hz * secs * 2;   /* 半周期数 */
+    for (int64_t i = 0; i < n; i++) {
+        gpio_set_level(6, i & 1);
+        esp_rom_delay_us(half_us);
+    }
+    gpio_set_level(6, 0);
+    ESP_LOGI(TAG, "buzz 完成: %dHz %ds", hz, secs);
 }
 
 /* 命令解析：thr 40 / gap 350 / q 18 45 / dbg 0 / trk 0 / dump 0 / mode 2 / save / ? */
@@ -129,7 +205,25 @@ static void cfg_cmd(const char *cmd)
     else if (!strcmp(tok, "mode")) { cfg_tracker_mode = atoi(a1); }
     else if (!strcmp(tok, "wave")) { cfg_wave_tx = atoi(a1); }
     else if (!strcmp(tok, "raw")) { cfg_raw_print = atoi(a1); }
+    else if (!strcmp(tok, "led")) { led_fx_set_level(atoi(a1)); cfg_led_level = led_fx_level(); }
+    else if (!strcmp(tok, "fx"))  { led_fx_set_mode(atoi(a1)); cfg_led_mode = led_fx_mode(); }
+    else if (!strcmp(tok, "rot")) { cfg_rot_idle = (int)(atof(a1) * 1000); char *a2 = strtok_r(NULL, " ", &save); if (a2) cfg_rot_max = (int)(atof(a2) * 1000); }
+    else if (!strcmp(tok, "hue")) { cfg_hue_idle = (int)(atof(a1) * 1000); char *a2 = strtok_r(NULL, " ", &save); if (a2) cfg_hue_span = (int)(atof(a2) * 1000); }
+    else if (!strcmp(tok, "pulse")) { cfg_p_base = (int)(atof(a1) * 1000); char *a2 = strtok_r(NULL, " ", &save); if (a2) cfg_p_peak = (int)(atof(a2) * 1000); }
+    else if (!strcmp(tok, "gate")) { cfg_b_gate = (int)(atof(a1) * 1000); }
+    else if (!strcmp(tok, "decay")) { cfg_decay = (int)(atof(a1) * 1000); }
+    else if (!strcmp(tok, "cons")) { cfg_cons = atoi(a1); apply_cons(); }
+    else if (!strcmp(tok, "buzz")) {
+        char *a2 = strtok_r(NULL, " ", &save);
+        int secs = a2 ? atoi(a2) : 3;
+        buzz_play(atoi(a1), secs);
+        return;
+    }
     else { ESP_LOGW(TAG, "未知命令: %s", tok); return; }
+    led_fx_set_params(cfg_rot_idle / 1000.0f, cfg_rot_max / 1000.0f,
+                      cfg_hue_idle / 1000.0f, cfg_hue_span / 1000.0f,
+                      cfg_p_base / 1000.0f, cfg_p_peak / 1000.0f,
+                      cfg_b_gate / 1000.0f, cfg_decay / 1000.0f);
     ESP_LOGI(TAG, "命令生效: %s %s", tok, a1);
     cfg_print();
 }
@@ -332,7 +426,7 @@ static void ble_notify(const char *data)
 typedef struct {
     uint8_t type;      /* 0=JSON, 1=波形 */
     uint8_t len;
-    uint8_t data[80];
+    uint8_t data[160];
 } ble_msg_t;
 
 static QueueHandle_t ble_q = NULL;
@@ -395,7 +489,8 @@ static void ble_enqueue(int type, const void *data, int len)
     ble_msg_t m;
     m.type = (uint8_t)type;
     m.len = (uint8_t)len;
-    memcpy(m.data, data, len > 80 ? 80 : len);
+    if (len > 159) len = 159;
+    memcpy(m.data, data, (size_t)len);
     xQueueSend(ble_q, &m, 0);   /* 满了就丢，绝不阻塞主循环 */
 }
 
@@ -618,6 +713,7 @@ static void census_feed(int64_t t_us, float dev, int slew, int clip)
             /* ---- 老方法（已验证）：记录峰 → 隔峰 i+2 → 合理性过滤 ---- */
             beat_flash = 1;
             last_beat_flash_us = t_us;
+            if (q_ok) led_fx_beat();   /* 质量不合格的噪声峰不驱动灯带 */
             if (n_peaks < BPM_MED_N * 3) {
                 peak_times[n_peaks++] = t_prev_us;
             } else {
@@ -694,7 +790,7 @@ static int get_bpm(void)
     }
     if (get_p50() < 15 && now - last_peak_us > 1000000LL) n_iv = 0;
     if (!q_ok) { warm_cnt = 0; return 0; }
-    if (n_iv < 5) { warm_cnt = 0; return 0; }   /* 至少 5 个间隔才有统计意义 */
+    if (n_iv < g_n_iv_min) { warm_cnt = 0; return 0; }
     /* 间隔规律性校验（CV）：真实脉搏 CV<0.05，噪声触发 CV>0.15
        实测：★历史最佳=0.02，弱耦合噪声=0.17 */
     float sum = 0.0f;
@@ -707,9 +803,9 @@ static int get_bpm(void)
     }
     var /= n_iv;
     float cv = (mean > 1.0f) ? sqrtf(var) / mean : 99.0f;
-    if (cv > 0.12f) { warm_cnt = 0; return 0; }   /* 间隔不规律 → 噪声触发 */
+    if (cv > g_cv_max) { warm_cnt = 0; return 0; }   /* 间隔不规律 → 噪声触发 */
     /* 冷启动保护：连续 4 帧（2 秒）通过校验才出数，避免重启瞬态假值 */
-    if (warm_cnt < 4) { warm_cnt++; return 0; }
+    if (warm_cnt < g_warm_min) { warm_cnt++; return 0; }
 
     int tmp[BPM_MED_N];
     memcpy(tmp, intervals + (BPM_MED_N - n_iv), n_iv * sizeof(int));
@@ -788,6 +884,7 @@ static const char* get_state(void)
     if (p95 < 38) return "IDLE";
     return "WEAK";                              /* 有信号但质量不足 */
 }
+
 
 /* ---------- OLED 显存回读（调试）：每5秒打印 128x32 2x2降采样 + CRC ---------- */
 static void dump_fb(const ssd1306_t *s)
@@ -953,6 +1050,101 @@ static int trk_step(float center_hr)
     return trk_out;
 }
 
+
+/* ---- OLED 渲染任务（与采样主循环解耦） ---- */
+static ssd1306_t g_oled;
+static int       g_oled_ok = 0;
+static volatile int g_oled_fail = 0;
+static int64_t   g_t0_us = 0;
+static int64_t   g_last_ui_us = 0;
+static int64_t   g_last_dump_us = 0;
+
+static void oled_task(void *arg)
+{
+    while (1) {
+        vTaskDelay(pdMS_TO_TICKS(500));
+        if (!g_oled_ok) continue;
+        int64_t now_us = esp_timer_get_time();
+        char line[16];
+        g_last_ui_us = now_us;
+        float p95 = get_p95();
+        p95_smooth_update(p95);
+        quality_update();
+        int bpm = get_bpm();
+        if (bpm > 0) led_fx_set_bpm((float)bpm);
+        const char *state = get_state();
+        /* 闪烁衰减 */
+        if (beat_flash && now_us - last_beat_flash_us > 300000) beat_flash = 0;
+
+        ssd1306_clear(&g_oled);
+
+        /* --- 左侧 88px: 状态信息 --- */
+        /* Row0: 标题 + 心跳指示 */
+        ssd1306_text(&g_oled, beat_flash ? ">> PULSE <<" : "   PULSE  ", 0, 0);
+
+        /* Row1: 佩戴状态 */
+        snprintf(line, sizeof(line), "%s", state);
+        ssd1306_text(&g_oled, line, 0, 1);
+
+        /* Row2: p95 + BPM原始 */
+        snprintf(line, sizeof(line), "p95=%.0f", p95);
+        ssd1306_text(&g_oled, line, 0, 2);
+
+        /* BLE 状态灯 (cx=80,cy=11,r=4)：实心=已连接，闪=等待，空心=未就绪 */
+        int dot_fill;
+        if (!ble_ready) dot_fill = 0;
+        else if (conn_handle == BLE_HS_CONN_HANDLE_NONE) dot_fill = (int)((now_us / 500000) & 1);
+        else dot_fill = 1;
+        draw_status_dot(&g_oled, 80, 11, 4, dot_fill);
+
+        /* Row3: 信号条 (8px高度) */
+        float bar_ratio = p95 / 200.0f; if (bar_ratio > 1) bar_ratio = 1;
+        ssd1306_bar(&g_oled, 0, 24, 88, 8, bar_ratio);
+
+        /* --- 右侧 40px: 大号BPM --- */
+        if (bpm > 0) {
+                int d1 = bpm / 100;
+                int d2 = (bpm / 10) % 10;
+                int d3 = bpm % 10;
+                ssd1306_bignum_scaled(&g_oled, d1, 92, 0, 4);
+                ssd1306_bignum_scaled(&g_oled, d2, 105, 0, 4);
+                ssd1306_bignum_scaled(&g_oled, d3, 118, 0, 4);
+                ssd1306_text(&g_oled, "BPM", 98, 3);
+        } else {
+                ssd1306_text(&g_oled, "---", 98, 1);
+                ssd1306_text(&g_oled, "BPM", 98, 2);
+        }
+
+        int flush_rc = ssd1306_flush(&g_oled);
+        if (flush_rc != 0) g_oled_fail++;
+
+        #if USE_TRACKER == 2
+        if (cfg_tracker_mode == 2) {
+                int nb = trk_step((float)bpm);
+                if (cfg_dbg_trk) printf("TRK|old=%d new=%d sc=%.2f R=%.0f sa=%.1f cost=%uus heap=%u\n",
+                       bpm, nb, trk_score, trk_r, trk_sa,
+                       (unsigned)trk_cost_us, (unsigned)esp_get_free_heap_size());
+        }
+        #endif
+
+        if (cfg_dbg_ui) printf("UI|bpm=%d cv=%.3f conn=%d state=%s p95=%.0f p50=%.0f q=%d beat=%d flush=%d\n",
+                   bpm, get_iv_cv(), (int)conn_handle, state, p95, get_p50(), q_ok, beat_flash, flush_rc);
+        if (cfg_dbg_dump && now_us - g_last_dump_us > 5000000) {
+                g_last_dump_us = now_us;
+                dump_fb(&g_oled);
+        }
+
+        /* BLE推送JSON通知 */
+        char json[160];
+        snprintf(json, sizeof(json),
+                     "{\"bpm\":%d,\"bpm2\":%d,\"sc\":%.2f,\"state\":\"%s\",\"p95\":%.0f,\"p50\":%.0f,\"q\":%d,\"beat\":%d,\"t\":%lld}",
+                     bpm, trk_out, trk_score, state, p95, get_p50(), q_ok, beat_flash,
+                     (long long)(esp_timer_get_time() / 1000));
+        ble_notify(json);
+
+    }
+}
+
 void app_main(void)
 {
     /* NVS：配置持久化 */
@@ -963,6 +1155,7 @@ void app_main(void)
     }
     cfg_nvs_ok = (nvs_rc == ESP_OK && nvs_open("pulsecfg", NVS_READWRITE, &cfg_nvs) == ESP_OK);
     cfg_load();
+    apply_cons();
     xTaskCreate(serial_cmd_task, "ser_cmd", 3072, NULL, 3, NULL);
 
     gpio_config_t io = { .pin_bit_mask = 1ULL << GPIO_NUM_0, .mode = GPIO_MODE_INPUT };
@@ -983,9 +1176,17 @@ void app_main(void)
                                      .device_address = 0x3C, .scl_speed_hz = 400000 };
     i2c_master_dev_handle_t oled_dev = NULL;
     ESP_ERROR_CHECK(i2c_master_bus_add_device(bus, &oled_cfg, &oled_dev));
-    static ssd1306_t oled;
-    int oled_ok = (ssd1306_init(&oled, oled_dev, OLED_HEIGHT) == 0);
-    ESP_LOGI(TAG, "OLED: %s", oled_ok ? "OK" : "FAIL");
+    g_oled_ok = (ssd1306_init(&g_oled, oled_dev, OLED_HEIGHT) == 0);
+    ESP_LOGI(TAG, "OLED: %s", g_oled_ok ? "OK" : "FAIL");
+
+    xTaskCreate(oled_task, "oled", 4096, NULL, 2, NULL);
+    led_fx_init(5, 16);
+    led_fx_set_level(cfg_led_level);
+    led_fx_set_mode(cfg_led_mode);
+    led_fx_set_params(cfg_rot_idle / 1000.0f, cfg_rot_max / 1000.0f,
+                      cfg_hue_idle / 1000.0f, cfg_hue_span / 1000.0f,
+                      cfg_p_base / 1000.0f, cfg_p_peak / 1000.0f,
+                      cfg_b_gate / 1000.0f, cfg_decay / 1000.0f);
 
     /* ---------- ADC DMA ---------- */
     adc_continuous_handle_t adc = NULL;
@@ -1005,14 +1206,10 @@ void app_main(void)
     int win_min = 4095, win_max = 0, win_n = 0;
     int win_slew = 0, win_clip = 0, prev_raw = -1;
     uint32_t seq = 0;
-    int64_t t0_us = esp_timer_get_time();
-    int64_t last_ui_us = 0;
+    g_t0_us = esp_timer_get_time();
     int64_t last_loop_us = esp_timer_get_time();
     int64_t max_lag_us = 0;
     int64_t last_lag_report_us = 0;
-    int64_t last_dump_us = 0;
-    int oled_fail = 0;
-    char line[16];
 
     while (1) {
         uint32_t out_length = 0;
@@ -1071,85 +1268,9 @@ void app_main(void)
         if (lag > max_lag_us) max_lag_us = lag;
         if (now_us - last_lag_report_us > 5000000) {
             ESP_LOGI(TAG, "loop lag max=%.1fms oled_fail=%d heap=%u",
-                     max_lag_us / 1000.0, oled_fail, (unsigned)esp_get_free_heap_size());
+                     max_lag_us / 1000.0, g_oled_fail, (unsigned)esp_get_free_heap_size());
             max_lag_us = 0;
             last_lag_report_us = now_us;
-        }
-        if (oled_ok && now_us - last_ui_us >= 500000) {
-            last_ui_us = now_us;
-            float p95 = get_p95();
-            p95_smooth_update(p95);
-            quality_update();
-            int bpm = get_bpm();
-            const char *state = get_state();
-            int sec = (int)((now_us - t0_us) / 1000000);
-            /* 闪烁衰减 */
-            if (beat_flash && now_us - last_beat_flash_us > 300000) beat_flash = 0;
-
-            ssd1306_clear(&oled);
-
-            /* --- 左侧 88px: 状态信息 --- */
-            /* Row0: 标题 + 心跳指示 */
-            ssd1306_text(&oled, beat_flash ? ">> PULSE <<" : "   PULSE  ", 0, 0);
-
-            /* Row1: 佩戴状态 */
-            snprintf(line, sizeof(line), "%s", state);
-            ssd1306_text(&oled, line, 0, 1);
-
-            /* Row2: p95 + BPM原始 */
-            snprintf(line, sizeof(line), "p95=%.0f", p95);
-            ssd1306_text(&oled, line, 0, 2);
-
-            /* BLE 状态灯 (cx=80,cy=11,r=4)：实心=已连接，闪=等待，空心=未就绪 */
-            int dot_fill;
-            if (!ble_ready) dot_fill = 0;
-            else if (conn_handle == BLE_HS_CONN_HANDLE_NONE) dot_fill = (int)((now_us / 500000) & 1);
-            else dot_fill = 1;
-            draw_status_dot(&oled, 80, 11, 4, dot_fill);
-
-            /* Row3: 信号条 (8px高度) */
-            float bar_ratio = p95 / 200.0f; if (bar_ratio > 1) bar_ratio = 1;
-            ssd1306_bar(&oled, 0, 24, 88, 8, bar_ratio);
-
-            /* --- 右侧 40px: 大号BPM --- */
-            if (bpm > 0) {
-                int d1 = bpm / 100;
-                int d2 = (bpm / 10) % 10;
-                int d3 = bpm % 10;
-                ssd1306_bignum_scaled(&oled, d1, 92, 0, 4);
-                ssd1306_bignum_scaled(&oled, d2, 105, 0, 4);
-                ssd1306_bignum_scaled(&oled, d3, 118, 0, 4);
-                ssd1306_text(&oled, "BPM", 98, 3);
-            } else {
-                ssd1306_text(&oled, "---", 98, 1);
-                ssd1306_text(&oled, "BPM", 98, 2);
-            }
-
-            int flush_rc = ssd1306_flush(&oled);
-            if (flush_rc != 0) oled_fail++;
-
-#if USE_TRACKER == 2
-            if (cfg_tracker_mode == 2) {
-                int nb = trk_step((float)bpm);
-                if (cfg_dbg_trk) printf("TRK|old=%d new=%d sc=%.2f R=%.0f sa=%.1f cost=%uus heap=%u\n",
-                       bpm, nb, trk_score, trk_r, trk_sa,
-                       (unsigned)trk_cost_us, (unsigned)esp_get_free_heap_size());
-            }
-#endif
-
-            if (cfg_dbg_ui) printf("UI|bpm=%d cv=%.3f conn=%d state=%s p95=%.0f p50=%.0f q=%d beat=%d flush=%d\n",
-                   bpm, get_iv_cv(), (int)conn_handle, state, p95, get_p50(), q_ok, beat_flash, flush_rc);
-            if (cfg_dbg_dump && now_us - last_dump_us > 5000000) {
-                last_dump_us = now_us;
-                dump_fb(&oled);
-            }
-
-            /* BLE推送JSON通知 */
-            char json[128];
-            snprintf(json, sizeof(json),
-                     "{\"bpm\":%d,\"bpm2\":%d,\"sc\":%.2f,\"state\":\"%s\",\"p95\":%.0f,\"p50\":%.0f,\"q\":%d,\"beat\":%d}",
-                     bpm, trk_out, trk_score, state, p95, get_p50(), q_ok, beat_flash);
-            ble_notify(json);
         }
     }
 }

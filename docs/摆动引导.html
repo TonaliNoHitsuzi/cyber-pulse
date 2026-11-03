@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>摆动引导 · 标定</title>
+<style>
+  html,body{margin:0;height:100%;background:#0b0f14;color:#e8eef7;
+            font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;overflow:hidden}
+  #wrap{display:flex;flex-direction:column;height:100%}
+  #top{padding:18px 24px 6px;display:flex;align-items:baseline;gap:18px}
+  #freq{font-size:56px;font-weight:700;letter-spacing:-2px}
+  #freq small{font-size:20px;font-weight:400;color:#8fa3bd;margin-left:6px}
+  #stage{font-size:20px;color:#9fb3c8}
+  #bar{height:6px;background:#1a2330;margin:8px 24px;border-radius:3px;overflow:hidden}
+  #fill{height:100%;width:0;background:linear-gradient(90deg,#2d7ff9,#54d3a4);transition:width .1s linear}
+  canvas{flex:1;width:100%;display:block}
+  #hint{position:fixed;bottom:14px;width:100%;text-align:center;color:#5f7793;font-size:15px}
+  #start{position:fixed;inset:0;display:flex;flex-direction:column;
+         align-items:center;justify-content:center;background:rgba(11,15,20,.96);z-index:9;gap:18px}
+  #start h1{margin:0;font-size:34px;font-weight:600}
+  #start p{margin:0;color:#8fa3bd;font-size:17px;line-height:1.7;text-align:center}
+  #btn{margin-top:8px;padding:16px 52px;font-size:22px;border-radius:999px;border:0;
+       background:#2d7ff9;color:#fff;cursor:pointer}
+  #btn:active{transform:scale(.97)}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="top">
+    <div id="freq">—<small>Hz</small></div>
+    <div id="stage">准备</div>
+  </div>
+  <div id="bar"><div id="fill"></div></div>
+  <canvas id="cv"></canvas>
+</div>
+<div id="hint">跟着光点左右摆动，幅度随意，节奏要跟上</div>
+<div id="start">
+  <h1>摆动标定</h1>
+  <p>卡片上贴好压电膜和手机<br>跟着光点左右摆动，幅度不用大，节奏跟准</p>
+  <button id="btn">开始</button>
+</div>
+<script>
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let W=0,Hh=0,DPR=Math.min(2,window.devicePixelRatio||1);
+function resize(){
+  W=cv.clientWidth; Hh=cv.clientHeight;
+  cv.width=W*DPR; cv.height=Hh*DPR;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+window.addEventListener('resize',resize);
+
+/* 时间表 */
+const PLAN=[
+  {t:'prep', ms:3000, f:0,  label:'准备'},
+  {t:'run',  ms:5000, f:1,  label:'1 Hz · 每秒一个来回'},
+  {t:'rest', ms:2000, f:0,  label:'停'},
+  {t:'run',  ms:5000, f:2,  label:'2 Hz · 每秒两个来回'},
+  {t:'rest', ms:2000, f:0,  label:'停'},
+  {t:'run',  ms:5000, f:3,  label:'3 Hz · 每秒三个来回'},
+  {t:'done', ms:4000, f:0,  label:'完成，保持静止'}
+];
+
+let running=false, startAt=0, actx=null, lastClickCycle=-1;
+const freqEl=document.getElementById('freq');
+const stageEl=document.getElementById('stage');
+const fillEl=document.getElementById('fill');
+
+function beep(v=0.12){
+  if(!actx) return;
+  const o=actx.createOscillator(), g=actx.createGain();
+  o.frequency.value=880; o.type='sine';
+  g.gain.setValueAtTime(v, actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime+0.05);
+  o.connect(g); g.connect(actx.destination);
+  o.start(); o.stop(actx.currentTime+0.06);
+}
+
+function draw(x, y, r, color){
+  ctx.clearRect(0,0,W,Hh);
+  // 轨道
+  const cy=Hh/2;
+  ctx.strokeStyle='#16202c'; ctx.lineWidth=6;
+  ctx.beginPath(); ctx.moveTo(40,cy); ctx.lineTo(W-40,cy); ctx.stroke();
+  // 刻度
+  ctx.fillStyle='#1c2836';
+  for(let i=0;i<=10;i++){
+    const xx=40+(W-80)*i/10;
+    ctx.fillRect(xx-1, cy-14, 2, 28);
+  }
+  // 光点
+  const grd=ctx.createRadialGradient(x,y,0,x,y,r*3.2);
+  grd.addColorStop(0,color); grd.addColorStop(1,'rgba(45,127,249,0)');
+  ctx.fillStyle=grd;
+  ctx.beginPath(); ctx.arc(x,y,r*3.2,0,7); ctx.fill();
+  ctx.fillStyle=color;
+  ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fill();
+}
+
+function loop(now){
+  if(!running) return;
+  const el = now - startAt;
+  // 定位当前段
+  let acc=0, seg=PLAN[PLAN.length-1], segT=0;
+  for(const s of PLAN){
+    if(el < acc + s.ms){ seg=s; segT=el-acc; break; }
+    acc += s.ms;
+  }
+  const total = PLAN.reduce((a,b)=>a+b.ms,0);
+  if(el > total){ running=false; stageEl.textContent='完成'; freqEl.innerHTML='—<small>Hz</small>'; return; }
+  fillEl.style.width = (el/total*100)+'%';
+  stageEl.textContent = seg.label;
+  freqEl.innerHTML = (seg.f? seg.f : '—') + '<small>Hz</small>';
+
+  const cy=Hh/2, amp=(W-80)/2*0.86, r=Math.max(14, Math.min(W,Hh)*0.05);
+  let x=W/2;
+  if(seg.t==='run'){
+    const ph = segT/1000*seg.f;                 // 周期数
+    x = W/2 + amp*Math.sin(2*Math.PI*ph);
+    const cyc = Math.floor(ph);
+    if(cyc !== lastClickCycle){ lastClickCycle=cyc; beep(); }
+  } else if(seg.t==='prep'){
+    x = W/2 + Math.sin(segT/300)*0;
+    if(segT<600 && lastClickCycle!==7){ lastClickCycle=7; beep(0.2); }
+  } else if(seg.t==='rest' || seg.t==='done'){
+    if(lastClickCycle!==-1){ lastClickCycle=-1; beep(0.18); }
+    x = W/2;
+  }
+  draw(x, cy, r, seg.t==='run' ? '#54d3a4' : '#2d7ff9');
+  requestAnimationFrame(loop);
+}
+
+document.getElementById('btn').onclick=()=>{
+  document.getElementById('start').style.display='none';
+  try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+  running=true; startAt=performance.now(); lastClickCycle=-1;
+  requestAnimationFrame(loop);
+};
+
+resize();
+ctx.fillStyle='#0b0f14'; ctx.fillRect(0,0,W,Hh);
+draw(W/2, Hh/2, 16, '#2d7ff9');
+</script>
+</body>
+</html>

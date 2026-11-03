@@ -63,8 +63,20 @@ object PulseSession {
             DevState.bpm = d.bpm
             DevState.bpm2 = d.bpm2
             DevState.score = d.score
+            if (d.boardMs > 0) {
+                val nowWall = System.currentTimeMillis()
+                if (!boardAnchorSet) {
+                    boardToWall = nowWall - d.boardMs
+                    boardAnchorSet = true
+                    DevState.addLog("时钟锚定: 板${d.boardMs}ms → 墙$nowWall")
+                } else {
+                    val err = (nowWall - d.boardMs) - boardToWall
+                    if (err > 120 && err < 5000) boardToWall += err / 8
+                    else if (err < -120 && err > -5000) boardToWall += err / 8
+                }
+            }
             val sid = sessionId
-            if (sid > 0) {
+            if (recording && sid > 0) {
                 synchronized(replayLock) {
                     uiBuf.add(UiFrameEntity(sessionId = sid, ts = System.currentTimeMillis(),
                         bpm = d.bpm, bpm2 = d.bpm2, sc = d.score, state = d.state,
@@ -104,6 +116,9 @@ object PulseSession {
                     val now = System.currentTimeMillis()
                     liveWaveStart = if (liveWaveStart == 0L) now - s.size * 10L else liveWaveStart
                     liveWaveBuf.addAll(s)
+                    if (liveWaveStart > 0 && recordStartWall > 0 && liveWaveStart + 1000 < recordStartWall - 500) {
+                        liveWaveBuf.clear(); liveWaveStart = 0L
+                    }
                     if (liveWaveBuf.size >= 100) {
                         val chunk = ArrayList(liveWaveBuf.subList(0, 100))
                         liveWaveBuf = ArrayList(liveWaveBuf.subList(100, liveWaveBuf.size))
@@ -125,6 +140,7 @@ object PulseSession {
         }
         c.onConnected = {
             connectInFlight = false
+            boardAnchorSet = false
             connectedSince = System.currentTimeMillis()
             lastDataTs = connectedSince      // 新连接宽限：避免旧时间戳误判为断链
             connected = true
@@ -307,6 +323,8 @@ object PulseSession {
         samples = 0
         finished = false
         recording = true
+        recordStartWall = System.currentTimeMillis()
+        boardAnchorSet = false
         runCatching { ImuCollector.start(appCtx, target) }
         runCatching { ContextCollector.start(appCtx, target) }
         runCatching { RecordingService.start(appCtx) }
@@ -321,6 +339,7 @@ object PulseSession {
 
     fun pauseRecording() {
         recording = false
+        synchronized(replayLock) { uiBuf.clear(); replayBuf.clear() }
         runCatching { ImuCollector.stop() }
         runCatching { ContextCollector.stop() }
         runCatching { RecordingService.stop(appCtx) }
@@ -335,12 +354,12 @@ object PulseSession {
         if (finished) return          // 防重复（BackHandler 与 onDispose 都会调）
         finished = true
         recording = false
+        synchronized(replayLock) { uiBuf.clear(); replayBuf.clear() }
         runCatching { ImuCollector.stop() }
         runCatching { ContextCollector.stop() }
         runCatching { RecordingService.stop(appCtx) }
-        runCatching { ContextCollector.stop() }
-        runCatching { RecordingService.stop(appCtx) }
         val id = sessionId
+        sessionId = -1          // 停止后再来的数据不再归档到旧会话
         if (id > 0) {
             scope.launch {
                 repoLazy.markEnded(id)
@@ -382,6 +401,10 @@ object PulseSession {
     @Volatile private var connectedSince = 0L
     @Volatile private var connectInFlight = false
     private var replayLastEndBoardMs = 0L
+    /* 唯一时钟：板载毫秒 → 墙上毫秒，连接时锚定一次，之后只做缓慢漂移校正 */
+    @Volatile private var boardToWall = 0L
+    @Volatile private var boardAnchorSet = false
+    @Volatile private var recordStartWall = 0L
     private var replayFlushAt = 0L
     private var uiFlushAt = 0L
 
@@ -405,9 +428,14 @@ object PulseSession {
                 scope.launch { repoLazy.insertUiFrames(frames) }
             }
             if (replayBuf.isEmpty() || now < replayFlushAt) return
-            val offset = System.currentTimeMillis() - replayLastEndBoardMs
+            val offset = if (boardAnchorSet) boardToWall
+                         else System.currentTimeMillis() - replayLastEndBoardMs
+            val cutoff = recordStartWall - 500L
             val fixed = replayBuf.map { it.copy(startTs = it.startTs + offset) }
+                .filter { recordStartWall <= 0L || it.startTs + it.count * 10L >= cutoff }
+            val dropped = replayBuf.size - fixed.size
             replayBuf.clear()
+            if (dropped > 0) DevState.addLog("丢弃会话前波形 ${dropped} 块")
             scope.launch { repoLazy.insertWaveChunks(fixed) }
             if (fixed.isNotEmpty()) DevState.addLog("补发入库 ${fixed.size} 块（已换算墙上时间）")
         }
