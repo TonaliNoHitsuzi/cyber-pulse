@@ -16,6 +16,10 @@
 #include "esp_adc/adc_continuous.h"
 #include "ssd1306.h"
 #include "led_fx.h"
+#include "esp_vfs_fat.h"
+#include "wear_levelling.h"
+#include <stdio.h>
+#include <dirent.h>
 #include "nimble/nimble_port.h"
 #include "nimble/nimble_port_freertos.h"
 #include "host/ble_hs.h"
@@ -75,6 +79,8 @@ static int   cfg_decay       = 350;   /* x1000 秒 */
 static int   cfg_cons        = 40;    /* 0~100，越大越保守 */
 static int   cfg_mfilter     = 0;     /* 0=关闭运动门控（默认，利于静息） 1=启用 */
 static int   cfg_motiondet   = 0;     /* 运动判定（会误伤按压），默认关 */
+static volatile int g_quiet  = 0;     /* 回传期间静默所有输出 */
+static int   cfg_pair        = 2;     /* 隔峰配对数：2=上限86 1=上限171（追踪恢复期用） */
 /* cons 派生门限 */
 static float g_cv_max   = 0.114f;
 static int   g_n_iv_min = 6;
@@ -123,6 +129,7 @@ static void cfg_load(void)
     if (nvs_get_i32(cfg_nvs, "cons", &v) == ESP_OK) cfg_cons = v;
     if (nvs_get_i32(cfg_nvs, "mfilter", &v) == ESP_OK) cfg_mfilter = v;
     if (nvs_get_i32(cfg_nvs, "motiondet", &v) == ESP_OK) cfg_motiondet = v;
+    if (nvs_get_i32(cfg_nvs, "pair", &v) == ESP_OK) cfg_pair = v;
     ESP_LOGI(TAG, "配置加载: thr=%d gap=%d p50=%.0f p95=%.0f dbg=%d/%d/%d mode=%d",
              cfg_peak_thr, cfg_peak_gap_ms, cfg_p50_gate, cfg_p95_gate,
              cfg_dbg_ui, cfg_dbg_trk, cfg_dbg_dump, cfg_tracker_mode);
@@ -152,6 +159,7 @@ static void cfg_save(void)
     nvs_set_i32(cfg_nvs, "cons", cfg_cons);
     nvs_set_i32(cfg_nvs, "mfilter", cfg_mfilter);
     nvs_set_i32(cfg_nvs, "motiondet", cfg_motiondet);
+    nvs_set_i32(cfg_nvs, "pair", cfg_pair);
     nvs_commit(cfg_nvs);
     ESP_LOGI(TAG, "配置已保存到 NVS");
 }
@@ -166,10 +174,203 @@ static void cfg_print(void)
              cfg_hue_idle / 1000.0f, cfg_hue_span / 1000.0f,
              cfg_p_base / 1000.0f, cfg_p_peak / 1000.0f, cfg_b_gate / 1000.0f,
              cfg_decay / 1000.0f);
-    ESP_LOGI(TAG, "CONS|%d mfilter=%d cv_max=%.3f n_iv=%d warm=%d",
-             cfg_cons, cfg_mfilter, g_cv_max, g_n_iv_min, g_warm_min);
+    ESP_LOGI(TAG, "CONS|%d mfilter=%d pair=%d cv_max=%.3f n_iv=%d warm=%d",
+             cfg_cons, cfg_mfilter, cfg_pair, g_cv_max, g_n_iv_min, g_warm_min);
 }
 
+
+
+/* ================= 采集模式：1kHz 原始波形写入闪存 =================
+   rec start     开始记录到 /storage/recNNN.raw
+   rec stop      停止
+   rec list      列出文件
+   rec dump <n>  二进制回传（PC 端按头部的字节数接收）
+   rec erase     清空所有记录
+*/
+static wl_handle_t s_wl = WL_INVALID_HANDLE;
+static FILE *s_rec = NULL;
+static int   s_rec_n = 0;
+static uint32_t s_rec_bytes = 0;
+static uint8_t s_rec_buf[4096];
+static int   s_rec_len = 0;
+
+static int rec_mount(void)
+{
+    if (s_wl != WL_INVALID_HANDLE) return 0;
+    esp_vfs_fat_mount_config_t cfg = {
+        .format_if_mount_failed = true,
+        .max_files = 4,
+        .allocation_unit_size = 4096,
+    };
+    esp_err_t e = esp_vfs_fat_spiflash_mount_rw_wl("/storage", "storage", &cfg, &s_wl);
+    if (e != ESP_OK) { ESP_LOGE(TAG, "挂载失败: %s", esp_err_to_name(e)); return -1; }
+    ESP_LOGI(TAG, "存储已挂载");
+    return 0;
+}
+
+static void rec_flush(void)
+{
+    if (s_rec && s_rec_len > 0) {
+        fwrite(s_rec_buf, 1, s_rec_len, s_rec);
+        s_rec_len = 0;
+    }
+}
+
+/* 文件格式：
+   [文件头 16B] "CPLS" ver=1 fs=1000 保留 4B 起始板载毫秒
+   之后每块： [uint32 板载毫秒][uint16 n][int16 x n]   （正常 n=1000，即 1 秒）
+*/
+static int16_t s_blk[1000];
+static int     s_blk_n = 0;
+static uint32_t s_blk_ts = 0;
+
+static void rec_write_block(void)
+{
+    if (!s_rec || s_blk_n == 0) return;
+    uint8_t h[6];
+    uint32_t ts = s_blk_ts;
+    uint16_t n = (uint16_t)s_blk_n;
+    memcpy(h, &ts, 4);
+    memcpy(h + 4, &n, 2);
+    fwrite(h, 1, 6, s_rec);
+    fwrite(s_blk, 2, s_blk_n, s_rec);
+    s_rec_bytes += 6 + 2 * s_blk_n;
+    s_blk_n = 0;
+}
+
+static void rec_write_sample(int16_t v)
+{
+    if (!s_rec) return;
+    if (s_blk_n == 0) s_blk_ts = (uint32_t)(esp_timer_get_time() / 1000);
+    s_blk[s_blk_n++] = v;
+    if (s_blk_n >= 1000) rec_write_block();
+}
+
+static void rec_start(void)
+{
+    if (s_rec) return;
+    if (rec_mount() != 0) return;
+    char path[48];
+    for (int i = 1; i < 100; i++) {
+        snprintf(path, sizeof(path), "/storage/rec%03d.raw", i);
+        FILE *f = fopen(path, "rb");
+        if (!f) { s_rec_n = i; break; }
+        fclose(f);
+    }
+    s_rec = fopen(path, "wb");
+    if (!s_rec) { ESP_LOGE(TAG, "创建失败"); return; }
+    s_rec_bytes = 0; s_blk_n = 0;
+    {
+        uint8_t hdr[16] = { 'C','P','L','S', 1, 0, 0xE8, 0x03, 0,0,0,0, 0,0,0,0 };
+        uint32_t t0 = (uint32_t)(esp_timer_get_time() / 1000);
+        memcpy(hdr + 8, &t0, 4);
+        fwrite(hdr, 1, 16, s_rec);
+        s_rec_bytes += 16;
+    }
+    ESP_LOGI(TAG, "REC 开始: %s", path);
+}
+
+static void rec_stop(void)
+{
+    if (!s_rec) return;
+    rec_write_block();
+    fclose(s_rec);
+    s_rec = NULL;
+    ESP_LOGI(TAG, "REC 停止: %u 字节 (%.1f 分钟)", (unsigned)s_rec_bytes,
+             s_rec_bytes / 2000.0f / 60.0f);
+}
+
+/* ---- 请求-应答式回传：PC 逐块请求，设备逐块应答，带 CRC ---- */
+static FILE *s_rd = NULL;
+static int g_rd_old_ui, g_rd_old_dump, g_rd_old_raw;
+static long  s_rd_size = 0;
+
+static uint16_t crc16_ccitt(const uint8_t *p, int n)
+{
+    uint16_t crc = 0xFFFF;
+    for (int i = 0; i < n; i++) {
+        crc ^= (uint16_t)p[i] << 8;
+        for (int k = 0; k < 8; k++)
+            crc = (crc & 0x8000) ? (uint16_t)((crc << 1) ^ 0x1021) : (uint16_t)(crc << 1);
+    }
+    return crc;
+}
+
+static void rec_open(int n)
+{
+    if (s_rd) { fclose(s_rd); s_rd = NULL; }
+    if (rec_mount() != 0) return;
+    char path[48];
+    snprintf(path, sizeof(path), "/storage/rec%03d.raw", n);
+    s_rd = fopen(path, "rb");
+    if (!s_rd) { puts("FILE|ERR"); fflush(stdout); return; }
+    fseek(s_rd, 0, SEEK_END); s_rd_size = ftell(s_rd); fseek(s_rd, 0, SEEK_SET);
+    {
+        char hb[32]; snprintf(hb, sizeof(hb), "FILE|OK|%ld", s_rd_size);
+        puts(hb); fflush(stdout);
+    }
+    /* 会话式回传：打开期间静默一切周期输出 */
+    g_rd_old_ui = cfg_dbg_ui; g_rd_old_dump = cfg_dbg_dump; g_rd_old_raw = cfg_raw_print;
+    cfg_dbg_ui = 0; cfg_dbg_dump = 0; cfg_raw_print = 0;
+    esp_log_level_set("*", ESP_LOG_NONE);
+}
+
+static void rec_read_chunk(int seq)
+{
+    if (!s_rd) { ESP_LOGW(TAG, "FILE|NONE"); return; }
+    long off = (long)seq * 512;
+    if (off >= s_rd_size) { ESP_LOGW(TAG, "FILE|END"); return; }
+    static uint8_t buf[512];
+    fseek(s_rd, off, SEEK_SET);
+    size_t k = fread(buf, 1, sizeof(buf), s_rd);
+    if (!k) { ESP_LOGW(TAG, "FILE|END"); return; }
+    uint16_t crc = crc16_ccitt(buf, (int)k);
+    uint8_t h[8] = { 0xAA, 0x55, (uint8_t)(seq & 0xFF), (uint8_t)(seq >> 8),
+                     (uint8_t)(k & 0xFF), (uint8_t)(k >> 8),
+                     (uint8_t)(crc & 0xFF), (uint8_t)(crc >> 8) };
+    g_quiet = 1;
+    fwrite(h, 1, 8, stdout);
+    fwrite(buf, 1, k, stdout);
+    fflush(stdout);
+    g_quiet = 0;
+}
+
+static void rec_close_file(void)
+{
+    if (s_rd) { fclose(s_rd); s_rd = NULL; }
+    cfg_dbg_ui = g_rd_old_ui; cfg_dbg_dump = g_rd_old_dump; cfg_raw_print = g_rd_old_raw;
+    esp_log_level_set("*", ESP_LOG_INFO);
+    ESP_LOGI(TAG, "FILE|CLOSED");
+}
+
+static void rec_list(void)
+{
+    if (rec_mount() != 0) return;
+    DIR *d = opendir("/storage");
+    if (!d) return;
+    struct dirent *e;
+    while ((e = readdir(d))) {
+        if (e->d_name[0] == '.') continue;
+        ESP_LOGI(TAG, "  文件: %s", e->d_name);
+    }
+    closedir(d);
+}
+
+static void rec_erase(void)
+{
+    if (rec_mount() != 0) return;
+    DIR *d = opendir("/storage");
+    if (!d) return;
+    struct dirent *e;
+    char path[300];
+    while ((e = readdir(d))) {
+        if (e->d_name[0] == '.') continue;
+        snprintf(path, sizeof(path), "/storage/%s", e->d_name);
+        remove(path);
+    }
+    closedir(d);
+    ESP_LOGI(TAG, "已清空");
+}
 
 /* 命令解析：thr 40 / gap 350 / q 18 45 / dbg 0 / trk 0 / dump 0 / mode 2 / save / ? */
 static void cfg_cmd(const char *cmd)
@@ -206,6 +407,18 @@ static void cfg_cmd(const char *cmd)
     else if (!strcmp(tok, "cons")) { cfg_cons = atoi(a1); apply_cons(); }
     else if (!strcmp(tok, "mfilter")) { cfg_mfilter = atoi(a1); apply_cons(); }
     else if (!strcmp(tok, "motion")) { cfg_motiondet = atoi(a1); }
+    else if (!strcmp(tok, "pair")) { int v = atoi(a1); cfg_pair = (v == 1) ? 1 : 2; }
+    else if (!strcmp(tok, "rec")) {
+        if (!strcmp(a1, "start")) rec_start();
+        else if (!strcmp(a1, "stop")) rec_stop();
+        else if (!strcmp(a1, "open")) { char *a2 = strtok_r(NULL, " ", &save); rec_open(a2 ? atoi(a2) : 1); }
+        else if (!strcmp(a1, "rd")) { char *a2 = strtok_r(NULL, " ", &save); rec_read_chunk(a2 ? atoi(a2) : 0); }
+        else if (!strcmp(a1, "close")) rec_close_file();
+        else if (!strcmp(a1, "wake")) { g_quiet = 0; esp_log_level_set("*", ESP_LOG_INFO); puts("FILE|WAKE"); fflush(stdout); }
+        else if (!strcmp(a1, "list")) rec_list();
+        else if (!strcmp(a1, "erase")) rec_erase();
+        return;
+    }
     else { ESP_LOGW(TAG, "未知命令: %s", tok); return; }
     led_fx_set_params(cfg_rot_idle / 1000.0f, cfg_rot_max / 1000.0f,
                       cfg_hue_idle / 1000.0f, cfg_hue_span / 1000.0f,
@@ -708,7 +921,8 @@ static void census_feed(int64_t t_us, float dev, int slew, int clip)
                 peak_times[BPM_MED_N * 3 - 1] = t_prev_us;
             }
             if (n_peaks >= 3) {
-                int iv_ms = (int)((peak_times[n_peaks-1] - peak_times[n_peaks-3]) / 1000);
+                int back = (n_peaks - 1 - cfg_pair >= 0) ? cfg_pair : 2;
+                int iv_ms = (int)((peak_times[n_peaks-1] - peak_times[n_peaks-1-back]) / 1000);
                 if (iv_ms >= IV_MIN_MS && iv_ms <= IV_MAX_MS) {
                     int accept = 1;
                     if (n_iv >= 3) {
@@ -1143,16 +1357,16 @@ static void oled_task(void *arg)
         #if USE_TRACKER == 2
         if (cfg_tracker_mode == 2) {
                 int nb = trk_step((float)bpm);
-                if (cfg_dbg_trk) printf("TRK|old=%d new=%d sc=%.2f R=%.0f sa=%.1f cost=%uus heap=%u\n",
+                if (cfg_dbg_trk && !g_quiet) printf("TRK|old=%d new=%d sc=%.2f R=%.0f sa=%.1f cost=%uus heap=%u\n",
                        bpm, nb, trk_score, trk_r, trk_sa,
                        (unsigned)trk_cost_us, (unsigned)esp_get_free_heap_size());
         }
         #endif
 
-        if (cfg_dbg_ui) printf("UI|bpm=%d cv=%.3f conn=%d state=%s p95=%.0f p50=%.0f q=%d beat=%d flush=%d duty=%.2f\n",
+        if (cfg_dbg_ui && !g_quiet) printf("UI|bpm=%d cv=%.3f conn=%d state=%s p95=%.0f p50=%.0f q=%d beat=%d flush=%d duty=%.2f\n",
                    bpm, get_iv_cv(), (int)conn_handle, state, p95, get_p50(), q_ok, beat_flash, flush_rc,
                    motion_duty);
-        if (cfg_dbg_dump && now_us - g_last_dump_us > 5000000) {
+        if (cfg_dbg_dump && !g_quiet && now_us - g_last_dump_us > 5000000) {
                 g_last_dump_us = now_us;
                 dump_fb(&g_oled);
         }
@@ -1181,7 +1395,7 @@ void app_main(void)
     cfg_nvs_ok = (nvs_rc == ESP_OK && nvs_open("pulsecfg", NVS_READWRITE, &cfg_nvs) == ESP_OK);
     cfg_load();
     apply_cons();
-    xTaskCreate(serial_cmd_task, "ser_cmd", 3072, NULL, 3, NULL);
+    xTaskCreate(serial_cmd_task, "ser_cmd", 8192, NULL, 3, NULL);
 
     gpio_config_t io = { .pin_bit_mask = 1ULL << GPIO_NUM_0, .mode = GPIO_MODE_INPUT };
     gpio_config(&io);
@@ -1250,6 +1464,7 @@ void app_main(void)
             }
             prev_raw = raw;
             if (raw <= 4 || raw >= 4091) win_clip = 1;
+            if (s_rec) rec_write_sample((int16_t)raw);
             if (++wave_dec >= WAVE_DEC) {
                 wave_dec = 0;
                 wave_cache[wave_cache_head] = (int16_t)raw;
@@ -1292,7 +1507,7 @@ void app_main(void)
         int64_t lag = now_us - last_loop_us;
         last_loop_us = now_us;
         if (lag > max_lag_us) max_lag_us = lag;
-        if (now_us - last_lag_report_us > 5000000) {
+        if (!g_quiet && now_us - last_lag_report_us > 5000000) {
             ESP_LOGI(TAG, "loop lag max=%.1fms oled_fail=%d heap=%u",
                      max_lag_us / 1000.0, g_oled_fail, (unsigned)esp_get_free_heap_size());
             max_lag_us = 0;

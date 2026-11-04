@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import android.app.Activity
+import android.content.ContextWrapper
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import android.view.WindowManager
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -31,6 +33,16 @@ private val IdleGray = Color(0xFF64748B)
 
 @Composable
 fun MeasureScreen(nav: Navigator, sessionId: Long) {
+    // 测量期间保持亮屏（避免息屏后系统冻结 BLE 回调）
+    val ctx0 = androidx.compose.ui.platform.LocalContext.current
+    DisposableEffect(Unit) {
+        var c: android.content.Context = ctx0
+        while (c is android.content.ContextWrapper && c !is android.app.Activity) c = c.baseContext
+        val w = (c as? android.app.Activity)?.window
+        w?.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        onDispose { w?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
+    }
+
     val ctx = LocalContext.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val view = LocalView.current
@@ -233,6 +245,21 @@ fun MeasureScreen(nav: Navigator, sessionId: Long) {
         }
 
         Spacer(Modifier.weight(1f))
+
+        if (recording) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(
+                    onClick = { PulseSession.markEvent(1, "跑步开始") },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD14343))
+                ) { Text("跑步开始", fontSize = 15.sp) }
+                Button(
+                    onClick = { PulseSession.markEvent(2, "跑步结束") },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3E8E5A))
+                ) { Text("跑步结束", fontSize = 15.sp) }
+            }
+        }
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             OutlinedButton(

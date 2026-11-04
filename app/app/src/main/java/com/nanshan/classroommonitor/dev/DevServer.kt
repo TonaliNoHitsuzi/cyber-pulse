@@ -133,6 +133,15 @@ class DevServer(
                 }
                 "/record/pause" -> { PulseSession.pauseRecording(); json("""{"ok":true}""") }
                 "/record/stop" -> { PulseSession.stopRecording(); json("""{"ok":true}""") }
+                "/session/delete" -> {
+                    val id = (session.parameters?.get("id")?.firstOrNull()?.toLongOrNull()) ?: 0L
+                    if (id > 0) {
+                        kotlinx.coroutines.runBlocking {
+                            com.nanshan.classroommonitor.data.Repository.get(ctx).deleteSession(id)
+                        }
+                        json("""{"ok":true,"id":$id}""")
+                    } else json("""{"ok":false}""")
+                }
                 "/session" -> {
                     if (session.method != Method.POST) json("""{"ok":false,"error":"用 POST"}""")
                     else {

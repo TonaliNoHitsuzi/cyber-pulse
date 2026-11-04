@@ -350,6 +350,26 @@ object PulseSession {
     }
 
     private var finished = false
+    /** 实验事件标注：1=跑步开始 2=跑步结束 3=坐下 4=静息结束 */
+    fun markEvent(code: Int, label: String) {
+        val id = sessionId
+        if (id <= 0) return
+        scope.launch {
+            repoLazy.insertSamples(listOf(
+                SampleEntity(
+                    sessionId = id,
+                    channel = "MARK",
+                    tsMillis = System.currentTimeMillis(),
+                    value = code.toDouble(),
+                    extraJson = "{\"label\":\"$label\"}",
+                    quality = label,
+                    sourceTag = SampleSource.PHONE_SENSOR
+                )
+            ))
+        }
+        DevState.addLog("标记: $label")
+    }
+
     fun stopRecording() {
         if (finished) return          // 防重复（BackHandler 与 onDispose 都会调）
         finished = true
