@@ -1,0 +1,36 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "刚连上的那几秒最容易错——缓冲半空，算出来的第一拍往往不可信。"
+    },
+    {
+      "t": "split",
+      "left": [
+        {
+          "t": "ul",
+          "tight": true,
+          "items": [
+            "**冷启动条件**：至少 **5 个间隔**，且连续若干帧通过质量门",
+            "**代价**：首次出数从 3.5 s 拖到 **4.5 s**",
+            "**效果**：11 段实测，首数与整段中位数的偏差平均 **2.7 BPM**、最大 **8**，8/11 落在 ±3 以内",
+            "同刻对照两次：**1 BPM / 0 BPM**——没有一次是乱报的"
+          ],
+          "frag": true
+        }
+      ],
+      "right": [
+        {
+          "t": "html",
+          "html": "<div class=\"fig\"><svg viewBox=\"0 0 620 240\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\"><line x1=\"100\" y1=\"196\" x2=\"580\" y2=\"196\" stroke=\"#cbd5e1\" stroke-width=\"1.4\"/><line x1=\"100\" y1=\"191\" x2=\"100\" y2=\"201\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"100\" y=\"216\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">0s</text><line x1=\"180\" y1=\"191\" x2=\"180\" y2=\"201\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"180\" y=\"216\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">1s</text><line x1=\"260\" y1=\"191\" x2=\"260\" y2=\"201\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"260\" y=\"216\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">2s</text><line x1=\"340\" y1=\"191\" x2=\"340\" y2=\"201\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"340\" y=\"216\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">3s</text><line x1=\"420\" y1=\"191\" x2=\"420\" y2=\"201\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"420\" y=\"216\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">4s</text><line x1=\"500\" y1=\"191\" x2=\"500\" y2=\"201\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"500\" y=\"216\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">5s</text><line x1=\"580\" y1=\"191\" x2=\"580\" y2=\"201\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"580\" y=\"216\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">6s</text><text x=\"10\" y=\"86\" font-size=\"13\" fill=\"#475569\">改之前</text><rect x=\"100\" y=\"64\" width=\"280\" height=\"26\" rx=\"6\" fill=\"#1d4ed8\" opacity=\".16\"/><circle cx=\"380\" cy=\"77\" r=\"5\" fill=\"#1d4ed8\"/><text x=\"392\" y=\"81\" font-size=\"12\" fill=\"#1d4ed8\">3.5 s 出数</text><text x=\"10\" y=\"166\" font-size=\"13\" fill=\"#475569\">加保护</text><rect x=\"100\" y=\"144\" width=\"360\" height=\"26\" rx=\"6\" fill=\"#0f766e\" opacity=\".18\"/><line x1=\"164\" y1=\"140\" x2=\"164\" y2=\"174\" stroke=\"#0f766e\" stroke-width=\"1.4\" opacity=\".6\"/><line x1=\"228\" y1=\"140\" x2=\"228\" y2=\"174\" stroke=\"#0f766e\" stroke-width=\"1.4\" opacity=\".6\"/><line x1=\"292\" y1=\"140\" x2=\"292\" y2=\"174\" stroke=\"#0f766e\" stroke-width=\"1.4\" opacity=\".6\"/><line x1=\"356\" y1=\"140\" x2=\"356\" y2=\"174\" stroke=\"#0f766e\" stroke-width=\"1.4\" opacity=\".6\"/><line x1=\"420\" y1=\"140\" x2=\"420\" y2=\"174\" stroke=\"#0f766e\" stroke-width=\"1.4\" opacity=\".6\"/><circle cx=\"460\" cy=\"157\" r=\"5\" fill=\"#0f766e\"/><text x=\"472\" y=\"161\" font-size=\"12\" fill=\"#0f766e\">4.5 s 出数</text><text x=\"164\" y=\"132\" text-anchor=\"middle\" font-size=\"11\" fill=\"#0f766e\">5 个间隔</text></svg></div>",
+          "frag": true
+        }
+      ]
+    },
+    {
+      "t": "quote",
+      "text": "晚出数换不出错，这个交换是划算的。",
+      "frag": true
+    }
+  ]
+}

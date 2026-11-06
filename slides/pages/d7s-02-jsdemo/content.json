@@ -1,0 +1,20 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "拆开看：风格、布局、素材各自独立；全局定规矩，单页只写内容。",
+      "frag": true
+    },
+    {
+      "t": "html",
+      "html": "<div class=\"fig\"><svg viewBox=\"0 0 1100 380\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\">\n<text x=\"60\" y=\"38\" font-size=\"14.5\" font-weight=\"700\" fill=\"#1d4ed8\">① 一页拆成三层，互不改动</text>\n<rect x=\"60\" y=\"72\" width=\"270\" height=\"44\" rx=\"10\" fill=\"#eff6ff\" stroke=\"#bfdbfe\" stroke-width=\"1.4\"/><text x=\"80\" y=\"92\" font-size=\"13.5\" font-weight=\"700\" fill=\"#1d4ed8\">CSS · 风格</text><text x=\"80\" y=\"108\" font-size=\"10.5\" fill=\"#64748b\">颜色 / 字号 / 间距</text>\n<rect x=\"60\" y=\"126\" width=\"270\" height=\"44\" rx=\"10\" fill=\"#fff7ed\" stroke=\"#fed7aa\" stroke-width=\"1.4\"/><text x=\"80\" y=\"146\" font-size=\"13.5\" font-weight=\"700\" fill=\"#ea580c\">JS · 布局</text><text x=\"80\" y=\"162\" font-size=\"10.5\" fill=\"#64748b\">组件怎么排</text>\n<rect x=\"60\" y=\"180\" width=\"270\" height=\"44\" rx=\"10\" fill=\"#f0fdfa\" stroke=\"#99f6e4\" stroke-width=\"1.4\"/><text x=\"80\" y=\"200\" font-size=\"13.5\" font-weight=\"700\" fill=\"#0f766e\">素材</text><text x=\"80\" y=\"216\" font-size=\"10.5\" fill=\"#64748b\">文本 JSON / 图片 / 视频</text>\n<line x1=\"352\" y1=\"72\" x2=\"352\" y2=\"224\" stroke=\"#cbd5e1\" stroke-width=\"2\"/>\n<line x1=\"352\" y1=\"148\" x2=\"366\" y2=\"148\" stroke=\"#cbd5e1\" stroke-width=\"2\"/>\n<text x=\"374\" y=\"145\" font-size=\"11.5\" fill=\"#64748b\">改一层，</text>\n<text x=\"374\" y=\"162\" font-size=\"11.5\" fill=\"#64748b\">不动另外两层</text>\n<text x=\"60\" y=\"258\" font-size=\"11\" fill=\"#94a3b8\">一页 = page.js + content.json + page.css + assets/</text>\n\n<text x=\"560\" y=\"38\" font-size=\"14.5\" font-weight=\"700\" fill=\"#0f766e\">② 全局定规矩，单页只管内容</text>\n<rect x=\"560\" y=\"64\" width=\"230\" height=\"230\" rx=\"12\" fill=\"#f8fafc\" stroke=\"#e2e8f0\"/>\n<text x=\"580\" y=\"92\" font-size=\"14\" font-weight=\"700\" fill=\"#1d4ed8\">全局</text>\n<g font-size=\"12\" fill=\"#334155\">\n<text x=\"580\" y=\"122\">style.css · 风格与令牌</text>\n<text x=\"580\" y=\"150\">deck.js · 渲染 / 导航</text>\n<text x=\"580\" y=\"178\">manifest · 页序</text>\n<text x=\"580\" y=\"206\">规格 v1 · 约定</text>\n</g>\n<rect x=\"850\" y=\"64\" width=\"230\" height=\"230\" rx=\"12\" fill=\"#f0fdfa\" stroke=\"#99f6e4\"/>\n<text x=\"870\" y=\"92\" font-size=\"14\" font-weight=\"700\" fill=\"#0f766e\">单页</text>\n<g font-size=\"12\" fill=\"#334155\">\n<text x=\"870\" y=\"122\">page.js · 元信息</text>\n<text x=\"870\" y=\"150\">content.json · 文案</text>\n<text x=\"870\" y=\"178\">page.css · 微调</text>\n<text x=\"870\" y=\"206\">assets/ · 素材</text>\n</g>\n<text x=\"820\" y=\"152\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">定规矩</text>\n<line x1=\"800\" y1=\"176\" x2=\"840\" y2=\"176\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n<polygon points=\"846,176 832,169 832,183\" fill=\"#94a3b8\"/>\n<text x=\"820\" y=\"200\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">写内容</text>\n<text x=\"550\" y=\"330\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">改文案不碰版式；换一套 CSS，就是另一套风格</text>\n</svg></div>",
+      "frag": true
+    },
+    {
+      "t": "quote",
+      "text": "改一页，不用动其他九十五页。",
+      "frag": true
+    }
+  ],
+  "annot": "这份讲稿本身就是用这套结构搭的。"
+}

@@ -1,0 +1,7 @@
+.pageBody > .p{max-width:none}
+.table{font-size:20px}
+.table th{font-size:13px;padding:0 12px 9px}
+.table td{padding:12px 12px;line-height:1.5}
+.compare{flex:1}
+.compare .col li{font-size:20px}
+.quote{font-size:30px;padding:10px 0 10px 26px;max-width:none}

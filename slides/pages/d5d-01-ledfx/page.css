@@ -1,0 +1,42 @@
+.pageBody > .p{max-width:none}
+.split{grid-template-columns:1.08fr .92fr;gap:34px;align-items:center;flex:1;min-height:0;height:auto}
+.fig{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.vidFig{height:100%;min-height:0}
+.vidFig video{height:330px;width:auto;max-width:100%;object-fit:contain;border-radius:12px;box-shadow:var(--shadow);background:#0b1020;display:block}
+.vidFig .cap,.ringFig .cap{font-size:12px;color:var(--faint)}
+.ringFig>svg{height:380px;width:auto;max-width:100%}
+.p.small{font-size:17.5px;line-height:1.6}
+.quote{font-size:30px;padding:10px 0 10px 26px;max-width:none}
+
+/* 复刻 led_fx.c：每颗灯按 1/16 色相循环，延迟 = -i/16 周期 → 彩虹旋转 */
+.led{animation:ledcycle 6.9s linear infinite}
+@keyframes ledcycle{
+0.00%{fill:rgb(197,0,0)}
+6.25%{fill:rgb(113,43,0)}
+12.50%{fill:rgb(91,68,0)}
+18.75%{fill:rgb(80,91,0)}
+25.00%{fill:rgb(46,91,0)}
+31.25%{fill:rgb(12,94,0)}
+37.50%{fill:rgb(0,96,24)}
+43.75%{fill:rgb(0,91,57)}
+50.00%{fill:rgb(0,91,91)}
+56.25%{fill:rgb(0,77,122)}
+62.50%{fill:rgb(0,56,226)}
+68.75%{fill:rgb(32,0,252)}
+75.00%{fill:rgb(112,0,224)}
+81.25%{fill:rgb(137,0,157)}
+87.50%{fill:rgb(153,0,115)}
+93.75%{fill:rgb(172,0,65)}
+}
+/* 搏动：0.30→1.50 底光比 = 5x，τ=0.35s 指数回落 */
+.ledRing{animation:ledbeat .85s linear infinite}
+@keyframes ledbeat{
+0%{filter:brightness(5)}
+12%{filter:brightness(3.9)}
+24%{filter:brightness(3.2)}
+40%{filter:brightness(2.5)}
+60%{filter:brightness(1.95)}
+82%{filter:brightness(1.55)}
+100%{filter:brightness(1.35)}
+}
+@media print{.led,.ledRing{animation:none}}

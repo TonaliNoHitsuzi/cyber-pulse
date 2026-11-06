@@ -1,0 +1,6 @@
+.pageBody > .p{max-width:none}
+.split{grid-template-columns:1.18fr .82fr;gap:44px;align-items:center;flex:1;min-height:0;height:auto}
+.fig{height:100%;display:flex;align-items:center;justify-content:center}
+.fig img{max-width:100%;max-height:360px;width:auto;border-radius:12px;box-shadow:var(--shadow)}
+.p.small{font-size:18px}
+.quote{font-size:31px;padding:10px 0 10px 26px;max-width:none}

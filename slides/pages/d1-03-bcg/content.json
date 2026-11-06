@@ -1,0 +1,30 @@
+{
+  "blocks": [
+    {
+      "t": "html",
+      "html": "<div class=\"def\"><div class=\"tag\">定义</div><div class=\"zh\">心冲击图（BCG）是一种记录技术：<br>把每次心跳时，血液突然射入大血管所引起的人体的重复性运动，画成图形。</div><div class=\"en\">Ballistocardiography is a technique for producing a graphical representation of repetitive motions of the human body arising from the sudden ejection of blood into the great vessels with each heartbeat.　— Wikipedia</div></div>",
+      "frag": true
+    },
+    {
+      "t": "steps",
+      "frag": true,
+      "items": [
+        "**射血**　一次约 70 mL，突然进入主动脉",
+        "**反冲**　血往前，整个人往后 1~10 µm",
+        "**成图**　床、椅子、秤上的传感器把它画出来"
+      ]
+    },
+    {
+      "t": "p",
+      "cls": "bridge",
+      "text": "**为什么指尖上能收到？** 手也长在这具身体上——身体被推回去，指尖跟着动；血管里的压力波又顶在指尖上。<span class=\"hl\">两种都跟心跳同周期，所以周期可以当心率用；但要分清是哪一种，得看波形。</span>",
+      "frag": true
+    },
+    {
+      "t": "quote",
+      "frag": true,
+      "text": "BCG 测的是身体的反应，脉搏测的是血管里的压力。"
+    }
+  ],
+  "annot": "1939 年 Starr 用床式装置首次记录 BCG，一度用于评估心输出量；超声出现后退出临床。"
+}

@@ -1,0 +1,25 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "设备要脱离电脑，就得有个**随身的地方**接住数据、存住数据。"
+    },
+    {
+      "t": "html",
+      "html": "<div class=\"flow\"><svg viewBox=\"0 0 900 150\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\"><rect x=\"6.0\" y=\"40\" width=\"132\" height=\"54\" rx=\"12\" fill=\"#fff\" stroke=\"#475569\" stroke-width=\"1.6\"/><text x=\"72.0\" y=\"73.0\" text-anchor=\"middle\" font-size=\"17\" font-weight=\"600\" fill=\"#475569\">设备</text><line x1=\"141.0\" y1=\"67.0\" x2=\"191.0\" y2=\"67.0\" stroke=\"#cbd5e1\" stroke-width=\"2\" marker-end=\"url(#ar)\"/><rect x=\"195.0\" y=\"40\" width=\"132\" height=\"54\" rx=\"12\" fill=\"#fff\" stroke=\"#1d4ed8\" stroke-width=\"1.6\"/><text x=\"261.0\" y=\"73.0\" text-anchor=\"middle\" font-size=\"17\" font-weight=\"600\" fill=\"#1d4ed8\">BLE</text><line x1=\"330.0\" y1=\"67.0\" x2=\"380.0\" y2=\"67.0\" stroke=\"#cbd5e1\" stroke-width=\"2\" marker-end=\"url(#ar)\"/><rect x=\"384.0\" y=\"40\" width=\"132\" height=\"54\" rx=\"12\" fill=\"#fff\" stroke=\"#0f766e\" stroke-width=\"1.6\"/><text x=\"450.0\" y=\"73.0\" text-anchor=\"middle\" font-size=\"17\" font-weight=\"600\" fill=\"#0f766e\">App</text><line x1=\"519.0\" y1=\"67.0\" x2=\"569.0\" y2=\"67.0\" stroke=\"#cbd5e1\" stroke-width=\"2\" marker-end=\"url(#ar)\"/><rect x=\"573.0\" y=\"40\" width=\"132\" height=\"54\" rx=\"12\" fill=\"#fff\" stroke=\"#0f766e\" stroke-width=\"1.6\"/><text x=\"639.0\" y=\"73.0\" text-anchor=\"middle\" font-size=\"17\" font-weight=\"600\" fill=\"#0f766e\">本地库</text><line x1=\"708.0\" y1=\"67.0\" x2=\"758.0\" y2=\"67.0\" stroke=\"#cbd5e1\" stroke-width=\"2\" marker-end=\"url(#ar)\"/><rect x=\"762.0\" y=\"40\" width=\"132\" height=\"54\" rx=\"12\" fill=\"#fff\" stroke=\"#94a3b8\" stroke-width=\"1.6\"/><text x=\"828.0\" y=\"73.0\" text-anchor=\"middle\" font-size=\"17\" font-weight=\"600\" fill=\"#94a3b8\">CSV</text><defs><marker id=\"ar\" viewBox=\"0 0 10 10\" refX=\"8\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto\"><path d=\"M1 1 L9 5 L1 9 z\" fill=\"#b6c2d1\"/></marker></defs><text x=\"6\" y=\"128\" font-size=\"13\" fill=\"#94a3b8\">同一套流程也被包成开发者 HTTP 接口：连蓝牙 / 建会话 / 开关记录 / 导出，都能被脚本调</text></svg></div>"
+    },
+    {
+      "t": "ul",
+      "frag": true,
+      "items": [
+        "**接蓝牙**：实时读数、会话状态，都从这里进来",
+        "**建会话、落库**：谁、什么时候、什么姿势，每条记录都带上下文",
+        "**导出 CSV**：数据要能离开手机，才谈得上分析"
+      ]
+    },
+    {
+      "t": "quote",
+      "text": "可穿戴的第一道门槛，是随身有个地方存数据。"
+    }
+  ]
+}

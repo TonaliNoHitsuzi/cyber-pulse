@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>赛博把脉 · 汇报</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="stage"><div id="deck"></div></div>
+
+<button id="ovBtn" title="总览（G）">
+  <svg viewBox="0 0 16 16" width="15" height="15"><g fill="currentColor"><rect x="2" y="2" width="3.2" height="3.2" rx=".8"/><rect x="6.4" y="2" width="3.2" height="3.2" rx=".8"/><rect x="10.8" y="2" width="3.2" height="3.2" rx=".8"/><rect x="2" y="6.4" width="3.2" height="3.2" rx=".8"/><rect x="6.4" y="6.4" width="3.2" height="3.2" rx=".8"/><rect x="10.8" y="6.4" width="3.2" height="3.2" rx=".8"/><rect x="2" y="10.8" width="3.2" height="3.2" rx=".8"/><rect x="6.4" y="10.8" width="3.2" height="3.2" rx=".8"/><rect x="10.8" y="10.8" width="3.2" height="3.2" rx=".8"/></g></svg>
+  <span>总览</span>
+</button>
+
+<div id="hud">
+  <div id="progress"><div id="progressBar"></div></div>
+  <div id="hudBottom">
+    <span id="deckTitle">赛博把脉 · 单片机课程设计</span>
+    <span class="hudRight"><span id="segProg"><i id="segBar"></i></span><span id="segLeft"></span><span id="pageNum">1 / 1</span></span>
+  </div>
+</div>
+
+<div id="notes" class="hidden">
+  <div class="notesHead"><span>讲者备注</span><span id="clock">00:00</span></div>
+  <div id="notesBody"></div>
+</div>
+
+<div id="overview" class="hidden">
+  <div class="ovHead">
+    <span>总览</span>
+    <span class="ovTools">
+      <span id="ovState" class="ovState"><i></i>当前：矩阵视图</span>
+      <button id="ovToggle" class="ovToggle"><span class="ico"></span><span class="tx">切换为列表视图</span></button>
+      <span class="ovHint">G / Esc 关闭</span>
+    </span>
+  </div>
+  <div id="ovDays"></div>
+  <div id="ovBody"></div>
+</div>
+
+<div id="locator" class="hidden">
+  <div id="locWrap"><div id="locInner"></div></div>
+</div>
+
+<div id="help" class="hidden">
+  <div class="helpBox">
+    <h3>快捷键</h3>
+    <table>
+      <tr><td>→ / 空格 / 单击 / 滚轮</td><td>下一页（先点亮条目 / 先推进转场）</td></tr>
+      <tr><td>←</td><td>上一页</td></tr>
+      <tr><td>Home / End</td><td>首页 / 末页</td></tr>
+      <tr><td>数字 + Enter</td><td>跳到指定页</td></tr>
+      <tr><td>G / Esc</td><td>总览（按天 × 线，点页先定位再跳转）</td></tr>
+      <tr><td>N</td><td>讲者备注（含计时）</td></tr>
+      <tr><td>F</td><td>全屏</td></tr>
+      <tr><td>P</td><td>打印 / 导出 PDF</td></tr>
+      <tr><td>?</td><td>本帮助</td></tr>
+    </table>
+  </div>
+</div>
+
+<script src="lib/echarts.min.js"></script>
+<script src="lib/cytoscape.min.js"></script>
+<script type="module" src="deck.js"></script>
+</body>
+</html>

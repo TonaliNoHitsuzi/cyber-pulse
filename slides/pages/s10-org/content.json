@@ -1,0 +1,18 @@
+{
+  "blocks": [
+    {
+      "t": "transition",
+      "focus": {
+        "day": 3,
+        "line": "org"
+      },
+      "section": "第十节 · 组织线",
+      "list": [
+        {
+          "n": "11",
+          "t": "第一个完整交付包"
+        }
+      ]
+    }
+  ]
+}

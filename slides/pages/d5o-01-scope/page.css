@@ -1,0 +1,4 @@
+.pageBody > .p{max-width:none}
+.fig.morph{width:100%}
+.fig.morph>svg{height:400px;width:auto;max-width:100%}
+.quote{font-size:29px;padding:10px 0 10px 26px;max-width:none}

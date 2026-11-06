@@ -1,0 +1,14 @@
+.pageBody > .p{max-width:none}
+.split.mainSplit{grid-template-columns:1.05fr .95fr;gap:52px;align-items:center;flex:1 1 auto;min-height:0;height:auto}
+.mainSplit .splitCol{justify-content:center;padding-top:0}
+.waveCard{position:relative;height:auto;display:flex;flex-direction:column;justify-content:center}
+.waveCard>svg{width:100%;height:auto;display:block;overflow:visible}
+.waveCard .cap{margin-top:6px;font-size:13.5px;line-height:1.6;color:var(--faint);text-align:center}
+.waveCard .cap b{color:var(--dim);font-weight:600}
+
+.split.bottomSplit{grid-template-columns:190px 1fr;gap:44px;align-items:center;flex:0 0 auto;height:auto;margin-top:4px}
+.bottomSplit .splitCol{padding-top:0;height:auto;justify-content:center}
+.bottomSplit .figure{height:auto}
+.bottomSplit .figure img{max-height:142px;border-radius:10px}
+.bottomSplit .figure .cap{text-align:left;font-size:12.5px;line-height:1.45;margin-top:6px;}
+.bottomSplit .quote{font-size:34px;padding:12px 0 12px 28px;max-width:none;line-height:1.4}

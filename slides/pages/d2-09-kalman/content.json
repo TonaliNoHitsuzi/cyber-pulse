@@ -1,0 +1,35 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "实时算 BPM 时，信号在抖、质量在掉——**不可能每一拍都检出来。**"
+    },
+    {
+      "t": "split",
+      "left": [
+        {
+          "t": "ul",
+          "tight": true,
+          "items": [
+            "心率的周期基本不变：上一拍 0.80 s，这一拍也差不到哪去",
+            "所以漏掉的那一拍，位置是**可以预测**的：在预测点周围放宽条件去接",
+            "接到就**修正**预测，接不到就用预测**顶上**——实时曲线因此不掉"
+          ],
+          "frag": true
+        }
+      ],
+      "right": [
+        {
+          "t": "html",
+          "html": "<div class=\"fig\"><svg viewBox=\"0 0 620 380\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\"><line x1=\"50\" y1=\"270\" x2=\"580\" y2=\"270\" stroke=\"#cbd5e1\" stroke-width=\"1.4\"/><line x1=\"50\" y1=\"195\" x2=\"580\" y2=\"195\" stroke=\"#c3cfdd\" stroke-width=\"1.4\" stroke-dasharray=\"7 5\"/><text x=\"580\" y=\"187\" text-anchor=\"end\" font-size=\"12\" fill=\"#8a97a8\">阈值</text><rect x=\"318\" y=\"80\" width=\"80\" height=\"190\" fill=\"#1d4ed8\" opacity=\".07\"/><line x1=\"318\" y1=\"80\" x2=\"318\" y2=\"270\" stroke=\"#1d4ed8\" stroke-width=\"1\" stroke-dasharray=\"4 4\" opacity=\".5\"/><line x1=\"397\" y1=\"80\" x2=\"397\" y2=\"270\" stroke=\"#1d4ed8\" stroke-width=\"1\" stroke-dasharray=\"4 4\" opacity=\".5\"/><text x=\"357\" y=\"68\" text-anchor=\"middle\" font-size=\"13\" fill=\"#1d4ed8\">预测位置</text><path d=\"M 87.0 270 L 103.0 120.0 L 119.0 270\" fill=\"none\" stroke=\"#1d4ed8\" stroke-width=\"3\"/><circle cx=\"103.0\" cy=\"120.0\" r=\"4\" fill=\"#1d4ed8\"/><path d=\"M 171.8 270 L 187.8 132.0 L 203.8 270\" fill=\"none\" stroke=\"#1d4ed8\" stroke-width=\"3\"/><circle cx=\"187.8\" cy=\"132.0\" r=\"4\" fill=\"#1d4ed8\"/><path d=\"M 256.6 270 L 272.6 123.0 L 288.6 270\" fill=\"none\" stroke=\"#1d4ed8\" stroke-width=\"3\"/><circle cx=\"272.6\" cy=\"123.0\" r=\"4\" fill=\"#1d4ed8\"/><path d=\"M 341.4 270 L 357.4 225.0 L 373.4 270\" fill=\"none\" stroke=\"#94a3b8\" stroke-width=\"2.4\" stroke-dasharray=\"6 5\"/><path d=\"M 426.2 270 L 442.2 127.5 L 458.2 270\" fill=\"none\" stroke=\"#1d4ed8\" stroke-width=\"3\"/><circle cx=\"442.2\" cy=\"127.5\" r=\"4\" fill=\"#1d4ed8\"/><path d=\"M 511.0 270 L 527.0 138.0 L 543.0 270\" fill=\"none\" stroke=\"#1d4ed8\" stroke-width=\"3\"/><circle cx=\"527.0\" cy=\"138.0\" r=\"4\" fill=\"#1d4ed8\"/><text x=\"273\" y=\"296\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">检出</text><text x=\"357\" y=\"296\" text-anchor=\"middle\" font-size=\"12\" fill=\"#b91c1c\">没到阈值</text><text x=\"442\" y=\"296\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">检出</text></svg></div>",
+          "frag": true
+        }
+      ]
+    },
+    {
+      "t": "quote",
+      "text": "漏检不是失败——它把主动权交给了预测。",
+      "frag": true
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "每块 1000 个样本，但块与块的间隔是 1016 ms——**不是 1000 Hz**。",
+      "frag": true
+    },
+    {
+      "t": "split",
+      "left": [
+        {
+          "t": "ul",
+          "tight": true,
+          "frag": true,
+          "items": [
+            "实际采样率 **984 Hz**，比标称低 1.6%",
+            "按 1000 算，心率会系统性偏低 1.6%（83 → 81.7）",
+            "只有带时间戳的原始数据能发现"
+          ]
+        }
+      ],
+      "right": [
+        {
+          "t": "html",
+          "html": "<div class=\"fig\"><svg viewBox=\"0 0 620 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\">\n<text x=\"60\" y=\"28\" font-size=\"11.5\" fill=\"#94a3b8\">按 1000 Hz 计算时，时间轴累积的偏差</text>\n<g stroke=\"#eef2f7\" stroke-width=\"1\">\n<line x1=\"80\" y1=\"60\" x2=\"550\" y2=\"60\"/><line x1=\"80\" y1=\"120\" x2=\"550\" y2=\"120\"/><line x1=\"80\" y1=\"180\" x2=\"550\" y2=\"180\"/><line x1=\"80\" y1=\"240\" x2=\"550\" y2=\"240\"/><line x1=\"80\" y1=\"300\" x2=\"550\" y2=\"300\"/>\n</g>\n<line x1=\"80\" y1=\"300\" x2=\"80\" y2=\"60\" stroke=\"#cbd5e1\"/>\n<line x1=\"80\" y1=\"300\" x2=\"550\" y2=\"300\" stroke=\"#cbd5e1\"/>\n<g font-size=\"10.5\" fill=\"#94a3b8\" text-anchor=\"middle\">\n<text x=\"80\" y=\"318\">0</text><text x=\"261\" y=\"318\">13</text><text x=\"442\" y=\"318\">26 min</text>\n</g>\n<g font-size=\"10.5\" fill=\"#94a3b8\" text-anchor=\"end\">\n<text x=\"72\" y=\"304\">0</text><text x=\"72\" y=\"244\">6</text><text x=\"72\" y=\"184\">12</text><text x=\"72\" y=\"124\">19</text><text x=\"72\" y=\"64\">25 s</text>\n</g>\n<line x1=\"80\" y1=\"300\" x2=\"550\" y2=\"60\" stroke=\"#b91c1c\" stroke-width=\"2.2\"/>\n<circle cx=\"134.2\" cy=\"273.2\" r=\"4.5\" fill=\"#b91c1c\"/>\n<line x1=\"134.2\" y1=\"273.2\" x2=\"134.2\" y2=\"300\" stroke=\"#b91c1c\" stroke-dasharray=\"4 4\" opacity=\".5\"/>\n<text x=\"141.5\" y=\"263.2\" font-size=\"11\" fill=\"#b91c1c\">181 s → 2.9 s</text>\n<text x=\"315\" y=\"206\" font-size=\"11\" fill=\"#c2410c\" font-weight=\"600\">存满 26 分钟 → 偏 25 s</text>\n<text x=\"80\" y=\"342\" font-size=\"11\" fill=\"#94a3b8\">实际 984 Hz（1000 / 1016 ms），比标称低 1.6%</text>\n</svg></div>",
+          "frag": true
+        }
+      ]
+    },
+    {
+      "t": "quote",
+      "text": "只有原始数据能告诉你，你的系统哪里和你想的不一样。",
+      "frag": true
+    }
+  ],
+  "annot": "块内 1000 样本跨约 1016 ms；181 s 的记录累计偏 2.9 s。"
+}

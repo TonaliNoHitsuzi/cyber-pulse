@@ -1,0 +1,14 @@
+.def{background:#fff;border:1px solid var(--line);border-left:5px solid var(--blue);
+  border-radius:14px;padding:26px 34px;box-shadow:var(--shadow)}
+.def .tag{font-family:var(--mono);font-size:12px;letter-spacing:.18em;color:var(--blue);margin-bottom:12px}
+.def .zh{font-size:31px;line-height:1.62;font-weight:600;color:#0f172a;max-width:74ch}
+.def .en{margin-top:14px;font-family:var(--mono);font-size:13.5px;line-height:1.7;color:var(--faint);max-width:96ch}
+.steps{gap:16px}
+.steps .step{padding:20px 22px}
+.steps .step .t{font-size:20px;line-height:1.55}
+.quote{font-size:36px;padding:14px 0 14px 28px;max-width:none}
+:root{}
+.bridge{font-size:22px;line-height:1.7;color:#1e293b;max-width:none;
+  border-left:3px solid #dbeafe;padding-left:20px}
+.bridge b{color:#0f172a}
+.bridge .hl{color:var(--blue);font-weight:700}

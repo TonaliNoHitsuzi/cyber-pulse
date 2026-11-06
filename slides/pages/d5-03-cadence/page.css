@@ -1,0 +1,8 @@
+.pageBody > .p{max-width:none}
+.split{grid-template-columns:1.05fr .95fr;gap:36px;align-items:center;flex:1;min-height:0;height:auto}
+.table{font-size:19px}
+.table th{font-size:13px;padding:0 10px 8px}
+.table td{padding:9px 10px}
+.fig{display:flex;align-items:center;justify-content:center}
+.fig>svg{height:420px;width:auto;max-width:100%}
+.quote{font-size:30px;padding:10px 0 10px 26px;max-width:none}

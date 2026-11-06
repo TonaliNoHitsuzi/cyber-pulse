@@ -1,0 +1,38 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "讲课的时候，观众要同时看到信号和动作。",
+      "frag": true
+    },
+    {
+      "t": "split",
+      "left": [
+        {
+          "t": "ul",
+          "tight": true,
+          "frag": true,
+          "items": [
+            "左：实时波形（1 kHz ADC / 5 ms 窗）",
+            "中：BPM、状态、质量门一屏",
+            "右：手机后摄，scrcpy 窗口采集"
+          ]
+        }
+      ],
+      "right": [
+        {
+          "t": "figure",
+          "frag": true,
+          "src": "assets/demo.png",
+          "caption": "课堂演示页：左波形/状态，右手机后摄"
+        }
+      ]
+    },
+    {
+      "t": "quote",
+      "text": "把设备的状态和人的动作，摆到同一块屏幕上。",
+      "frag": true
+    }
+  ],
+  "annot": "底部命令下拉：现场可直接调 thr/gap 等参数。"
+}

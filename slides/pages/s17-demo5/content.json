@@ -1,0 +1,18 @@
+{
+  "blocks": [
+    {
+      "t": "transition",
+      "focus": {
+        "day": 5,
+        "line": "demo"
+      },
+      "section": "第十五节 · 系统线",
+      "list": [
+        {
+          "n": "01",
+          "t": "把心率变成光"
+        }
+      ]
+    }
+  ]
+}

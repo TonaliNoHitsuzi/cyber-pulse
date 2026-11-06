@@ -1,0 +1,4 @@
+.pageBody > .p{max-width:none}
+.stats{grid-template-columns:repeat(3,1fr);gap:22px}
+.stat .v{font-size:52px}
+.quote{font-size:34px;padding:12px 0 12px 26px;max-width:none}

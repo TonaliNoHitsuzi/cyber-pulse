@@ -1,0 +1,23 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "双峰还在。第一个猜测：**同一个冲击走了两条路**，到达时间不同，于是成了两个峰。"
+    },
+    {
+      "t": "html",
+      "frag": true,
+      "html": "<div class=\"echoFig\"><svg viewBox=\"0 0 1400 250\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\">\n<defs>\n<marker id=\"ah\" viewBox=\"0 0 12 12\" refX=\"9\" refY=\"6\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto\"><path d=\"M2 1 L10 6 L2 11 z\" fill=\"#1d4ed8\"/></marker>\n<marker id=\"ao\" viewBox=\"0 0 12 12\" refX=\"9\" refY=\"6\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto\"><path d=\"M2 1 L10 6 L2 11 z\" fill=\"#ea580c\"/></marker>\n<marker id=\"ag\" viewBox=\"0 0 12 12\" refX=\"6\" refY=\"6\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto\"><path d=\"M6 1 L1 6 L6 11\" fill=\"none\" stroke=\"#475569\" stroke-width=\"1.4\"/></marker>\n</defs>\n<path d=\"M 70 142 C 50 124, 42 108, 50 98 C 58 88, 70 96, 70 104 C 70 96, 82 88, 90 98 C 98 108, 90 124, 70 142 Z\" fill=\"#fff\" stroke=\"#1d4ed8\" stroke-width=\"2.4\"/><text x=\"70\" y=\"168\" text-anchor=\"middle\" font-size=\"13\" fill=\"#94a3b8\">心脏</text><rect x=\"556\" y=\"104\" width=\"26\" height=\"44\" rx=\"5\" fill=\"#dbeafe\" stroke=\"#1d4ed8\" stroke-width=\"2\"/><text x=\"569\" y=\"168\" text-anchor=\"middle\" font-size=\"13\" fill=\"#94a3b8\">传感器</text><line x1=\"96\" y1=\"112\" x2=\"548\" y2=\"118\" stroke=\"#1d4ed8\" stroke-width=\"2.4\" marker-end=\"url(#ah)\"/><path d=\"M 96 140 Q 320 215 548 134\" fill=\"none\" stroke=\"#ea580c\" stroke-width=\"2.2\" stroke-dasharray=\"7 5\" marker-end=\"url(#ao)\"/><text x=\"320\" y=\"96\" text-anchor=\"middle\" font-size=\"14\" fill=\"#1d4ed8\" font-weight=\"600\">骨传导 · 快</text><text x=\"320\" y=\"234\" text-anchor=\"middle\" font-size=\"14\" fill=\"#ea580c\" font-weight=\"600\">软组织 · 慢</text><line x1=\"640\" y1=\"200\" x2=\"1360\" y2=\"200\" stroke=\"#cbd5e1\" stroke-width=\"1.4\"/><path d=\"M 726 200 L 756 100 L 786 200\" fill=\"none\" stroke=\"#1d4ed8\" stroke-width=\"3\"/><path d=\"M 826 200 L 856 138 L 886 200\" fill=\"none\" stroke=\"#ea580c\" stroke-width=\"3\"/><text x=\"756\" y=\"86\" text-anchor=\"middle\" font-size=\"13\" fill=\"#1d4ed8\">快的那条</text><text x=\"856\" y=\"124\" text-anchor=\"middle\" font-size=\"13\" fill=\"#ea580c\">慢的那条</text><line x1=\"756\" y1=\"52\" x2=\"856\" y2=\"52\" stroke=\"#475569\" stroke-width=\"1.4\" marker-start=\"url(#ag)\" marker-end=\"url(#ag)\"/><line x1=\"756\" y1=\"46\" x2=\"756\" y2=\"58\" stroke=\"#475569\" stroke-width=\"1.4\"/><line x1=\"856\" y1=\"46\" x2=\"856\" y2=\"58\" stroke=\"#475569\" stroke-width=\"1.4\"/><text x=\"806\" y=\"40\" text-anchor=\"middle\" font-size=\"14\" fill=\"#475569\">到达时间差 Δ</text><text x=\"1000\" y=\"235\" text-anchor=\"middle\" font-size=\"14\" fill=\"#94a3b8\">当时以为：两条路 → 两个到达时刻 → 两个峰</text>\n</svg></div>"
+    },
+    {
+      "t": "p",
+      "frag": true,
+      "text": "如果真是两条路，压一块刚性板就该堵住其中一条。结果 **360 → 365 ms**，只动了 5 ms——在噪声里。**不是回声。**"
+    },
+    {
+      "t": "quote",
+      "frag": true,
+      "text": "两个峰不是同一个事件的回声，是两个不同的事件。"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "从一个人干，到把事分出去。",
+      "frag": true
+    },
+    {
+      "t": "html",
+      "html": "<div class=\"sumGrid\">\n<div class=\"sc\"><div class=\"h\">起点</div><div class=\"t\">一个人干</div><div class=\"d\">前三天：固件、算法、App、文档一个人扛。</div></div>\n<div class=\"sc\"><div class=\"h\">拿到</div><div class=\"t\">分出去</div><div class=\"d\">实验组织、天气模块、传感器调研、PPT 都有人接。</div></div>\n<div class=\"sc warn\"><div class=\"h\">学到</div><div class=\"t\">装回来</div><div class=\"d\">分出去的事要能收回、能拼上；做不成的要敢砍。</div></div>\n</div>",
+      "frag": true
+    },
+    {
+      "t": "p",
+      "small": true,
+      "text": "分工跟着阶段走：主线自己扛，能独立出去的才分。",
+      "frag": true
+    },
+    {
+      "t": "quote",
+      "text": "工作可以由一个人主导，但一个优秀的工程项目，想要高效完成，就不能缺少组织的帮助。如何合理规划和分发任务、组织和推进实验等现实工作，也是必须探讨的话题。",
+      "frag": true
+    }
+  ],
+  "annot": "总结 · 组织线：从单干到并行，再把结果收回来。"
+}

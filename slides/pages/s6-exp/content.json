@@ -1,0 +1,18 @@
+{
+  "blocks": [
+    {
+      "t": "transition",
+      "focus": {
+        "day": 2,
+        "line": "exp"
+      },
+      "section": "第六节 · 实验线",
+      "list": [
+        {
+          "n": "11",
+          "t": "同刻才算数"
+        }
+      ]
+    }
+  ]
+}

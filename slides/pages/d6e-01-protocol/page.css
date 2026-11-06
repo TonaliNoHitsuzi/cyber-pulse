@@ -1,0 +1,10 @@
+.pageBody > .p{max-width:none}
+.split{grid-template-columns:1.3fr .7fr;gap:36px;align-items:center;flex:1;min-height:0;height:auto}
+.table{font-size:17.5px}
+.table th{font-size:12px;padding:0 12px 9px}
+.table td{padding:10px 12px;line-height:1.5}
+.figrow{gap:12px;height:auto;align-items:flex-start}
+.figrow .figure{height:auto}
+.figrow .figure img{height:330px;width:100%;object-fit:cover;border-radius:10px}
+.figrow .cap{font-size:12px}
+.quote{font-size:30px;padding:10px 0 10px 26px;max-width:none}

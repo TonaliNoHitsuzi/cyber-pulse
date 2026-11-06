@@ -1,0 +1,8 @@
+.pageBody > .p{max-width:none}
+.table{font-size:19px}
+.table th{font-size:12.5px;padding:0 14px 9px}
+.table td{padding:12px 14px}
+.quote{font-size:31px;padding:12px 0 12px 28px;max-width:none}
+
+.formula{font-size:20px;padding:12px 18px;line-height:1.6}
+.formula .cap{font-size:12.5px;margin-top:6px}

@@ -1,0 +1,10 @@
+{
+  "blocks": [
+    {
+      "t": "html",
+      "html": "<div class=\"teamGrid\"><div class=\"tm lead\"><div class=\"nm\">周增飏</div><div class=\"sid\">20243003066</div><div class=\"rl\">队长 · 系统 / 固件 / 算法 / App / 讲稿</div></div><div class=\"tm\"><div class=\"nm\">陈俊文</div><div class=\"sid\">20243001901</div><div class=\"rl\">PPT 与资料整理</div></div><div class=\"tm\"><div class=\"nm\">陈昶东</div><div class=\"sid\">20243001912</div><div class=\"rl\">可穿戴结构方案探索；被试</div></div><div class=\"tm\"><div class=\"nm\">苏祺恺</div><div class=\"sid\">20243001984</div><div class=\"rl\">天气关联模块；被试</div></div><div class=\"tm\"><div class=\"nm\">赵维嘉</div><div class=\"sid\">20243002056</div><div class=\"rl\">实验设计与组织（牵头）；被试</div></div><div class=\"tm\"><div class=\"nm\">赵国宇</div><div class=\"sid\">20243005861</div><div class=\"rl\">数据采集被试（跑 / 走 / 静坐）</div></div><div class=\"tm\"><div class=\"nm\">徐福彬</div><div class=\"sid\">20243008098</div><div class=\"rl\">传感器横向调研</div></div><div class=\"tm\"><div class=\"nm\">张祥</div><div class=\"sid\">20243008124</div><div class=\"rl\">数据采集被试（跑 / 走）</div></div></div>",
+      "frag": true
+    }
+  ],
+  "annot": "按学号排序；队长在前。"
+}

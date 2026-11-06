@@ -1,0 +1,35 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "跑步数据解出来是 80 / 89.6——**那不是心跳。**"
+    },
+    {
+      "t": "split",
+      "left": [
+        {
+          "t": "ul",
+          "tight": true,
+          "items": [
+            "两组慢跑 295 秒，三种方法（自相关 / 谱峰 / 倒谱）都收敛到 **80 / 89.6**，看着像心率",
+            "和 IMU 步频放在一起看：**174/2 = 87、192/2 = 96**——设备量到的是步伐，不是心跳",
+            "运动时传感器测到的信息是**错的**；「读数恰好是步频的一半」只是顺带发现"
+          ],
+          "frag": true
+        }
+      ],
+      "right": [
+        {
+          "t": "html",
+          "html": "<div class=\"fig\"><svg viewBox=\"0 0 640 320\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\"><line x1=\"70\" y1=\"250\" x2=\"610\" y2=\"250\" stroke=\"#cbd5e1\" stroke-width=\"1.4\"/><line x1=\"64\" y1=\"250\" x2=\"70\" y2=\"250\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"60\" y=\"254\" text-anchor=\"end\" font-size=\"11\" fill=\"#94a3b8\">0</text><line x1=\"64\" y1=\"198\" x2=\"70\" y2=\"198\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"60\" y=\"202\" text-anchor=\"end\" font-size=\"11\" fill=\"#94a3b8\">50</text><line x1=\"64\" y1=\"145\" x2=\"70\" y2=\"145\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"60\" y=\"149\" text-anchor=\"end\" font-size=\"11\" fill=\"#94a3b8\">100</text><line x1=\"64\" y1=\"92\" x2=\"70\" y2=\"92\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"60\" y=\"96\" text-anchor=\"end\" font-size=\"11\" fill=\"#94a3b8\">150</text><line x1=\"64\" y1=\"40\" x2=\"70\" y2=\"40\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"60\" y=\"44\" text-anchor=\"end\" font-size=\"11\" fill=\"#94a3b8\">200</text><text x=\"14\" y=\"30\" font-size=\"12\" fill=\"#94a3b8\">spm</text><rect x=\"180\" y=\"67\" width=\"40\" height=\"183\" rx=\"4\" fill=\"#94a3b8\" opacity=\".75\"/><text x=\"200\" y=\"60\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\" font-weight=\"600\">174</text><rect x=\"236\" y=\"159\" width=\"40\" height=\"91\" rx=\"4\" fill=\"#b45309\" opacity=\".75\"/><text x=\"256\" y=\"152\" text-anchor=\"middle\" font-size=\"12\" fill=\"#b45309\" font-weight=\"600\">87</text><rect x=\"292\" y=\"166\" width=\"40\" height=\"84\" rx=\"4\" fill=\"#1d4ed8\" opacity=\".75\"/><text x=\"312\" y=\"159\" text-anchor=\"middle\" font-size=\"12\" fill=\"#1d4ed8\" font-weight=\"600\">80</text><text x=\"256\" y=\"272\" text-anchor=\"middle\" font-size=\"13\" fill=\"#475569\">赵</text><rect x=\"430\" y=\"48\" width=\"40\" height=\"202\" rx=\"4\" fill=\"#94a3b8\" opacity=\".75\"/><text x=\"450\" y=\"41\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\" font-weight=\"600\">192</text><rect x=\"486\" y=\"149\" width=\"40\" height=\"101\" rx=\"4\" fill=\"#b45309\" opacity=\".75\"/><text x=\"506\" y=\"142\" text-anchor=\"middle\" font-size=\"12\" fill=\"#b45309\" font-weight=\"600\">96</text><rect x=\"542\" y=\"156\" width=\"40\" height=\"94\" rx=\"4\" fill=\"#1d4ed8\" opacity=\".75\"/><text x=\"562\" y=\"149\" text-anchor=\"middle\" font-size=\"12\" fill=\"#1d4ed8\" font-weight=\"600\">89.6</text><text x=\"506\" y=\"272\" text-anchor=\"middle\" font-size=\"13\" fill=\"#475569\">张</text><text x=\"180\" y=\"296\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">步频</text><text x=\"236\" y=\"296\" text-anchor=\"middle\" font-size=\"12\" fill=\"#b45309\">步频/2</text><text x=\"292\" y=\"296\" text-anchor=\"middle\" font-size=\"12\" fill=\"#1d4ed8\">设备 BPM</text></svg></div>",
+          "frag": true
+        }
+      ]
+    },
+    {
+      "t": "quote",
+      "text": "运动时，脉搏传感器量到的是脚步。",
+      "frag": true
+    }
+  ]
+}

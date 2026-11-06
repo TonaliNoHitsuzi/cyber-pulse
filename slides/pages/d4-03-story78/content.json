@@ -1,0 +1,28 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "这个数不是第一次出现——**它来过两次。**"
+    },
+    {
+      "t": "html",
+      "html": "<div class=\"two\">\n<div class=\"c\"><div class=\"when\">D3 · 11/01</div><div class=\"big\">78</div>\n<div class=\"d\">屏幕上浮出这个数，换了几次也没变——当时归因于「蓝牙干扰」，记了一笔。</div></div>\n<div class=\"c hot\"><div class=\"when\">D4 · 11/02</div><div class=\"big\">78</div>\n<div class=\"d\">同一个数又出现。拆开看：一半是时间戳塌缩，一半是不应期锁定。</div></div>\n</div>",
+      "frag": true
+    },
+    {
+      "t": "html",
+      "html": "<div class=\"fig\"><svg viewBox=\"0 0 620 225\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\"><text x=\"10\" y=\"76\" font-size=\"15\" fill=\"#475569\">78 的间隔</text><line x1=\"140\" y1=\"18\" x2=\"140\" y2=\"88\" stroke=\"#b91c1c\" stroke-width=\"1\" stroke-dasharray=\"3 4\" opacity=\".5\"/><line x1=\"226\" y1=\"18\" x2=\"226\" y2=\"88\" stroke=\"#b91c1c\" stroke-width=\"1\" stroke-dasharray=\"3 4\" opacity=\".5\"/><line x1=\"312\" y1=\"18\" x2=\"312\" y2=\"88\" stroke=\"#b91c1c\" stroke-width=\"1\" stroke-dasharray=\"3 4\" opacity=\".5\"/><line x1=\"398\" y1=\"18\" x2=\"398\" y2=\"88\" stroke=\"#b91c1c\" stroke-width=\"1\" stroke-dasharray=\"3 4\" opacity=\".5\"/><line x1=\"484\" y1=\"18\" x2=\"484\" y2=\"88\" stroke=\"#b91c1c\" stroke-width=\"1\" stroke-dasharray=\"3 4\" opacity=\".5\"/><line x1=\"570\" y1=\"18\" x2=\"570\" y2=\"88\" stroke=\"#b91c1c\" stroke-width=\"1\" stroke-dasharray=\"3 4\" opacity=\".5\"/><line x1=\"656\" y1=\"18\" x2=\"656\" y2=\"88\" stroke=\"#b91c1c\" stroke-width=\"1\" stroke-dasharray=\"3 4\" opacity=\".5\"/><path d=\"M 128 88 L 140 58 L 152 88\" fill=\"none\" stroke=\"#b91c1c\" stroke-width=\"3\"/><path d=\"M 214 88 L 226 58 L 238 88\" fill=\"none\" stroke=\"#b91c1c\" stroke-width=\"3\"/><path d=\"M 300 88 L 312 58 L 324 88\" fill=\"none\" stroke=\"#b91c1c\" stroke-width=\"3\"/><path d=\"M 386 88 L 398 58 L 410 88\" fill=\"none\" stroke=\"#b91c1c\" stroke-width=\"3\"/><path d=\"M 472 88 L 484 58 L 496 88\" fill=\"none\" stroke=\"#b91c1c\" stroke-width=\"3\"/><path d=\"M 558 88 L 570 58 L 582 88\" fill=\"none\" stroke=\"#b91c1c\" stroke-width=\"3\"/><path d=\"M 644 88 L 656 58 L 668 88\" fill=\"none\" stroke=\"#b91c1c\" stroke-width=\"3\"/><text x=\"10\" y=\"178\" font-size=\"15\" fill=\"#475569\">真实脉搏</text><line x1=\"140\" y1=\"120\" x2=\"140\" y2=\"190\" stroke=\"#1d4ed8\" stroke-width=\"1\" stroke-dasharray=\"3 4\" opacity=\".5\"/><line x1=\"200\" y1=\"120\" x2=\"200\" y2=\"190\" stroke=\"#1d4ed8\" stroke-width=\"1\" stroke-dasharray=\"3 4\" opacity=\".5\"/><line x1=\"318\" y1=\"120\" x2=\"318\" y2=\"190\" stroke=\"#1d4ed8\" stroke-width=\"1\" stroke-dasharray=\"3 4\" opacity=\".5\"/><line x1=\"396\" y1=\"120\" x2=\"396\" y2=\"190\" stroke=\"#1d4ed8\" stroke-width=\"1\" stroke-dasharray=\"3 4\" opacity=\".5\"/><line x1=\"510\" y1=\"120\" x2=\"510\" y2=\"190\" stroke=\"#1d4ed8\" stroke-width=\"1\" stroke-dasharray=\"3 4\" opacity=\".5\"/><line x1=\"600\" y1=\"120\" x2=\"600\" y2=\"190\" stroke=\"#1d4ed8\" stroke-width=\"1\" stroke-dasharray=\"3 4\" opacity=\".5\"/><path d=\"M 128 190 L 140 160 L 152 190\" fill=\"none\" stroke=\"#1d4ed8\" stroke-width=\"3\"/><path d=\"M 188 190 L 200 160 L 212 190\" fill=\"none\" stroke=\"#1d4ed8\" stroke-width=\"3\"/><path d=\"M 306 190 L 318 160 L 330 190\" fill=\"none\" stroke=\"#1d4ed8\" stroke-width=\"3\"/><path d=\"M 384 190 L 396 160 L 408 190\" fill=\"none\" stroke=\"#1d4ed8\" stroke-width=\"3\"/><path d=\"M 498 190 L 510 160 L 522 190\" fill=\"none\" stroke=\"#1d4ed8\" stroke-width=\"3\"/><path d=\"M 588 190 L 600 160 L 612 190\" fill=\"none\" stroke=\"#1d4ed8\" stroke-width=\"3\"/><text x=\"398\" y=\"114\" text-anchor=\"middle\" font-size=\"14\" fill=\"#b91c1c\">每条线都落在同一个格子上</text><text x=\"370\" y=\"218\" text-anchor=\"middle\" font-size=\"14\" fill=\"#1d4ed8\">长短不一，对不齐</text></svg></div>",
+      "frag": true
+    },
+    {
+      "t": "p",
+      "text": "第一次叫「干扰」，第二次才叫「错误」——**假峰 + 不应期 + 时间戳塌缩**，三件事叠出一个常数。",
+      "frag": true
+    },
+    {
+      "t": "quote",
+      "text": "过于规律的数字不可能是生理信号——真实的生理信号，一定伴随着随机波动。",
+      "frag": true
+    }
+  ]
+}

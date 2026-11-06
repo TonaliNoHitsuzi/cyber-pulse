@@ -27,6 +27,7 @@ tools/        上位机 / 分析脚本（Python）
   sim_*.py           算法仿真与验证
 
 animation/    原理讲解动画（HTML，浏览器直接打开 index.html）
+slides/       课程汇报网页讲稿（117 页，静态站，index.html）
 
 hardware/     实物照片与系统拓扑图
 

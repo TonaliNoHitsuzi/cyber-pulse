@@ -1,0 +1,9 @@
+.pageBody > .p{max-width:none}
+.split{grid-template-columns:1.02fr .98fr;gap:44px;align-items:center;flex:1;min-height:0;height:auto}
+.tree{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:22px 26px;
+  font-family:var(--mono);font-size:16px;line-height:1.95;color:#334155;
+  box-shadow:0 1px 2px rgba(15,23,42,.04),0 10px 28px -18px rgba(15,23,42,.22)}
+.tree .row span{color:#94a3b8;font-family:var(--sans);font-size:14px;margin-left:10px}
+.tree .root{font-weight:700;color:#0f172a}
+.tree .last{color:#0f172a}
+.quote{font-size:33px;padding:10px 0 10px 26px;max-width:none}

@@ -1,0 +1,23 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "实验要跑几十轮，系统必须**不出错、也查得动**——靠的就是这三样。"
+    },
+    {
+      "t": "html",
+      "frag": true,
+      "html": "<div class=\"verbs\">\n  <div class=\"v\"><div class=\"n\">01</div><div class=\"h\">配置化</div>\n    <div class=\"d\">阈值、字段、通道全从配置读——加一个量、改一个门槛，不用动代码</div></div>\n  <div class=\"v\"><div class=\"n\">02</div><div class=\"h\">接口命令</div>\n    <div class=\"d\">蓝牙与串口都能下命令：连、建会话、开关记录、导出、看波形；脚本可直接驱动</div></div>\n  <div class=\"v\"><div class=\"n\">03</div><div class=\"h\">端到端调试</div>\n    <div class=\"d\">用 adb 模拟点击把整条 UI 流程跑一遍——建会话 → 开始 → 标注 → 结束 → 导出，人能点的它都能点</div></div>\n</div>"
+    },
+    {
+      "t": "p",
+      "frag": true,
+      "text": "跑一遍就知道通不通：远程建会话 → 按压 20 秒 → **入库 79 条**（512 ms/条，无断档）→ 导出正常。两天几十轮同刻对照，就是它跑出来的。"
+    },
+    {
+      "t": "quote",
+      "frag": true,
+      "text": "三板斧不是为了写得快，是为了敢跑几十轮。"
+    }
+  ]
+}

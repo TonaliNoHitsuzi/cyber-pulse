@@ -1,0 +1,12 @@
+{
+  "blocks": [
+    {
+      "t": "transition",
+      "focus": { "day": 5, "line": "org" },
+      "section": "第十八节 · 组织线",
+      "list": [
+        { "n": "01", "t": "砍掉做不成的部分" }
+      ]
+    }
+  ]
+}

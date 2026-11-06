@@ -1,0 +1,35 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "第二次见到 78，传感器根本没贴上——屏幕上照样报数。**78 正好落在正常心率区间**，所以此前没人怀疑。"
+    },
+    {
+      "t": "split",
+      "left": [
+        {
+          "t": "ul",
+          "tight": true,
+          "items": [
+            "**参数扫描**：gap 从 300 调到 600，输出从 78 一路掉到 52（右图）",
+            "**为什么会掉**：gap 是不应期，噪声一过不应期就补一个峰——**间隔被钉在 gap 上**",
+            "**为什么噪声过得去**：min/max 是**峰值保持**，专留尖刺；基线跟得慢（τ≈4 s），尖峰轻松越过「基线 + 40」"
+          ],
+          "frag": true
+        }
+      ],
+      "right": [
+        {
+          "t": "html",
+          "html": "<div class=\"fig\"><svg viewBox=\"0 0 620 320\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\"><line x1=\"70\" y1=\"260\" x2=\"590\" y2=\"260\" stroke=\"#cbd5e1\" stroke-width=\"1.4\"/><line x1=\"70\" y1=\"30\" x2=\"70\" y2=\"260\" stroke=\"#cbd5e1\" stroke-width=\"1.4\"/><line x1=\"64\" y1=\"260\" x2=\"70\" y2=\"260\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"60\" y=\"264\" text-anchor=\"end\" font-size=\"11\" fill=\"#94a3b8\">40</text><line x1=\"64\" y1=\"214\" x2=\"70\" y2=\"214\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"60\" y=\"218\" text-anchor=\"end\" font-size=\"11\" fill=\"#94a3b8\">50</text><line x1=\"64\" y1=\"168\" x2=\"70\" y2=\"168\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"60\" y=\"172\" text-anchor=\"end\" font-size=\"11\" fill=\"#94a3b8\">60</text><line x1=\"64\" y1=\"122\" x2=\"70\" y2=\"122\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"60\" y=\"126\" text-anchor=\"end\" font-size=\"11\" fill=\"#94a3b8\">70</text><line x1=\"64\" y1=\"76\" x2=\"70\" y2=\"76\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"60\" y=\"80\" text-anchor=\"end\" font-size=\"11\" fill=\"#94a3b8\">80</text><line x1=\"64\" y1=\"30\" x2=\"70\" y2=\"30\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"60\" y=\"34\" text-anchor=\"end\" font-size=\"11\" fill=\"#94a3b8\">90</text><line x1=\"101\" y1=\"260\" x2=\"101\" y2=\"266\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"101\" y=\"282\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">300</text><line x1=\"254\" y1=\"260\" x2=\"254\" y2=\"266\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"254\" y=\"282\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">400</text><line x1=\"406\" y1=\"260\" x2=\"406\" y2=\"266\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"406\" y=\"282\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">500</text><line x1=\"559\" y1=\"260\" x2=\"559\" y2=\"266\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"559\" y=\"282\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">600</text><text x=\"330\" y=\"304\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">最小间距 gap（ms）</text><text x=\"14\" y=\"22\" font-size=\"12\" fill=\"#94a3b8\">BPM</text><polyline points=\"100.6,85.2 177.1,85.2 253.5,135.8 330.0,177.2 406.5,177.2 559.4,204.8\" fill=\"none\" stroke=\"#1d4ed8\" stroke-width=\"2.6\" stroke-linejoin=\"round\"/><circle cx=\"100.6\" cy=\"85.2\" r=\"4.5\" fill=\"#fff\" stroke=\"#1d4ed8\" stroke-width=\"2.2\"/><text x=\"100.6\" y=\"73.2\" text-anchor=\"middle\" font-size=\"12\" fill=\"#1d4ed8\" font-weight=\"600\">78</text><circle cx=\"177.1\" cy=\"85.2\" r=\"4.5\" fill=\"#fff\" stroke=\"#1d4ed8\" stroke-width=\"2.2\"/><text x=\"177.1\" y=\"73.2\" text-anchor=\"middle\" font-size=\"12\" fill=\"#1d4ed8\" font-weight=\"600\">78</text><circle cx=\"253.5\" cy=\"135.8\" r=\"4.5\" fill=\"#fff\" stroke=\"#1d4ed8\" stroke-width=\"2.2\"/><text x=\"253.5\" y=\"123.8\" text-anchor=\"middle\" font-size=\"12\" fill=\"#1d4ed8\" font-weight=\"600\">67</text><circle cx=\"330.0\" cy=\"177.2\" r=\"4.5\" fill=\"#fff\" stroke=\"#1d4ed8\" stroke-width=\"2.2\"/><text x=\"330.0\" y=\"165.2\" text-anchor=\"middle\" font-size=\"12\" fill=\"#1d4ed8\" font-weight=\"600\">58</text><circle cx=\"406.5\" cy=\"177.2\" r=\"4.5\" fill=\"#fff\" stroke=\"#1d4ed8\" stroke-width=\"2.2\"/><text x=\"406.5\" y=\"165.2\" text-anchor=\"middle\" font-size=\"12\" fill=\"#1d4ed8\" font-weight=\"600\">58</text><circle cx=\"559.4\" cy=\"204.8\" r=\"4.5\" fill=\"#fff\" stroke=\"#1d4ed8\" stroke-width=\"2.2\"/><text x=\"559.4\" y=\"192.8\" text-anchor=\"middle\" font-size=\"12\" fill=\"#1d4ed8\" font-weight=\"600\">52</text></svg></div>"
+        }
+      ]
+    },
+    {
+      "t": "quote",
+      "text": "一个敢跟着参数变的数字，一定不是被测对象的属性。",
+      "frag": true
+    }
+  ],
+  "annot": "质量门管的是「弱不弱」，管不了「假不假」——后面 CV 门换一把尺子。"
+}

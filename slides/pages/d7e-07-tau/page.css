@@ -1,0 +1,11 @@
+.pageBody > .p{max-width:none}
+.split{grid-template-columns:1fr 1.1fr;gap:30px;align-items:center;flex:1;min-height:0;height:auto}
+.table{font-size:15px}
+.table th{font-size:11px;padding:0 6px 8px}
+.table td{padding:9px 6px}
+.fig{width:100%}
+.fig>svg{width:100%;height:auto;max-height:380px}
+.p.small{font-size:17.5px}
+
+.formula{font-size:21px;padding:14px 18px;line-height:1.6}
+.formula .cap{font-size:12.5px;margin-top:6px}

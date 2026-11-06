@@ -1,0 +1,9 @@
+.pageBody > .p{max-width:none}
+.pageBody{gap:18px}
+.verbs{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;flex:0 0 auto}
+.verbs .v{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:20px 22px;
+  box-shadow:0 1px 2px rgba(15,23,42,.04),0 8px 24px -16px rgba(15,23,42,.18)}
+.verbs .v .n{font-family:var(--mono);font-size:12px;color:var(--blue);letter-spacing:.14em;margin-bottom:8px}
+.verbs .v .h{font-size:21px;font-weight:700;color:#0f172a;margin-bottom:8px}
+.verbs .v .d{font-size:16px;line-height:1.65;color:#64748b}
+.quote{font-size:32px;padding:10px 0 10px 26px;max-width:none}

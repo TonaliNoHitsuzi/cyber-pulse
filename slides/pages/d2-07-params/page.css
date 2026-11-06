@@ -1,0 +1,12 @@
+.pageBody > .p{max-width:none}
+.pageBody{gap:20px}
+.paramRow{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;flex:0 0 auto}
+.pcard{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:18px 18px 16px;
+  box-shadow:0 1px 2px rgba(15,23,42,.04),0 8px 24px -14px rgba(15,23,42,.14)}
+.pcard .ph{font-size:16px;color:#64748b;margin-bottom:8px}
+.pcard .ph b{color:#0f172a;font-size:18px}
+.pcard svg{width:100%;height:auto;display:block}
+.pcard .pl,.pcard .pc{font-size:14px;line-height:1.55;color:#64748b;margin-top:6px}
+.pcard .pl i,.pcard .pc i{font-style:normal;font-family:var(--mono);font-size:11px;color:#94a3b8;margin-right:8px}
+.pcard .pc{color:#b45309}
+.quote{font-size:32px;padding:10px 0 10px 26px;max-width:none}

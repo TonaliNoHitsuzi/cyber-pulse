@@ -1,0 +1,4 @@
+.pageBody > .p{max-width:none}
+.split{grid-template-columns:1fr 1.08fr;gap:40px;align-items:center;flex:1;min-height:0;height:auto}
+.fig{display:flex;align-items:center;justify-content:center}
+.fig>svg{height:420px;width:auto;max-width:100%}

@@ -1,0 +1,35 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "同一个数，看**间隔的分布**就能分开。"
+    },
+    {
+      "t": "split",
+      "left": [
+        {
+          "t": "ul",
+          "tight": true,
+          "items": [
+            "**真实脉搏**：间隔在均值附近打转，**CV ≤ 0.05**",
+            "**噪声锁定**：大多卡在不应期（350 ms），偶尔噪声稀疏就漏一次、冒出长间隔——**尖峰 + 长尾**，CV > 0.15",
+            "**阈值 0.12**：超过就不出数"
+          ],
+          "frag": true
+        }
+      ],
+      "right": [
+        {
+          "t": "html",
+          "html": "<div class=\"fig\"><svg viewBox=\"0 0 640 300\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\"><line x1=\"90\" y1=\"262\" x2=\"610\" y2=\"262\" stroke=\"#cbd5e1\" stroke-width=\"1.4\"/><line x1=\"90\" y1=\"257\" x2=\"90\" y2=\"267\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"90\" y=\"283\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">300</text><line x1=\"164\" y1=\"257\" x2=\"164\" y2=\"267\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"164\" y=\"283\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">400</text><line x1=\"239\" y1=\"257\" x2=\"239\" y2=\"267\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"239\" y=\"283\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">500</text><line x1=\"313\" y1=\"257\" x2=\"313\" y2=\"267\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"313\" y=\"283\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">600</text><line x1=\"387\" y1=\"257\" x2=\"387\" y2=\"267\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"387\" y=\"283\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">700</text><line x1=\"461\" y1=\"257\" x2=\"461\" y2=\"267\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"461\" y=\"283\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">800</text><line x1=\"536\" y1=\"257\" x2=\"536\" y2=\"267\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"536\" y=\"283\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">900</text><line x1=\"610\" y1=\"257\" x2=\"610\" y2=\"267\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"610\" y=\"283\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">1000</text><text x=\"350\" y=\"298\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">相邻峰间隔（ms）</text><text x=\"10\" y=\"82\" font-size=\"13\" fill=\"#475569\">真实脉搏</text><circle cx=\"443.0\" cy=\"88.1\" r=\"4\" fill=\"#1d4ed8\" opacity=\".8\"/><circle cx=\"458.4\" cy=\"81.3\" r=\"4\" fill=\"#1d4ed8\" opacity=\".8\"/><circle cx=\"444.7\" cy=\"91.4\" r=\"4\" fill=\"#1d4ed8\" opacity=\".8\"/><circle cx=\"464.1\" cy=\"82.4\" r=\"4\" fill=\"#1d4ed8\" opacity=\".8\"/><circle cx=\"454.2\" cy=\"73.6\" r=\"4\" fill=\"#1d4ed8\" opacity=\".8\"/><circle cx=\"437.8\" cy=\"77.9\" r=\"4\" fill=\"#1d4ed8\" opacity=\".8\"/><circle cx=\"456.8\" cy=\"68.2\" r=\"4\" fill=\"#1d4ed8\" opacity=\".8\"/><circle cx=\"463.6\" cy=\"73.4\" r=\"4\" fill=\"#1d4ed8\" opacity=\".8\"/><circle cx=\"445.3\" cy=\"67.4\" r=\"4\" fill=\"#1d4ed8\" opacity=\".8\"/><circle cx=\"470.3\" cy=\"89.6\" r=\"4\" fill=\"#1d4ed8\" opacity=\".8\"/><circle cx=\"466.3\" cy=\"85.7\" r=\"4\" fill=\"#1d4ed8\" opacity=\".8\"/><circle cx=\"438.8\" cy=\"76.5\" r=\"4\" fill=\"#1d4ed8\" opacity=\".8\"/><circle cx=\"453.9\" cy=\"69.7\" r=\"4\" fill=\"#1d4ed8\" opacity=\".8\"/><circle cx=\"468.8\" cy=\"77.8\" r=\"4\" fill=\"#1d4ed8\" opacity=\".8\"/><circle cx=\"442.7\" cy=\"92.2\" r=\"4\" fill=\"#1d4ed8\" opacity=\".8\"/><circle cx=\"441.7\" cy=\"95.7\" r=\"4\" fill=\"#1d4ed8\" opacity=\".8\"/><text x=\"484\" y=\"66\" font-size=\"12\" fill=\"#1d4ed8\">聚成一团 · CV ≈ 0.03</text><text x=\"10\" y=\"196\" font-size=\"13\" fill=\"#475569\">噪声锁定</text><circle cx=\"128.1\" cy=\"197.5\" r=\"4\" fill=\"#b91c1c\" opacity=\".85\"/><circle cx=\"127.0\" cy=\"195.6\" r=\"4\" fill=\"#b91c1c\" opacity=\".85\"/><circle cx=\"125.4\" cy=\"183.0\" r=\"4\" fill=\"#b91c1c\" opacity=\".85\"/><circle cx=\"132.4\" cy=\"188.6\" r=\"4\" fill=\"#b91c1c\" opacity=\".85\"/><circle cx=\"131.5\" cy=\"187.8\" r=\"4\" fill=\"#b91c1c\" opacity=\".85\"/><circle cx=\"133.5\" cy=\"207.0\" r=\"4\" fill=\"#b91c1c\" opacity=\".85\"/><circle cx=\"131.3\" cy=\"203.4\" r=\"4\" fill=\"#b91c1c\" opacity=\".85\"/><circle cx=\"129.5\" cy=\"202.4\" r=\"4\" fill=\"#b91c1c\" opacity=\".85\"/><circle cx=\"124.7\" cy=\"195.3\" r=\"4\" fill=\"#b91c1c\" opacity=\".85\"/><circle cx=\"132.0\" cy=\"187.6\" r=\"4\" fill=\"#b91c1c\" opacity=\".85\"/><circle cx=\"133.0\" cy=\"206.9\" r=\"4\" fill=\"#b91c1c\" opacity=\".85\"/><circle cx=\"127.7\" cy=\"192.2\" r=\"4\" fill=\"#b91c1c\" opacity=\".85\"/><circle cx=\"128.1\" cy=\"192.8\" r=\"4\" fill=\"#b91c1c\" opacity=\".85\"/><circle cx=\"133.8\" cy=\"192.8\" r=\"4\" fill=\"#b91c1c\" opacity=\".85\"/><circle cx=\"418.3\" cy=\"196\" r=\"4\" fill=\"#b91c1c\" opacity=\".5\"/><circle cx=\"470.3\" cy=\"206\" r=\"4\" fill=\"#b91c1c\" opacity=\".5\"/><circle cx=\"537.2\" cy=\"190\" r=\"4\" fill=\"#b91c1c\" opacity=\".5\"/><circle cx=\"578.8\" cy=\"204\" r=\"4\" fill=\"#b91c1c\" opacity=\".5\"/><text x=\"157\" y=\"230\" font-size=\"12\" fill=\"#b91c1c\">大部分卡在 350 ms</text><text x=\"402\" y=\"170\" font-size=\"12\" fill=\"#b91c1c\">偶尔漏一拍 → 长尾 · CV &gt; 0.15</text></svg></div>",
+          "frag": true
+        }
+      ]
+    },
+    {
+      "t": "quote",
+      "text": "判断一个数字是不是生理量，除了看它的值，还需要看它的分布情况。",
+      "frag": true
+    }
+  ]
+}

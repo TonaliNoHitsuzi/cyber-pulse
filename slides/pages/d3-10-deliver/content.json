@@ -1,0 +1,35 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "11 月 1 日晚上，把整个项目打包发了出去——**代码、数据、文档、下一步清单。**"
+    },
+    {
+      "t": "split",
+      "left": [
+        {
+          "t": "ul",
+          "tight": true,
+          "items": [
+            "**能直接跑**：固件能编译，APK 装上就能用",
+            "**能对账**：数据与文档放在一起，数字有出处",
+            "**能接着干**：下一步清单写清楚谁做什么"
+          ],
+          "frag": true
+        }
+      ],
+      "right": [
+        {
+          "t": "html",
+          "html": "<div class=\"tree\"><div class=\"row root\">D3-交付包/</div>\n<div class=\"row\">├─ 固件源码 <span>main.c · partitions.csv</span></div>\n<div class=\"row\">├─ App <span>APK，装上就能用</span></div>\n<div class=\"row\">├─ 数据 <span>当天实测的原始记录</span></div>\n<div class=\"row\">├─ 文档 <span>迭代记录 · 交接说明</span></div>\n<div class=\"row last\">└─ 下一步清单 <span>明天谁做什么</span></div></div>",
+          "frag": true
+        }
+      ]
+    },
+    {
+      "t": "quote",
+      "text": "交付物的形式，决定协作的成本。",
+      "frag": true
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+.pageBody > .p{max-width:none}
+.steps{gap:18px}
+.steps .step{padding:22px 22px}
+.steps .step .t{font-size:20px}
+.quote{font-size:34px;padding:12px 0 12px 26px;max-width:none}

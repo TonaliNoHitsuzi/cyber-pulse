@@ -1,0 +1,32 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "16 字节头 + 每秒一块——格式简单到可以直接用十六进制看。",
+      "frag": true
+    },
+    {
+      "t": "split",
+      "left": [
+        {
+          "t": "ul",
+          "tight": true,
+          "frag": true,
+          "items": [
+            "每秒一个**时间戳**：块内用采样序号，误差锁在 1 秒内",
+            "块与块的间隔对不上，就能发现**丢块**",
+            "开销 6 B / 2006 B ≈ **0.3%**"
+          ]
+        }
+      ],
+      "right": [
+        {
+          "t": "html",
+          "html": "<div class=\"fig\"><svg viewBox=\"0 0 620 390\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\">\n<text x=\"50\" y=\"34\" font-size=\"12.5\" fill=\"#475569\" font-weight=\"600\">文件头 · 16 B</text>\n<g font-size=\"10\" text-anchor=\"middle\" fill=\"#fff\">\n<rect x=\"60\" y=\"46\" width=\"120\" height=\"38\" fill=\"#1d4ed8\"/><text x=\"120\" y=\"70\">CPLS</text>\n<rect x=\"180\" y=\"46\" width=\"30\" height=\"38\" fill=\"#3b82f6\"/><text x=\"195\" y=\"70\">ver</text>\n<rect x=\"210\" y=\"46\" width=\"60\" height=\"38\" fill=\"#60a5fa\"/><text x=\"240\" y=\"70\">fs</text>\n<rect x=\"270\" y=\"46\" width=\"120\" height=\"38\" fill=\"#3b82f6\"/><text x=\"330\" y=\"70\">start_ms</text>\n<rect x=\"390\" y=\"46\" width=\"120\" height=\"38\" fill=\"#60a5fa\"/><text x=\"450\" y=\"70\">task_id</text>\n<rect x=\"510\" y=\"46\" width=\"30\" height=\"38\" fill=\"#bfdbfe\"/><text x=\"525\" y=\"70\" fill=\"#1d4ed8\">·</text>\n</g>\n<text x=\"60\" y=\"102\" font-size=\"10.5\" fill=\"#94a3b8\">魔数 / 版本 / 采样率 / 起始毫秒 / 任务号</text>\n\n<text x=\"50\" y=\"150\" font-size=\"12.5\" fill=\"#475569\" font-weight=\"600\">每秒一块 · 2006 B</text>\n<g font-size=\"10\" text-anchor=\"middle\">\n<rect x=\"60\" y=\"162\" width=\"96\" height=\"46\" fill=\"#0f766e\"/><text x=\"108\" y=\"189\" fill=\"#fff\">ts 4B</text>\n<rect x=\"156\" y=\"162\" width=\"48\" height=\"46\" fill=\"#14b8a6\"/><text x=\"180\" y=\"189\" fill=\"#fff\">n 2B</text>\n<rect x=\"204\" y=\"162\" width=\"336\" height=\"46\" fill=\"#ccfbf1\" stroke=\"#99f6e4\"/><text x=\"372\" y=\"189\" fill=\"#0f766e\">1000 × int16（2000 B）</text>\n</g>\n<g font-size=\"10\" text-anchor=\"middle\">\n<rect x=\"60\" y=\"216\" width=\"96\" height=\"46\" fill=\"#0f766e\"/><text x=\"108\" y=\"243\" fill=\"#fff\">ts 4B</text>\n<rect x=\"156\" y=\"216\" width=\"48\" height=\"46\" fill=\"#14b8a6\"/><text x=\"180\" y=\"243\" fill=\"#fff\">n 2B</text>\n<rect x=\"204\" y=\"216\" width=\"336\" height=\"46\" fill=\"#ccfbf1\" stroke=\"#99f6e4\"/><text x=\"372\" y=\"243\" fill=\"#0f766e\">1000 × int16（2000 B）</text>\n</g>\n<text x=\"372\" y=\"284\" text-anchor=\"middle\" font-size=\"10.5\" fill=\"#94a3b8\">每秒重复；块内靠采样序号定位</text>\n\n<g font-size=\"11\" fill=\"#64748b\">\n<line x1=\"108\" y1=\"300\" x2=\"108\" y2=\"164\" stroke=\"#94a3b8\" stroke-dasharray=\"3 3\"/>\n<text x=\"108\" y=\"318\" text-anchor=\"middle\">误差 ≤ 1 s</text>\n<text x=\"372\" y=\"318\" text-anchor=\"middle\">块间隔对不上 → 丢块可见</text>\n<text x=\"470\" y=\"352\" text-anchor=\"middle\" fill=\"#c2410c\" font-weight=\"600\">开销 6 / 2006 ≈ 0.3%</text>\n</g>\n</svg></div>",
+          "frag": true
+        }
+      ]
+    }
+  ],
+  "annot": "格式：16 B 头（CPLS/ver/fs/start/task）+ 每块 [uint32 ms][uint16 n][int16 × n]。"
+}

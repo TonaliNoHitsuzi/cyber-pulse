@@ -1,0 +1,37 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "先把「准不准」变成一个能被回答的问题：**同一时刻**，设备读一次、手表读一次，差值就是误差。"
+    },
+    {
+      "t": "split",
+      "left": [
+        {
+          "t": "figure",
+          "src": "assets/watch.jpg",
+          "caption": "华为手表：同刻对照的金标准",
+          "frag": true
+        }
+      ],
+      "right": [
+        {
+          "t": "html",
+          "html": "<div class=\"fig\"><svg viewBox=\"0 0 620 300\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\"><line x1=\"80\" y1=\"266\" x2=\"580\" y2=\"266\" stroke=\"#cbd5e1\" stroke-width=\"1.4\"/><line x1=\"130\" y1=\"260\" x2=\"130\" y2=\"272\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"130\" y=\"290\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">-4</text><line x1=\"230\" y1=\"260\" x2=\"230\" y2=\"272\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"230\" y=\"290\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">-2</text><line x1=\"330\" y1=\"260\" x2=\"330\" y2=\"272\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"330\" y=\"290\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">0</text><line x1=\"430\" y1=\"260\" x2=\"430\" y2=\"272\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"430\" y=\"290\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">+2</text><line x1=\"530\" y1=\"260\" x2=\"530\" y2=\"272\" stroke=\"#cbd5e1\" stroke-width=\"1.2\"/><text x=\"530\" y=\"290\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">+4</text><line x1=\"330\" y1=\"34\" x2=\"330\" y2=\"260\" stroke=\"#c3cfdd\" stroke-width=\"1.2\" stroke-dasharray=\"5 5\"/><text x=\"66\" y=\"69\" text-anchor=\"end\" font-size=\"13\" fill=\"#475569\">第 1 轮</text><circle cx=\"440.0\" cy=\"64\" r=\"6\" fill=\"#0f766e\"/><text x=\"452.0\" y=\"69\" text-anchor=\"start\" font-size=\"13\" fill=\"#0f766e\" font-weight=\"600\">+2.2</text><text x=\"66\" y=\"111\" text-anchor=\"end\" font-size=\"13\" fill=\"#475569\">第 2 轮</text><circle cx=\"440.0\" cy=\"106\" r=\"6\" fill=\"#0f766e\"/><text x=\"452.0\" y=\"111\" text-anchor=\"start\" font-size=\"13\" fill=\"#0f766e\" font-weight=\"600\">+2.2</text><text x=\"66\" y=\"153\" text-anchor=\"end\" font-size=\"13\" fill=\"#475569\">第 3 轮</text><circle cx=\"175.0\" cy=\"148\" r=\"6\" fill=\"#ea580c\"/><text x=\"163.0\" y=\"153\" text-anchor=\"end\" font-size=\"13\" fill=\"#ea580c\" font-weight=\"600\">-3.1</text><text x=\"66\" y=\"195\" text-anchor=\"end\" font-size=\"13\" fill=\"#475569\">第 4 轮</text><circle cx=\"320.0\" cy=\"190\" r=\"6\" fill=\"#0f766e\"/><text x=\"308.0\" y=\"195\" text-anchor=\"end\" font-size=\"13\" fill=\"#0f766e\" font-weight=\"600\">-0.2</text><text x=\"66\" y=\"237\" text-anchor=\"end\" font-size=\"13\" fill=\"#475569\">第 5 轮</text><circle cx=\"285.0\" cy=\"232\" r=\"6\" fill=\"#0f766e\"/><text x=\"273.0\" y=\"237\" text-anchor=\"end\" font-size=\"13\" fill=\"#0f766e\" font-weight=\"600\">-0.9</text></svg></div>",
+          "frag": true
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "small": true,
+      "text": "五轮差值都落在几个 BPM 内；**偏置 +2~3 稳定，可以标定扣掉**。之前 82 vs 68 的矛盾来自先后测量——等长收缩升压、放松回落，同刻之后消失。",
+      "frag": true
+    },
+    {
+      "t": "quote",
+      "text": "以后所有「准不准」，都用同刻对照来回答。",
+      "frag": true
+    }
+  ]
+}

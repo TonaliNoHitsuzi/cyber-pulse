@@ -1,0 +1,10 @@
+.pageBody > .p{max-width:none}
+.pageBody{gap:18px}
+.stateFrame{flex:0 0 auto;border:2px solid #cfe0f7;background:#f7fbff;border-radius:20px;padding:16px 16px 14px}
+.oledRow{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.ocard{background:#fff;border:1px solid #e6eef7;border-radius:14px;padding:12px}
+.ocard svg,.ocard img{width:100%;height:auto;display:block;border-radius:8px}
+.ocap{font-size:13px;line-height:1.5;color:#64748b;margin-top:10px}
+.ocap b{display:block;font-family:var(--mono);font-size:13px;color:#0f172a;margin-bottom:3px}
+.note{font-size:17px}
+.quote{font-size:32px;padding:10px 0 10px 26px;max-width:none}

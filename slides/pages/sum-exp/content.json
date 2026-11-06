@@ -1,0 +1,26 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "从一次对照开始，最后把实验拆成三段。",
+      "frag": true
+    },
+    {
+      "t": "html",
+      "html": "<div class=\"sumGrid\">\n<div class=\"sc\"><div class=\"h\">起点</div><div class=\"t\">一次对照</div><div class=\"d\">静息同刻 1 / 0 BPM；以为跑起来也能这样比。</div></div>\n<div class=\"sc\"><div class=\"h\">拿到</div><div class=\"t\">三段式</div><div class=\"d\">静息 / 运动 / 恢复；MAE 5.2、τ 42~65 s。</div></div>\n<div class=\"sc warn\"><div class=\"h\">卡在</div><div class=\"t\">样本与场景</div><div class=\"d\">只有 4 人；运动段只能降级，不能承诺精度。</div></div>\n</div>",
+      "frag": true
+    },
+    {
+      "t": "p",
+      "small": true,
+      "text": "出路：分段承诺——静息报数、运动采集、恢复分析。",
+      "frag": true
+    },
+    {
+      "t": "quote",
+      "text": "理论主义的硬件和算法，最终要在真实实验里接受检验、发现问题和改进。实验得到的数据、经验和犯下的错误，又会反过来逼实验自身规范化，形成稳定可复现的范式，降低不确定性带来的影响。",
+      "frag": true
+    }
+  ],
+  "annot": "总结 · 实验线：从单次对照到分段承诺。"
+}

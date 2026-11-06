@@ -1,0 +1,8 @@
+{
+  "blocks": [
+    {
+      "t": "html",
+      "html": "<div class=\"shots\"><div class=\"shot\"><div class=\"tag\"><i>01</i>主界面</div>\n<img src=\"assets/main.jpg\" alt=\"主界面\">\n<div class=\"cap\">开始新测量；历史记录带被试、序号与时间</div></div><div class=\"shot\"><div class=\"tag\"><i>02</i>新建测量</div>\n<img src=\"assets/form.jpg\" alt=\"新建测量\">\n<div class=\"cap\">采集通道 + 常用被试一键填入；身体信息与运动/手/手指</div></div><div class=\"shot\"><div class=\"tag\"><i>03</i>测量中</div>\n<img src=\"assets/measure.jpg\" alt=\"测量中\">\n<div class=\"cap\">BPM、佩戴状态、p95、实时波形；老方法 / 新方法 / 对照</div></div></div>"
+    }
+  ]
+}

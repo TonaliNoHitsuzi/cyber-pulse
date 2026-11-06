@@ -1,0 +1,15 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "把心跳测准；再搞清楚，**哪里测不准**。",
+      "frag": true
+    },
+    {
+      "t": "html",
+      "html": "<div class=\"fig\"><svg viewBox=\"0 0 1100 180\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\">\n<line x1=\"80\" y1=\"100\" x2=\"1020\" y2=\"100\" stroke=\"#cbd5e1\" stroke-width=\"1.5\"/>\n<circle cx=\"100\" cy=\"100\" r=\"7\" fill=\"#1d4ed8\"/><text x=\"100\" y=\"76\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">Day 1</text><text x=\"100\" y=\"134\" text-anchor=\"middle\" font-size=\"14\" fill=\"#334155\">建立</text><circle cx=\"250\" cy=\"100\" r=\"7\" fill=\"#1d4ed8\"/><text x=\"250\" y=\"76\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">Day 2</text><text x=\"250\" y=\"134\" text-anchor=\"middle\" font-size=\"14\" fill=\"#334155\">能做到</text><circle cx=\"400\" cy=\"100\" r=\"7\" fill=\"#1d4ed8\"/><text x=\"400\" y=\"76\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">Day 3</text><text x=\"400\" y=\"134\" text-anchor=\"middle\" font-size=\"14\" fill=\"#334155\">产品化</text><circle cx=\"550\" cy=\"100\" r=\"7\" fill=\"#1d4ed8\"/><text x=\"550\" y=\"76\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">Day 4</text><text x=\"550\" y=\"134\" text-anchor=\"middle\" font-size=\"14\" fill=\"#334155\">第二次被骗</text><circle cx=\"700\" cy=\"100\" r=\"7\" fill=\"#1d4ed8\"/><text x=\"700\" y=\"76\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">Day 5</text><text x=\"700\" y=\"134\" text-anchor=\"middle\" font-size=\"14\" fill=\"#334155\">定边界</text><circle cx=\"850\" cy=\"100\" r=\"7\" fill=\"#1d4ed8\"/><text x=\"850\" y=\"76\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">Day 6</text><text x=\"850\" y=\"134\" text-anchor=\"middle\" font-size=\"14\" fill=\"#334155\">工程化</text><circle cx=\"1000\" cy=\"100\" r=\"7\" fill=\"#1d4ed8\"/><text x=\"1000\" y=\"76\" text-anchor=\"middle\" font-size=\"12\" fill=\"#94a3b8\">Day 7</text><text x=\"1000\" y=\"134\" text-anchor=\"middle\" font-size=\"14\" fill=\"#334155\">验收</text>\n</svg></div>",
+      "frag": true
+    }
+  ],
+  "annot": "七天的主线：建立 → 能做到 → 产品化 → 被骗 → 定边界 → 工程化 → 验收。"
+}

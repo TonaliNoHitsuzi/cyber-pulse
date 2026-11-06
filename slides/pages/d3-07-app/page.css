@@ -1,0 +1,7 @@
+.pageBody > .p{max-width:none}
+.pageBody{gap:20px}
+.flow{flex:0 0 auto}
+.flow>svg{width:100%;height:auto;display:block}
+.ul{max-width:none}
+.ul li{font-size:23px}
+.quote{font-size:32px;padding:10px 0 10px 26px;max-width:none}

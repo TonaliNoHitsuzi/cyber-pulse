@@ -1,0 +1,3 @@
+/* 封面：标题下留白更大，底部一行小字 */
+#deck .pageBody { gap: 18px; }
+#deck .h1 { font-size: 88px; letter-spacing: -.03em; }

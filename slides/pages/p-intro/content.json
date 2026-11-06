@@ -1,0 +1,15 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "一片压电薄膜、一块 ESP32-C3、一个手机 App——从手腕读出心跳。",
+      "frag": true
+    },
+    {
+      "t": "html",
+      "html": "<div class=\"introGrid\">\n<div class=\"ic\"><div class=\"h\">是什么</div><ul>\n<li>ESP32-C3 + 压电薄膜，手腕佩戴</li>\n<li>拇指按压（或绑带）把膜贴住桡动脉</li>\n<li>硬件 + 手机 App + 离线分析</li>\n</ul></div>\n<div class=\"ic\"><div class=\"h\">能干什么</div><ul>\n<li>静息心率，误差 0~2 BPM</li>\n<li>信号质量分级：GOOD / WEAK / IDLE…</li>\n<li>OLED 与灯带现场反馈；手机记录与导出</li>\n</ul></div>\n<div class=\"ic\"><div class=\"h\">我们拿它做了什么</div><ul>\n<li>7 天、4 人、多段采集</li>\n<li>离线还原跑步心率与恢复曲线</li>\n<li>摸清边界：什么时候不能用</li>\n</ul></div>\n</div>",
+      "frag": true
+    }
+  ],
+  "annot": "开场总览：系统、能力、以及我们用它做了什么。"
+}

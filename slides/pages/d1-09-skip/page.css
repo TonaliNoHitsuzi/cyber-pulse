@@ -1,0 +1,7 @@
+.pageBody > .p{max-width:none}
+.split{grid-template-columns:1.05fr .95fr;gap:46px;align-items:center;flex:1;min-height:0;height:auto}
+.skip{height:100%;display:flex;align-items:center;justify-content:center}
+.skip>svg{height:100%;width:auto;max-width:100%}
+.formula{font-size:30px;padding:20px 24px}
+.formula .cap{font-size:15px;margin-top:8px}
+.quote{font-size:34px;padding:12px 0 12px 26px;max-width:none}

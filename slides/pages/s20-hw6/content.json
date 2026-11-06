@@ -1,0 +1,18 @@
+{
+  "blocks": [
+    {
+      "t": "transition",
+      "focus": {
+        "day": 6,
+        "line": "hw"
+      },
+      "section": "第二十节 · 硬件线",
+      "list": [
+        {
+          "n": "01",
+          "t": "把 4 MB 切开"
+        }
+      ]
+    }
+  ]
+}

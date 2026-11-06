@@ -1,0 +1,26 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "从峰间隔开始，最后发现实时这条路走不通。",
+      "frag": true
+    },
+    {
+      "t": "html",
+      "html": "<div class=\"sumGrid\">\n<div class=\"sc\"><div class=\"h\">起点</div><div class=\"t\">事件计时</div><div class=\"d\">峰间隔 → 周期 → BPM；对幅度漂移免疫。</div></div>\n<div class=\"sc\"><div class=\"h\">拿到</div><div class=\"t\">静息准</div><div class=\"d\">同刻误差 0~2 BPM；时基修正（恒 78）；CV 门与冷启动。</div></div>\n<div class=\"sc warn\"><div class=\"h\">卡在</div><div class=\"t\">上限与混入</div><div class=\"d\">85.7 限幅；步频÷2 混入；单独可解，叠加不可解。</div></div>\n</div>",
+      "frag": true
+    },
+    {
+      "t": "p",
+      "small": true,
+      "text": "出路：实时退到采集，离线用全局估计 + 两个手表锚点还原。",
+      "frag": true
+    },
+    {
+      "t": "quote",
+      "text": "算法是嵌入式开发的软件端：低成本、敏捷高效、跨平台。它负责调用与分配系统资源、把信号转化成价值、润滑软硬件边界。它的上限被硬件锁死，但能不能够到上限、把系统潜力发挥出来，和算法开发密不可分——算法是嵌入式开发的灵魂。",
+      "frag": true
+    }
+  ],
+  "annot": "总结 · 算法线：静息准，运动不可解。"
+}

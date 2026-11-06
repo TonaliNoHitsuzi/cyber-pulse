@@ -1,0 +1,6 @@
+.split{grid-template-columns:1fr 1.05fr;gap:36px;align-items:center}
+.figrow{gap:12px;height:auto;align-items:flex-start}
+.figrow .figure{height:auto}
+.figrow .figure img{height:150px;width:100%;object-fit:cover;border-radius:10px}
+.figrow .cap{font-size:12px}
+.quote{font-size:31px;padding:12px 0 12px 28px;max-width:none}

@@ -1,0 +1,29 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "屏幕上直接写着现在的状态——**它自己知道测得准不准**。"
+    },
+    {
+      "t": "html",
+      "frag": true,
+      "html": "<div class=\"stateFrame\"><div class=\"oledRow\">\n  <div class=\"ocard\"><img src=\"assets/oled_good.svg\" alt=\"OLED 屏 GOOD 状态：PULSE、GOOD、p95=62、信号条约三成、大号 078 BPM\"><div class=\"ocap\"><b>GOOD</b>p95 ≥ 45 且 p50 ≥ 18 · 过门控，出数</div></div>\n  <div class=\"ocard\"><img src=\"assets/oled_weak.svg\" alt=\"OLED 屏 WEAK 状态：PULSE、WEAK、p95=41、信号条约两成、BPM 位显示 ---\"><div class=\"ocap\"><b>WEAK</b>有信号，质量不足 · 不过门控</div></div>\n  <div class=\"ocard\"><img src=\"assets/oled_idle.svg\" alt=\"OLED 屏 IDLE 状态：PULSE、IDLE、p95=12、信号条几乎空、BPM 位显示 ---\"><div class=\"ocap\"><b>IDLE</b>p95 &lt; 38 · 根本没信号</div></div>\n</div></div>"
+    },
+    {
+      "t": "p",
+      "small": true,
+      "frag": true,
+      "text": "一共七个状态，只有 **GOOD** 出数。WEAK、IDLE、SRCH（在找拍）、VIB（悬空振荡）、OVER（压太狠）、MOTION（在动）都只显示、不出数。门控的判据只有一条：**p95 ≥ 45 且 p50 ≥ 18**。"
+    },
+    {
+      "t": "note",
+      "frag": true,
+      "text": "力没有标定过牛顿值——设备拿「中线」当力计：调到 p95 最大，中线还没顶过 2600（压闭血管），就是甜区。"
+    },
+    {
+      "t": "quote",
+      "frag": true,
+      "text": "与其想办法修坏数据，不如先判断它值不值得信。"
+    }
+  ]
+}

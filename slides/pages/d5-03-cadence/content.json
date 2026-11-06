@@ -1,0 +1,73 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "把波形拆成频率：主峰不在心率上，落在步频除以二的位置。"
+    },
+    {
+      "t": "split",
+      "left": [
+        {
+          "t": "table",
+          "head": [
+            "会话",
+            "步频",
+            "÷2",
+            "自相关",
+            "差"
+          ],
+          "rows": [
+            [
+              "#1 跑",
+              "173",
+              "86",
+              "83",
+              "−3.5%"
+            ],
+            [
+              "#2 跑",
+              "162",
+              "81",
+              "79",
+              "−2.5%"
+            ],
+            [
+              "#3 跑",
+              "178",
+              "89",
+              "91",
+              "+2.2%"
+            ],
+            [
+              "#4 走",
+              "111",
+              "56",
+              "56",
+              "0"
+            ],
+            [
+              "#5 走",
+              "118",
+              "59",
+              "58",
+              "−1.7%"
+            ]
+          ]
+        }
+      ],
+      "right": [
+        {
+          "t": "html",
+          "html": "<div class=\"fig\"><svg viewBox=\"0 0 600 420\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\">\n<g stroke=\"#eef2f7\" stroke-width=\"1\">\n<line x1=\"156.7\" y1=\"40\" x2=\"156.7\" y2=\"340\"/><line x1=\"223.3\" y1=\"40\" x2=\"223.3\" y2=\"340\"/><line x1=\"290\" y1=\"40\" x2=\"290\" y2=\"340\"/><line x1=\"356.7\" y1=\"40\" x2=\"356.7\" y2=\"340\"/>\n<line x1=\"90\" y1=\"273.3\" x2=\"390\" y2=\"273.3\"/><line x1=\"90\" y1=\"206.7\" x2=\"390\" y2=\"206.7\"/><line x1=\"90\" y1=\"140\" x2=\"390\" y2=\"140\"/><line x1=\"90\" y1=\"73.3\" x2=\"390\" y2=\"73.3\"/>\n</g>\n<line x1=\"90\" y1=\"340\" x2=\"390\" y2=\"340\" stroke=\"#cbd5e1\" stroke-width=\"1.3\"/>\n<line x1=\"90\" y1=\"40\" x2=\"90\" y2=\"340\" stroke=\"#cbd5e1\" stroke-width=\"1.3\"/>\n<line x1=\"90\" y1=\"340\" x2=\"390\" y2=\"40\" stroke=\"#94a3b8\" stroke-width=\"1.3\" stroke-dasharray=\"6 5\"/>\n<g font-size=\"11\" fill=\"#94a3b8\">\n<g text-anchor=\"middle\"><text x=\"90\" y=\"358\">50</text><text x=\"156.7\" y=\"358\">60</text><text x=\"223.3\" y=\"358\">70</text><text x=\"290\" y=\"358\">80</text><text x=\"356.7\" y=\"358\">90</text></g>\n<g text-anchor=\"end\"><text x=\"82\" y=\"344\">50</text><text x=\"82\" y=\"277.3\">60</text><text x=\"82\" y=\"210.7\">70</text><text x=\"82\" y=\"144\">80</text><text x=\"82\" y=\"77.3\">90</text></g>\n<text x=\"240\" y=\"384\" text-anchor=\"middle\" font-size=\"11.5\">步频 ÷ 2（spm）</text>\n<text x=\"54\" y=\"190\" text-anchor=\"middle\" font-size=\"11.5\" transform=\"rotate(-90 54 190)\">波形主频（spm）</text>\n</g>\n<g>\n<circle cx=\"330\" cy=\"120\" r=\"6.5\" fill=\"#ea580c\" stroke=\"#fff\" stroke-width=\"1.6\"/>\n<circle cx=\"296.7\" cy=\"146.7\" r=\"6.5\" fill=\"#ea580c\" stroke=\"#fff\" stroke-width=\"1.6\"/>\n<circle cx=\"350\" cy=\"66.7\" r=\"6.5\" fill=\"#ea580c\" stroke=\"#fff\" stroke-width=\"1.6\"/>\n<circle cx=\"130\" cy=\"300\" r=\"6.5\" fill=\"#ea580c\" stroke=\"#fff\" stroke-width=\"1.6\"/>\n<circle cx=\"150\" cy=\"286.7\" r=\"6.5\" fill=\"#ea580c\" stroke=\"#fff\" stroke-width=\"1.6\"/>\n</g>\n<g font-size=\"11.5\" fill=\"#9a3412\" font-weight=\"600\">\n<text x=\"347\" y=\"113\">#1 跑</text>\n<text x=\"313\" y=\"139\">#2 跑</text>\n<text x=\"365\" y=\"60\">#3 跑</text>\n<text x=\"119\" y=\"321\">#4 走</text>\n<text x=\"161\" y=\"283\">#5 走</text>\n</g>\n<g font-size=\"11.5\" fill=\"#64748b\">\n<line x1=\"410\" y1=\"120\" x2=\"440\" y2=\"120\" stroke=\"#94a3b8\" stroke-width=\"1.4\" stroke-dasharray=\"6 5\"/>\n<text x=\"448\" y=\"124\">y = x（完全相等）</text>\n<circle cx=\"418\" cy=\"152\" r=\"4.5\" fill=\"#ea580c\"/>\n<text x=\"432\" y=\"156\">自相关估计</text>\n<text x=\"410\" y=\"196\" font-weight=\"600\" fill=\"#0f172a\">5 组最大偏差 3.5%</text>\n</g>\n</svg></div>",
+          "frag": true
+        }
+      ]
+    },
+    {
+      "t": "quote",
+      "text": "运动状态下，检测到的不是心率，而是运动的周期。",
+      "frag": true
+    }
+  ],
+  "annot": "波形主频：0.5~4 Hz 带通后做自相关，20 s 窗。"
+}

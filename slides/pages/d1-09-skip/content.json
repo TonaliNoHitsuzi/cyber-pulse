@@ -1,0 +1,41 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "350 挡不住重搏波——它离得太近，刚过线。一个心动周期照样报两个峰。"
+    },
+    {
+      "t": "split",
+      "left": [
+        {
+          "t": "ul",
+          "tight": true,
+          "items": [
+            "按**相邻峰**算间隔 → 一个心跳数成两拍，心率正好翻倍",
+            "改成**隔一个峰配对（i+2）** → 双峰消失，心率立刻稳定",
+            "代价：**只用到实际间隔的一半信息**"
+          ],
+          "frag": true
+        },
+        {
+          "t": "formula",
+          "html": "BPM = 60 / (2 × Δt)",
+          "caption": "Δt = 350 ms → 60 / 0.7 = 85.7",
+          "frag": true
+        }
+      ],
+      "right": [
+        {
+          "t": "html",
+          "html": "<div class=\"skip\"><svg viewBox=\"0 0 720 400\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\">\n<defs>\n<marker id=\"ar\" viewBox=\"0 0 12 12\" refX=\"6\" refY=\"6\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto\"><path d=\"M6 1 L1 6 L6 11\" fill=\"none\" stroke=\"#ea580c\" stroke-width=\"1.6\"/></marker>\n<marker id=\"ar-r\" viewBox=\"0 0 12 12\" refX=\"6\" refY=\"6\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto\"><path d=\"M6 1 L1 6 L6 11\" fill=\"none\" stroke=\"#b91c1c\" stroke-width=\"1.6\"/></marker>\n</defs>\n<path d=\"M 88 300 L 110 100 L 132 300\" fill=\"none\" stroke=\"#1d4ed8\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M 328 300 L 350 100 L 372 300\" fill=\"none\" stroke=\"#1d4ed8\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M 568 300 L 590 100 L 612 300\" fill=\"none\" stroke=\"#1d4ed8\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M 168 300 L 190 180 L 212 300\" fill=\"none\" stroke=\"#93c5fd\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M 408 300 L 430 180 L 452 300\" fill=\"none\" stroke=\"#93c5fd\" stroke-width=\"3\" stroke-linejoin=\"round\"/><path d=\"M 648 300 L 670 180 L 692 300\" fill=\"none\" stroke=\"#93c5fd\" stroke-width=\"3\" stroke-linejoin=\"round\"/><line x1=\"40\" y1=\"300\" x2=\"700\" y2=\"300\" stroke=\"#cbd5e1\" stroke-width=\"1.4\"/><text x=\"110\" y=\"86\" text-anchor=\"middle\" font-size=\"14\" fill=\"#1d4ed8\" font-weight=\"600\">主波</text><text x=\"190\" y=\"166\" text-anchor=\"middle\" font-size=\"13\" fill=\"#94a3b8\">重搏波</text><line x1=\"110\" y1=\"56\" x2=\"350\" y2=\"56\" stroke=\"#ea580c\" stroke-width=\"1.6\" marker-start=\"url(#ar)\" marker-end=\"url(#ar)\"/><line x1=\"110\" y1=\"50\" x2=\"110\" y2=\"62\" stroke=\"#ea580c\" stroke-width=\"1.6\"/><line x1=\"350\" y1=\"50\" x2=\"350\" y2=\"62\" stroke=\"#ea580c\" stroke-width=\"1.6\"/><text x=\"230\" y=\"46\" text-anchor=\"middle\" font-size=\"15\" fill=\"#ea580c\" font-weight=\"600\">隔一个峰 = 一拍</text><line x1=\"110\" y1=\"336\" x2=\"190\" y2=\"336\" stroke=\"#b91c1c\" stroke-width=\"1.6\" marker-start=\"url(#ar-r)\" marker-end=\"url(#ar-r)\"/><line x1=\"110\" y1=\"330\" x2=\"110\" y2=\"342\" stroke=\"#b91c1c\" stroke-width=\"1.6\"/><line x1=\"190\" y1=\"330\" x2=\"190\" y2=\"342\" stroke=\"#b91c1c\" stroke-width=\"1.6\"/><text x=\"230\" y=\"358\" font-size=\"14\" fill=\"#b91c1c\">相邻峰 380 ms → 一拍被数成两拍</text>\n</svg></div>",
+          "frag": true
+        }
+      ]
+    },
+    {
+      "t": "quote",
+      "text": "为了解决 A 问题引入的方法，制造了 B 问题。",
+      "frag": true
+    }
+  ]
+}

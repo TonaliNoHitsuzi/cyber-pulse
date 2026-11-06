@@ -1,0 +1,13 @@
+.pageBody > .p{max-width:none}
+.pageBody{gap:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px;flex:0 0 auto}
+.c{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:16px 20px}
+.c.hot{border-color:#fdba74;background:#fffbf5}
+.c .when{font-family:var(--mono);font-size:11px;color:#94a3b8;letter-spacing:.12em;margin-bottom:4px}
+.c .big{font-family:var(--mono);font-size:40px;font-weight:700;color:#0f172a;line-height:1.05;margin-bottom:6px}
+.c.hot .big{color:var(--orange)}
+.c .d{font-size:16px;line-height:1.55;color:#475569}
+.quote{font-size:28px;padding:8px 0 8px 24px;max-width:none}
+
+.fig{display:flex;justify-content:center;flex:0 0 auto}
+.fig>svg{height:212px;width:auto;max-width:100%}

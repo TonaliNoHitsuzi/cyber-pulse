@@ -1,0 +1,8 @@
+.pageBody > .p{max-width:none}
+.table{font-size:18px}
+.table th{font-size:12px;padding:0 12px 9px}
+.table td{padding:11px 12px;line-height:1.5}
+.stats{grid-template-columns:repeat(4,1fr);gap:16px}
+.stat{padding:16px 20px}
+.stat .v{font-size:34px}
+.quote{font-size:30px;padding:10px 0 10px 26px;max-width:none}

@@ -1,0 +1,15 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "先看**静息段**：误差 = 设备读数 − 手表读数；5.2 是四个人误差绝对值的平均。",
+      "frag": true
+    },
+    {
+      "t": "html",
+      "html": "<div class=\"fig\"><svg viewBox=\"0 0 1100 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\">\n<text x=\"40\" y=\"46\" font-size=\"14\" font-weight=\"700\" fill=\"#1d4ed8\">一次读数</text>\n<rect x=\"40\" y=\"76\" width=\"160\" height=\"72\" rx=\"10\" fill=\"#eff6ff\" stroke=\"#bfdbfe\"/>\n<text x=\"60\" y=\"98\" font-size=\"11\" fill=\"#64748b\">手表</text>\n<text x=\"60\" y=\"132\" font-size=\"28\" font-weight=\"700\" fill=\"#1d4ed8\">82</text>\n<text x=\"215\" y=\"120\" font-size=\"24\" fill=\"#94a3b8\">−</text>\n<rect x=\"235\" y=\"76\" width=\"160\" height=\"72\" rx=\"10\" fill=\"#eff6ff\" stroke=\"#bfdbfe\"/>\n<text x=\"255\" y=\"98\" font-size=\"11\" fill=\"#64748b\">设备</text>\n<text x=\"255\" y=\"132\" font-size=\"28\" font-weight=\"700\" fill=\"#1d4ed8\">79</text>\n<text x=\"410\" y=\"120\" font-size=\"24\" fill=\"#94a3b8\">=</text>\n<rect x=\"432\" y=\"76\" width=\"170\" height=\"72\" rx=\"10\" fill=\"#fef2f2\" stroke=\"#fecaca\"/>\n<text x=\"452\" y=\"98\" font-size=\"11\" fill=\"#64748b\">误差</text>\n<text x=\"452\" y=\"132\" font-size=\"28\" font-weight=\"700\" fill=\"#b91c1c\">−3</text>\n<text x=\"40\" y=\"182\" font-size=\"11\" fill=\"#94a3b8\">负数 = 设备读低了</text>\n\n<text x=\"660\" y=\"46\" font-size=\"14\" font-weight=\"700\" fill=\"#0f766e\">四次读数 → 取绝对值平均</text>\n<line x1=\"690\" y1=\"230\" x2=\"1050\" y2=\"230\" stroke=\"#cbd5e1\"/>\n<g font-size=\"12\" text-anchor=\"middle\" fill=\"#475569\">\n<circle cx=\"725\" cy=\"230\" r=\"5\" fill=\"#0f766e\"/><text x=\"725\" y=\"216\">0</text>\n<rect x=\"755\" y=\"200\" width=\"50\" height=\"30\" fill=\"#0f766e\" opacity=\".22\"/><text x=\"780\" y=\"192\">+5</text>\n<rect x=\"835\" y=\"230\" width=\"50\" height=\"18\" fill=\"#b91c1c\" opacity=\".25\"/><text x=\"860\" y=\"264\">−3</text>\n<rect x=\"915\" y=\"230\" width=\"50\" height=\"78\" fill=\"#b91c1c\" opacity=\".25\"/><text x=\"940\" y=\"322\">−13</text>\n</g>\n<g font-size=\"11\" fill=\"#94a3b8\" text-anchor=\"middle\">\n<text x=\"725\" y=\"340\">苏</text><text x=\"780\" y=\"340\">赵</text><text x=\"860\" y=\"340\">周</text><text x=\"940\" y=\"340\">陈</text>\n</g>\n<text x=\"40\" y=\"330\" font-size=\"13\" fill=\"#334155\">|0| + |+5| + |−3| + |−13| = 21      →      21 / 4 = 5.25</text>\n<text x=\"40\" y=\"350\" font-size=\"10.5\" fill=\"#94a3b8\">误差单位：BPM；绝对值平均（MAE）</text>\n</svg></div>",
+      "frag": true
+    }
+  ],
+  "annot": "Day 7 · 4 人静息段对照：每次误差取绝对值，再平均。"
+}

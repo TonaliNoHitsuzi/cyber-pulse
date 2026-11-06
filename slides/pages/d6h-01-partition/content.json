@@ -1,0 +1,26 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "板上 4 MB Flash，不是都能随便用——分区表决定谁住哪。",
+      "frag": true
+    },
+    {
+      "t": "html",
+      "html": "<div class=\"fig\"><svg viewBox=\"0 0 1200 320\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\">\n<text x=\"80\" y=\"46\" font-size=\"12.5\" fill=\"#475569\" font-weight=\"600\">4 MB Flash</text>\n<rect x=\"80\" y=\"70\" width=\"6\" height=\"66\" fill=\"#94a3b8\"/>\n<rect x=\"86\" y=\"70\" width=\"2\" height=\"66\" fill=\"#cbd5e1\"/>\n<line x1=\"89\" y1=\"70\" x2=\"180\" y2=\"34\" stroke=\"#94a3b8\" stroke-width=\"1\" stroke-dasharray=\"4 3\"/>\n<text x=\"186\" y=\"38\" font-size=\"11\" fill=\"#64748b\">nvs 24 K + phy 4 K</text>\n<rect x=\"88\" y=\"70\" width=\"260\" height=\"66\" fill=\"#1d4ed8\" opacity=\".14\" stroke=\"#1d4ed8\"/>\n<text x=\"218\" y=\"108\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"600\" fill=\"#1d4ed8\">app 1 MB</text>\n<rect x=\"348\" y=\"70\" width=\"772\" height=\"66\" fill=\"#0f766e\" opacity=\".14\" stroke=\"#0f766e\"/>\n<text x=\"734\" y=\"103\" text-anchor=\"middle\" font-size=\"14\" font-weight=\"600\" fill=\"#0f766e\">storage 3 MB（FAT）</text>\n<text x=\"734\" y=\"124\" text-anchor=\"middle\" font-size=\"11\" fill=\"#0f766e\">1 kHz 原始数据 ≈ 26 分钟</text>\n<g font-size=\"11.5\" fill=\"#64748b\">\n<line x1=\"218\" y1=\"150\" x2=\"218\" y2=\"186\" stroke=\"#94a3b8\" stroke-dasharray=\"4 3\"/>\n<text x=\"218\" y=\"204\" text-anchor=\"middle\">固件</text>\n<line x1=\"734\" y1=\"150\" x2=\"734\" y2=\"186\" stroke=\"#94a3b8\" stroke-dasharray=\"4 3\"/>\n<text x=\"734\" y=\"204\" text-anchor=\"middle\">数据</text>\n</g>\n<text x=\"600\" y=\"250\" text-anchor=\"middle\" font-size=\"13\" fill=\"#334155\">升级固件不动数据 · 清数据不动固件</text>\n<text x=\"600\" y=\"284\" text-anchor=\"middle\" font-size=\"11\" fill=\"#94a3b8\">分区表：nvs 24K / phy 4K / app 1M / storage 3M</text>\n</svg></div>",
+      "frag": true
+    },
+    {
+      "t": "p",
+      "small": true,
+      "text": "实测写入 2 KB/s：主循环卡顿 16~34 ms，堆 138 → 114 KB——对采样无可测影响。",
+      "frag": true
+    },
+    {
+      "t": "quote",
+      "text": "数据要存在一个「刷固件不会动它」的地方。",
+      "frag": true
+    }
+  ],
+  "annot": "3 MB 按 1 kHz 约 26 分钟；固件与数据各占一块，互不覆盖。"
+}

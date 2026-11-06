@@ -1,0 +1,5 @@
+.pageBody > .p{max-width:none}
+.fig{width:100%}
+.fig>svg{width:100%;height:auto}
+.p.small{font-size:19px}
+.quote{font-size:31px;padding:10px 0 10px 26px;max-width:none}

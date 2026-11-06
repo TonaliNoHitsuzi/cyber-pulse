@@ -1,0 +1,6 @@
+.pageBody > .p{max-width:none}
+.steps{gap:18px}
+.steps .step{padding:22px 24px}
+.steps .step .t{font-size:19px;line-height:1.6}
+.note{font-size:18px}
+.quote{font-size:34px;padding:12px 0 12px 26px;max-width:none}

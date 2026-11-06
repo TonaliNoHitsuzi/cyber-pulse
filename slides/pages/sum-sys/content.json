@@ -1,0 +1,26 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "从屏幕和灯带开始，最后把设备、手机和讲台连成一条链。",
+      "frag": true
+    },
+    {
+      "t": "html",
+      "html": "<div class=\"sumGrid\">\n<div class=\"sc\"><div class=\"h\">起点</div><div class=\"t\">看得见的那一层</div><div class=\"d\">OLED、灯带、手机 App——把数据变成现场能看到的东西。</div></div>\n<div class=\"sc\"><div class=\"h\">拿到</div><div class=\"t\">两条链路</div><div class=\"d\">蓝牙 100 Hz 管实时；闪存 1 kHz 留全档；课堂演示同屏。</div></div>\n<div class=\"sc warn\"><div class=\"h\">学到</div><div class=\"t\">分开做</div><div class=\"d\">带宽不够就分工；实时与完整冲突就分开，不折中。</div></div>\n</div>",
+      "frag": true
+    },
+    {
+      "t": "p",
+      "small": true,
+      "text": "系统不是某一项技术，是让每一块在正确的场景里各就各位。",
+      "frag": true
+    },
+    {
+      "t": "quote",
+      "text": "功能和开发已经闭环，但想让嵌入式机器变成可用的产品，还需要把整体系统化——留出与人、与外界交流的入口。嵌入式系统不是孤立封闭的，而是应该和手机、电脑、人互相连接、通信，构成一整套服务。",
+      "frag": true
+    }
+  ],
+  "annot": "总结 · 系统线：实时、留档、演示，各走各的链路。"
+}

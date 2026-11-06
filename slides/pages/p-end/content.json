@@ -1,0 +1,20 @@
+{
+  "blocks": [
+    {
+      "t": "h",
+      "level": 1,
+      "text": "七天的故事，讲完了。"
+    },
+    {
+      "t": "p",
+      "text": "接下来按五条线，各收一次账。",
+      "frag": true
+    },
+    {
+      "t": "html",
+      "html": "<div class=\"lines\"><span class=\"ln hw\">硬件</span><span class=\"ln algo\">算法</span><span class=\"ln exp\">实验</span><span class=\"ln org\">组织</span><span class=\"ln demo\">系统</span></div>",
+      "frag": true
+    }
+  ],
+  "annot": ""
+}

@@ -1,0 +1,8 @@
+.pageBody > .p{max-width:none}
+.introGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;flex:1;min-height:0}
+.ic{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px 26px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow)}
+.ic .h{font-size:20px;font-weight:700;color:var(--blue)}
+.ic ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.ic li{font-size:18px;line-height:1.55;color:#1e293b;padding-left:18px;position:relative}
+.ic li::before{content:"";position:absolute;left:0;top:11px;width:6px;height:6px;border-radius:2px;background:var(--blue);transform:rotate(45deg)}
+.p.small{font-size:17.5px}

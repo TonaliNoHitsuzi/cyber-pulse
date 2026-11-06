@@ -1,0 +1,6 @@
+.pageBody > .p{max-width:none}
+.compare{flex:1}
+.compare .col h4{font-size:22px;margin-bottom:6px}
+.compare .col p.hint{font-size:14px;color:var(--faint);margin-bottom:14px}
+.compare .col li{font-size:21px;padding:8px 20px}
+.quote{font-size:31px;padding:12px 0 12px 28px;max-width:none}

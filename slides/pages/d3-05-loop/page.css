@@ -1,0 +1,15 @@
+.pageBody > .p{max-width:none}
+.split{grid-template-columns:1fr 1fr;gap:40px;align-items:center;flex:1;min-height:0;height:auto}
+.table{font-size:20px}
+.table th{font-size:13px}
+.fig{height:auto;display:flex;align-items:center;justify-content:center}
+.fig>svg{height:250px;width:auto;max-width:100%}
+.imgph{width:100%;max-width:400px;aspect-ratio:16/9;border:2px dashed #cbd5e1;border-radius:14px;
+  background:#fcfdff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center}
+.imgph .tag{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:#94a3b8}
+.imgph .big{font-size:17px;color:#64748b;font-weight:600}
+.imgph .hint{font-size:12px;color:#a8b4c4}
+.quote{font-size:32px;padding:10px 0 10px 26px;max-width:none}
+
+.oledWrap{width:100%;display:flex;justify-content:center}
+.oledWrap>svg{width:100%;height:auto}

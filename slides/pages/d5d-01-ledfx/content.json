@@ -1,0 +1,37 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "屏幕能报数，但现场没人一直盯着屏幕——于是把它做成光。",
+      "frag": true
+    },
+    {
+      "t": "split",
+      "left": [
+        {
+          "t": "html",
+          "html": "<div class=\"fig vidFig\">\n<video src=\"assets/demo.mp4\" poster=\"assets/poster.jpg\" muted autoplay loop playsinline></video>\n<div class=\"cap\">现场：16 颗环，暗弧随转速走</div>\n</div>"
+        }
+      ],
+      "right": [
+        {
+          "t": "html",
+          "html": "<div class=\"fig ringFig\"><svg viewBox=\"0 0 620 420\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"Noto Sans SC, system-ui, sans-serif\">\n<text x=\"300\" y=\"34\" text-anchor=\"middle\" font-size=\"12\" fill=\"#64748b\">复刻：转速 / 基色 / 搏动都跟心率走</text>\n<circle cx=\"300\" cy=\"165\" r=\"105\" fill=\"none\" stroke=\"#f1f5f9\" stroke-width=\"26\"/>\n<g class=\"ledRing\">\n<circle class=\"led\" cx=\"300.0\" cy=\"60.0\" r=\"9.5\" fill=\"rgb(107,0,0)\" style=\"animation-delay:-0.000s\"/><circle class=\"led\" cx=\"340.2\" cy=\"68.0\" r=\"9.5\" fill=\"rgb(62,23,0)\" style=\"animation-delay:-0.431s\"/><circle class=\"led\" cx=\"374.2\" cy=\"90.8\" r=\"9.5\" fill=\"rgb(50,37,0)\" style=\"animation-delay:-0.863s\"/><circle class=\"led\" cx=\"397.0\" cy=\"124.8\" r=\"9.5\" fill=\"rgb(44,50,0)\" style=\"animation-delay:-1.294s\"/><circle class=\"led\" cx=\"405.0\" cy=\"165.0\" r=\"9.5\" fill=\"rgb(25,50,0)\" style=\"animation-delay:-1.725s\"/><circle class=\"led\" cx=\"397.0\" cy=\"205.2\" r=\"9.5\" fill=\"rgb(6,51,0)\" style=\"animation-delay:-2.156s\"/><circle class=\"led\" cx=\"374.2\" cy=\"239.2\" r=\"9.5\" fill=\"rgb(0,52,13)\" style=\"animation-delay:-2.588s\"/><circle class=\"led\" cx=\"340.2\" cy=\"262.0\" r=\"9.5\" fill=\"rgb(0,50,31)\" style=\"animation-delay:-3.019s\"/><circle class=\"led\" cx=\"300.0\" cy=\"270.0\" r=\"9.5\" fill=\"rgb(0,50,50)\" style=\"animation-delay:-3.450s\"/><circle class=\"led\" cx=\"259.8\" cy=\"262.0\" r=\"9.5\" fill=\"rgb(0,42,67)\" style=\"animation-delay:-3.881s\"/><circle class=\"led\" cx=\"225.8\" cy=\"239.2\" r=\"9.5\" fill=\"rgb(0,31,123)\" style=\"animation-delay:-4.312s\"/><circle class=\"led\" cx=\"203.0\" cy=\"205.2\" r=\"9.5\" fill=\"rgb(17,0,138)\" style=\"animation-delay:-4.744s\"/><circle class=\"led\" cx=\"195.0\" cy=\"165.0\" r=\"9.5\" fill=\"rgb(61,0,122)\" style=\"animation-delay:-5.175s\"/><circle class=\"led\" cx=\"203.0\" cy=\"124.8\" r=\"9.5\" fill=\"rgb(75,0,86)\" style=\"animation-delay:-5.606s\"/><circle class=\"led\" cx=\"225.8\" cy=\"90.8\" r=\"9.5\" fill=\"rgb(84,0,63)\" style=\"animation-delay:-6.038s\"/><circle class=\"led\" cx=\"259.8\" cy=\"68.0\" r=\"9.5\" fill=\"rgb(94,0,35)\" style=\"animation-delay:-6.469s\"/>\n</g>\n<defs><linearGradient id=\"hrg\" x1=\"0\" x2=\"1\"><stop offset=\"0\" stop-color=\"#1d4ed8\"/><stop offset=\".45\" stop-color=\"#0f766e\"/><stop offset=\".7\" stop-color=\"#f59e0b\"/><stop offset=\"1\" stop-color=\"#dc2626\"/></linearGradient></defs>\n<rect x=\"90\" y=\"330\" width=\"420\" height=\"16\" rx=\"8\" fill=\"url(#hrg)\"/>\n<g font-size=\"11\" fill=\"#94a3b8\" text-anchor=\"middle\"><text x=\"90.0\" y=\"366\">40</text><text x=\"180.0\" y=\"366\">70</text><text x=\"270.0\" y=\"366\">100</text><text x=\"360.0\" y=\"366\">130</text><text x=\"510.0\" y=\"366\">180</text></g>\n<text x=\"90\" y=\"390\" font-size=\"10.5\" fill=\"#64748b\">40 · 蓝 · 0.01 圈/s</text>\n<text x=\"510\" y=\"390\" font-size=\"10.5\" fill=\"#dc2626\" text-anchor=\"end\">180 · 红 · 0.55 圈/s</text>\n</svg></div>"
+        }
+      ],
+      "frag": true
+    },
+    {
+      "t": "p",
+      "small": true,
+      "text": "转速 = 0.01 + (HR−40)/140 × 0.54 圈/s；基色 hue 0.58 → 0（蓝→红）；每搏亮度 0.30 → 1.50、τ = 0.35 s；心率本身 τ = 3.5 s 平滑。",
+      "frag": true
+    },
+    {
+      "t": "quote",
+      "text": "可视化不是装饰，是把不可见的量变成可讨论的对象。",
+      "frag": true
+    }
+  ],
+  "annot": "左：现场视频；右：按固件 led_fx.c 参数复刻（16 颗、色相沿环 1/16、蓝段受亮度补偿偏暗）。灯效和屏幕后来都拆成独立任务：主循环卡顿 215 → 106 ms。"
+}

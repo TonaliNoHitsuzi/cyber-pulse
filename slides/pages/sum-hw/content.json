@@ -1,0 +1,26 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "从一片裸膜开始，最后知道它在哪里失灵。",
+      "frag": true
+    },
+    {
+      "t": "html",
+      "html": "<div class=\"sumGrid\">\n<div class=\"sc\"><div class=\"h\">起点</div><div class=\"t\">一片裸膜</div><div class=\"d\">压电薄膜 + 一颗电阻；没有运放、没有滤波、没有专用前端。</div></div>\n<div class=\"sc\"><div class=\"h\">拿到</div><div class=\"t\">静息可用</div><div class=\"d\">误差 0~2 BPM；信号质量分级；OLED 与灯带现场反馈。</div></div>\n<div class=\"sc warn\"><div class=\"h\">卡在</div><div class=\"t\">运动段饱和</div><div class=\"d\">85.7 上限；步态共模；前端在求导，波形只剩尖刺。</div></div>\n</div>",
+      "frag": true
+    },
+    {
+      "t": "p",
+      "small": true,
+      "text": "出路：差分对导联 + 电荷放大——还没做，但方向已经清楚了。",
+      "frag": true
+    },
+    {
+      "t": "quote",
+      "text": "硬件是对接设计需求的第一道关卡，好的硬件设计要能预判未来的功能需求，并主动寻求和软件相适配。采购、搭建，甚至未来如果上 PCB，都需要预先在脑海中搭建好工程图景，尽量避免问题的出现——在嵌入式开发中，问题暴露得越早，成本就越低。",
+      "frag": true
+    }
+  ],
+  "annot": "总结 · 硬件线：静息可用，运动失效。"
+}

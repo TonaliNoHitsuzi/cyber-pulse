@@ -1,0 +1,38 @@
+{
+  "blocks": [
+    {
+      "t": "p",
+      "text": "左：实时波形；中：BPM / 状态 / 质量门；右：手机后摄。",
+      "frag": true
+    },
+    {
+      "t": "split",
+      "left": [
+        {
+          "t": "ul",
+          "tight": true,
+          "frag": true,
+          "items": [
+            "按钮：起串口桥，手机连着就起相机窗口",
+            "新标签页先显示启动状态，就绪后进演示平台",
+            "页内底部命令下拉，现场可调参数"
+          ]
+        },
+        {
+          "t": "html",
+          "html": "<div class=\"liveRow\"><a class=\"liveBtn\" href=\"/demo/launch\" target=\"_blank\" rel=\"noopener\">启动现场演示 →</a><a class=\"alt\" href=\"http://127.0.0.1:8100/?cam=gdm\" target=\"_blank\" rel=\"noopener\">已启动，直接打开</a></div>",
+          "frag": true
+        }
+      ],
+      "right": [
+        {
+          "t": "figure",
+          "frag": true,
+          "src": "assets/demo.png",
+          "caption": "课堂演示平台（实拍）"
+        }
+      ]
+    }
+  ],
+  "annot": "备用站只放讲稿；现场演示需在本地环境启动。"
+}
