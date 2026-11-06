@@ -27,6 +27,11 @@ __pycache__/
 *.rar
 *.tar.gz
 
+# 讲稿里的演示视频/媒体随站发布（slides/ 内放行）
+!slides/**/*.mp4
+!slides/**/*.webm
+!slides/**/*.mov
+
 # ==== 系统文件 ====
 Thumbs.db
 desktop.ini
