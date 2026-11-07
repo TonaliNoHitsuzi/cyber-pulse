@@ -1,0 +1,3 @@
+Load "D:\\FileCenter\\10-学期\\大三上\\单片机课程作业\\实验课\\T0.外接按钮测试\\Project\\Objects\\STM32KeilPrj.axf" 
+Erase Done.Programming Done.Verify OK.Application running ...
+Flash Load finished at 16:38:38

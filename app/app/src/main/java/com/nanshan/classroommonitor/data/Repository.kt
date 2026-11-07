@@ -19,7 +19,6 @@ class Repository(context: Context) {
     fun observeSessions(): Flow<List<SessionEntity>> = sDao.observeAll()
     suspend fun session(id: Long): SessionEntity? = sDao.getById(id)
     suspend fun allSessions(): List<SessionEntity> = sDao.listAll()
-    suspend fun recentProfiles(): List<ProfileRow> = sDao.recentProfiles()
     suspend fun createSession(s: SessionEntity): Long = sDao.insert(s)
     suspend fun markStarted(id: Long) = sDao.markStarted(id, startedAt = System.currentTimeMillis())
     suspend fun setStatus(id: Long, st: SessionStatus) = sDao.setStatus(id, st.name)

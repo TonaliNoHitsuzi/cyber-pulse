@@ -22,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -38,7 +37,6 @@ import androidx.compose.ui.unit.sp
 import com.nanshan.classroommonitor.data.ConfigStore
 import com.nanshan.classroommonitor.data.DeviceMeta
 import com.nanshan.classroommonitor.data.Repository
-import com.nanshan.classroommonitor.data.ProfileRow
 import com.nanshan.classroommonitor.data.SessionEntity
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -92,30 +90,6 @@ fun NewSessionScreen(nav: Navigator) {
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     )
                 )
-            }
-        }
-
-        // 常用被试：一键填入（同组只有几个人，反复采集）
-        var profiles by remember { mutableStateOf<List<ProfileRow>>(emptyList()) }
-        LaunchedEffect(Unit) {
-            profiles = runCatching { repo.recentProfiles() }.getOrDefault(emptyList())
-        }
-        if (profiles.isNotEmpty()) {
-            Text("常用被试（点一下自动填入）", fontSize = 13.sp,
-                 color = MaterialTheme.colorScheme.onSurfaceVariant)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                profiles.forEach { pr ->
-                    AssistChip(
-                        onClick = {
-                            values["studentName"] = pr.name
-                            pr.sid?.takeIf { it.isNotBlank() }?.let { values["studentId"] = it }
-                            pr.gender?.takeIf { it.isNotBlank() }?.let { values["gender"] = it }
-                            pr.height?.let { values["height"] = if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() }
-                            pr.weight?.let { values["weight"] = if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() }
-                        },
-                        label = { Text(pr.name, fontSize = 13.sp) }
-                    )
-                }
             }
         }
 

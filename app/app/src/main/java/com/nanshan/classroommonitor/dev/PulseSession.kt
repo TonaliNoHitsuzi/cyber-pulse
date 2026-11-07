@@ -63,24 +63,12 @@ object PulseSession {
             DevState.bpm = d.bpm
             DevState.bpm2 = d.bpm2
             DevState.score = d.score
-            if (d.boardMs > 0) {
-                val nowWall = System.currentTimeMillis()
-                if (!boardAnchorSet) {
-                    boardToWall = nowWall - d.boardMs
-                    boardAnchorSet = true
-                    DevState.addLog("时钟锚定: 板${d.boardMs}ms → 墙$nowWall")
-                } else {
-                    val err = (nowWall - d.boardMs) - boardToWall
-                    if (err > 120 && err < 5000) boardToWall += err / 8
-                    else if (err < -120 && err > -5000) boardToWall += err / 8
-                }
-            }
             val sid = sessionId
-            if (recording && sid > 0) {
+            if (sid > 0) {
                 synchronized(replayLock) {
                     uiBuf.add(UiFrameEntity(sessionId = sid, ts = System.currentTimeMillis(),
                         bpm = d.bpm, bpm2 = d.bpm2, sc = d.score, state = d.state,
-                        p95 = d.p95, p50 = d.p50, q = d.q))
+                        p95 = d.p95, p50 = 0, q = 0))
                 }
             }
             DevState.state = d.state
@@ -116,9 +104,6 @@ object PulseSession {
                     val now = System.currentTimeMillis()
                     liveWaveStart = if (liveWaveStart == 0L) now - s.size * 10L else liveWaveStart
                     liveWaveBuf.addAll(s)
-                    if (liveWaveStart > 0 && recordStartWall > 0 && liveWaveStart + 1000 < recordStartWall - 500) {
-                        liveWaveBuf.clear(); liveWaveStart = 0L
-                    }
                     if (liveWaveBuf.size >= 100) {
                         val chunk = ArrayList(liveWaveBuf.subList(0, 100))
                         liveWaveBuf = ArrayList(liveWaveBuf.subList(100, liveWaveBuf.size))
@@ -140,7 +125,6 @@ object PulseSession {
         }
         c.onConnected = {
             connectInFlight = false
-            boardAnchorSet = false
             connectedSince = System.currentTimeMillis()
             lastDataTs = connectedSince      // 新连接宽限：避免旧时间戳误判为断链
             connected = true
@@ -323,8 +307,6 @@ object PulseSession {
         samples = 0
         finished = false
         recording = true
-        recordStartWall = System.currentTimeMillis()
-        boardAnchorSet = false
         runCatching { ImuCollector.start(appCtx, target) }
         runCatching { ContextCollector.start(appCtx, target) }
         runCatching { RecordingService.start(appCtx) }
@@ -334,15 +316,18 @@ object PulseSession {
             repoLazy.markStarted(target)
             repoLazy.setStatus(target, SessionStatus.RECORDING)
         }
+        // 通知板子开始闪存记录，会话号写入文件头做唯一对照（v2 协议）
+        if (sendCommand("rec start $target")) DevState.addLog("闪存记录开始 #$target")
+        else DevState.addLog("!! 闪存记录命令未送达（BLE未连接?）")
         DevState.addLog("开始录制 #$target")
     }
 
     fun pauseRecording() {
         recording = false
-        synchronized(replayLock) { uiBuf.clear(); replayBuf.clear() }
         runCatching { ImuCollector.stop() }
         runCatching { ContextCollector.stop() }
         runCatching { RecordingService.stop(appCtx) }
+        sendCommand("rec stop")   // 暂停即停闪存；恢复时 startRecording 会以同一会话号新开一个 rec 文件
         sessionId.takeIf { it > 0 }?.let { id ->
             scope.launch { repoLazy.setStatus(id, SessionStatus.PAUSED) }
         }
@@ -350,36 +335,15 @@ object PulseSession {
     }
 
     private var finished = false
-    /** 实验事件标注：1=跑步开始 2=跑步结束 3=坐下 4=静息结束 */
-    fun markEvent(code: Int, label: String) {
-        val id = sessionId
-        if (id <= 0) return
-        scope.launch {
-            repoLazy.insertSamples(listOf(
-                SampleEntity(
-                    sessionId = id,
-                    channel = "MARK",
-                    tsMillis = System.currentTimeMillis(),
-                    value = code.toDouble(),
-                    extraJson = "{\"label\":\"$label\"}",
-                    quality = label,
-                    sourceTag = SampleSource.PHONE_SENSOR
-                )
-            ))
-        }
-        DevState.addLog("标记: $label")
-    }
-
     fun stopRecording() {
         if (finished) return          // 防重复（BackHandler 与 onDispose 都会调）
         finished = true
         recording = false
-        synchronized(replayLock) { uiBuf.clear(); replayBuf.clear() }
         runCatching { ImuCollector.stop() }
         runCatching { ContextCollector.stop() }
         runCatching { RecordingService.stop(appCtx) }
+        sendCommand("rec stop")   // 停止测量 = 停止闪存记录（板子侧安全落盘）
         val id = sessionId
-        sessionId = -1          // 停止后再来的数据不再归档到旧会话
         if (id > 0) {
             scope.launch {
                 repoLazy.markEnded(id)
@@ -421,10 +385,6 @@ object PulseSession {
     @Volatile private var connectedSince = 0L
     @Volatile private var connectInFlight = false
     private var replayLastEndBoardMs = 0L
-    /* 唯一时钟：板载毫秒 → 墙上毫秒，连接时锚定一次，之后只做缓慢漂移校正 */
-    @Volatile private var boardToWall = 0L
-    @Volatile private var boardAnchorSet = false
-    @Volatile private var recordStartWall = 0L
     private var replayFlushAt = 0L
     private var uiFlushAt = 0L
 
@@ -448,14 +408,9 @@ object PulseSession {
                 scope.launch { repoLazy.insertUiFrames(frames) }
             }
             if (replayBuf.isEmpty() || now < replayFlushAt) return
-            val offset = if (boardAnchorSet) boardToWall
-                         else System.currentTimeMillis() - replayLastEndBoardMs
-            val cutoff = recordStartWall - 500L
+            val offset = System.currentTimeMillis() - replayLastEndBoardMs
             val fixed = replayBuf.map { it.copy(startTs = it.startTs + offset) }
-                .filter { recordStartWall <= 0L || it.startTs + it.count * 10L >= cutoff }
-            val dropped = replayBuf.size - fixed.size
             replayBuf.clear()
-            if (dropped > 0) DevState.addLog("丢弃会话前波形 ${dropped} 块")
             scope.launch { repoLazy.insertWaveChunks(fixed) }
             if (fixed.isNotEmpty()) DevState.addLog("补发入库 ${fixed.size} 块（已换算墙上时间）")
         }

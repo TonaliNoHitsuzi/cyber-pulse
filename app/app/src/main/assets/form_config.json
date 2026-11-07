@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 4,
   "title": "测量信息",
   "channels": [
     "HEART_RATE"
@@ -76,6 +76,20 @@
         "小指"
       ],
       "default": "拇指"
+    },
+    {
+      "key": "temperature",
+      "label": "温度(℃)",
+      "type": "number",
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "humidity",
+      "label": "湿度(%)",
+      "type": "number",
+      "required": false,
+      "default": ""
     },
     {
       "key": "weather",

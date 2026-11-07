@@ -54,15 +54,6 @@ data class SampleEntity(
     val sourceTag: String
 )
 
-data class ProfileRow(
-    val name: String,
-    val sid: String?,
-    val gender: String?,
-    val height: Double?,
-    val weight: Double?,
-    val lastTs: Long
-)
-
 @Dao
 interface SessionDao {
     @Insert
@@ -85,11 +76,6 @@ interface SessionDao {
 
     @Query("SELECT * FROM sessions WHERE id=:id")
     suspend fun getById(id: Long): SessionEntity?
-
-    @Query("SELECT studentName AS name, studentId AS sid, gender, height, weight, MAX(startedAt) AS lastTs " +
-           "FROM sessions WHERE studentName != '' AND studentName NOT LIKE '%Cal%' " +
-           "GROUP BY studentName ORDER BY lastTs DESC LIMIT 12")
-    suspend fun recentProfiles(): List<ProfileRow>
 
     @Query("UPDATE sessions SET status=:done, endedAt=:now WHERE status IN ('RECORDING','PAUSED')")
     suspend fun closeOrphans(done: String, now: Long)

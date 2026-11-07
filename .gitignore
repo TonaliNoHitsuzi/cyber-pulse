@@ -1,38 +1,45 @@
-# ==== 构建产物 / 本地环境 ====
-build/
-.gradle/
-.idea/
-local.properties
-*.iml
+# 隐私 / 原始数据
+数据/
+文档/群聊记录/
+分析/*.json
+分析/*.csv
+分析/weather/
+
+# 构建产物
+App/app/build/
+App/build/
+App/.gradle/
+App/local.properties
 __pycache__/
 *.pyc
-.cache/
 
-# ==== GitHub 大文件过滤（单文件 >100MB 直接拒绝，>50MB 警告）====
-# 演示文稿、视频、设计源文件、压缩包一律不入库，放网盘或 Release 附件
-*.ppt
-*.pptx
-*.key
-*.doc
-*.docx
-*.pdf
-*.mp4
-*.mov
-*.avi
-*.mkv
-*.psd
-*.ai
-*.zip
-*.7z
-*.rar
-*.tar.gz
+# 演示平台运行时与第三方工具
+课堂演示/runtime/
+课堂演示/bin/
+课堂演示/bridge.log
+课堂演示/bridge.err
 
-# 讲稿里的演示视频/媒体随站发布（slides/ 内放行）
-!slides/**/*.mp4
-!slides/**/*.webm
-!slides/**/*.mov
+# 交付压缩包
+交付包/
 
-# ==== 系统文件 ====
-Thumbs.db
-desktop.ini
+# 实验课编译产物
+实验课/**/Objects/
+实验课/**/Listings/
+实验课/**/*.o
+实验课/**/*.d
+实验课/**/*.crf
+实验课/**/*.axf
+实验课/**/*.hex
+实验课/**/*.bin
+实验课/**/*.map
+实验课/**/*.lst
+实验课/**/*.dep
+实验课/**/*.lnp
+实验课/**/*.sct
+实验课/**/*.iex
+实验课/**/*.uvguix.*
+实验课/**/*.scvd
+
+# 系统文件
 .DS_Store
+Thumbs.db
