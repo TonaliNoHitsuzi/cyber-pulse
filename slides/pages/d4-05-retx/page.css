@@ -3,3 +3,7 @@
 .fig{height:100%;display:flex;align-items:center;justify-content:center}
 .fig>svg{height:100%;width:auto;max-width:100%}
 .quote{font-size:32px;padding:10px 0 10px 26px;max-width:none}
+
+.figStack{display:flex;flex-direction:column;gap:12px;justify-content:center}
+.figStack .fig{height:auto;width:100%}
+.figStack .fig>svg{width:100%;height:auto;max-height:250px}
